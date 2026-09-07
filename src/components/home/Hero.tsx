@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 export default function Hero() {
   return (
-    <section className="relative overflow-hidden bg-[#EBF5FF] min-h-[600px] flex items-center">
+    <section className="relative overflow-hidden bg-[#EBF5FF] min-h-[600px] flex items-center pb-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid lg:grid-cols-2 gap-8 items-center">
           {/* Left - Text Content */}
@@ -31,18 +31,17 @@ export default function Hero() {
             </div>
           </motion.div>
 
-          {/* Right - Founder Image */}
+          {/* Right - Founder Image (absolute to break out of container) */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8 }}
-            className="relative h-[550px] w-full flex justify-end items-end"
+            className="absolute right-0 bottom-0 w-1/2 h-[600px] flex justify-end items-end pointer-events-none"
           >
-            {/* Founder image - Aligned right and sitting at the bottom */}
             <img
               src="/images/founder.png"
               alt="Founder"
-              className="relative z-10 h-[500px] w-auto object-contain object-bottom ml-10"
+              className="relative z-10 h-[580px] w-auto object-contain object-bottom translate-y-4"
             />
           </motion.div>
         </div>
