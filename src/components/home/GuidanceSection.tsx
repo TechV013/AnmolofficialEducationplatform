@@ -9,10 +9,10 @@ export default function GuidanceSection() {
             <p className="text-sm font-bold uppercase tracking-wider opacity-80 mb-2">Get Expert Guidance</p>
             <h2 className="text-3xl sm:text-4xl font-bold mb-6">A Conversation with the Founder</h2>
             <p className="opacity-90 leading-relaxed mb-8">
-              Connect one-on-one with our founder and industry expert. Get personalized career advice, course recommendations, and answers to your questions. Our mentorship program has helped 40K+ students build successful careers in creative fields.
+              Connect with me and catch the energy! Get personalized career guidance, course recommendations and skill-based direction. My mentorship helps creatives gain clarity, confidence and industry-ready skills. Fill out the Form. If shortlisted, I’ll get in touch with you. One conversation can change your direction.
             </p>
             <div>
-              <div className="text-4xl font-bold">40K+</div>
+              <div className="text-4xl font-bold">2.3K+</div>
               <p className="text-sm opacity-80">Students mentored and counting</p>
             </div>
           </div>

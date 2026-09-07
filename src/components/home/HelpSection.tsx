@@ -32,7 +32,7 @@ export default function HelpSection() {
             </h2>
             <p className="text-gray-600 text-lg leading-relaxed mb-6">
               Have More Questions? Still looking for clarity? Let's Talk.<br />
-              Our expert leaders are here to listen, understand your goals and patiently guide you through every question, so you can make the right decision with confidence.
+              Our expert practitioners are here to listen, understand your goals and patiently guide you through every question, so you can make the right decision with confidence.
             </p>
             <p className="text-[#111111] font-semibold mb-8">
               Your First Conversation Is On Us! completely <span className="font-bold">FREE</span>

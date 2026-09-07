@@ -9,7 +9,7 @@ export default function CourseSection() {
         <div className="text-center mb-14">
           <h2 className="text-3xl sm:text-4xl font-bold text-black">Creative Courses</h2>
           <p className="mt-4 text-gray-600 max-w-2xl mx-auto text-lg">
-            In-depth digital courses. Start now, go at your own pace and build the skills for your future.
+            Learn with confidence, just like 91% of learners who have seen meaningful improvements in their careers, skills, and performance. Start now!
           </p>
         </div>
 
