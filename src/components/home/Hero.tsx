@@ -14,9 +14,10 @@ export default function Hero() {
             transition={{ duration: 0.6 }}
             className="relative z-10 text-center lg:text-left"
           >
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#111111] leading-[1.1] tracking-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-[3.4rem] font-bold text-[#111111] leading-[1.15] tracking-tight whitespace-nowrap">
               Your Imagination.<br />
-              Our Expertise. Unstoppable Learning
+              Our Expertise.<br />
+              Unstoppable Learning
             </h1>
             <p className="mt-6 text-lg text-[#181D27] max-w-lg mx-auto lg:mx-0">
               With Anmolofficial, learn affordable creative skills with structured, purpose-driven courses that teach not just what to learn, but why it matters and how to solve real-world problems with it.
