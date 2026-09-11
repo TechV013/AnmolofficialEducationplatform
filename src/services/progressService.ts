@@ -24,8 +24,7 @@ export const saveLessonProgress = async (userId: string, lessonId: string, watch
   });
 };
 
-export const getCourseCompletionStatus = getCourseProgress;
-export const getCourseProgress = async (userId: string, courseId: string) => {
+export const getCourseProgress = async (userId: string, courseId: string): Promise<number> => {
   const course = await prisma.course.findUnique({
     where: { id: courseId },
     include: {
@@ -49,4 +48,14 @@ export const getCourseProgress = async (userId: string, courseId: string) => {
   });
   
   return Math.round((completedLessons / allLessons.length) * 100);
+};
+
+export const getCourseCompletionStatus = async (userId: string, courseId: string) => {
+    const progress = await getCourseProgress(userId, courseId);
+    
+    // Authoritative completion contract
+    return {
+        completed: progress === 100,
+        percentage: progress
+    };
 };
