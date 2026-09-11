@@ -46,6 +46,7 @@ export interface Lesson {
   type: "video" | "assignment" | "resource";
   resources: Resource[];
   assignment?: Assignment;
+  position: number;
 }
 
 export interface LessonProgress {
@@ -57,6 +58,7 @@ export interface Module {
   id: string;
   title: string;
   lessons: Lesson[];
+  position: number;
 }
 
 import { UserRole as PrismaUserRole } from '@prisma/client';

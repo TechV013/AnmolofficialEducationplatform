@@ -24,6 +24,7 @@ export const saveLessonProgress = async (userId: string, lessonId: string, watch
   });
 };
 
+export const getCourseCompletionStatus = getCourseProgress;
 export const getCourseProgress = async (userId: string, courseId: string) => {
   const course = await prisma.course.findUnique({
     where: { id: courseId },

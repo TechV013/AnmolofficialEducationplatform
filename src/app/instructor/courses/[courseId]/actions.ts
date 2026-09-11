@@ -1,7 +1,7 @@
 "use server";
 import { prisma } from "@/lib/prisma";
 import { requireCourseEditor } from "@/lib/auth/authorizer";
-import { revalidatePath } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 // Utility to verify course ownership/access
 async function checkAuth(courseId: string) {
@@ -28,10 +28,10 @@ export async function deleteModule(id: string, courseId: string) {
 }
 
 // Lesson CRUD
-export async function createLesson(moduleId: string, title: string, description: string, courseId: string) {
+export async function createLesson(moduleId: string, title: string, description: string, duration: string, courseId: string) {
     await checkAuth(courseId);
     const count = await prisma.lesson.count({ where: { moduleId } });
-    await prisma.lesson.create({ data: { moduleId, title, description, position: count } });
+    await prisma.lesson.create({ data: { moduleId, title, description, duration, position: count } });
     revalidatePath(`/instructor/courses/${courseId}`);
 }
 export async function updateLesson(id: string, title: string, description: string, courseId: string) {
@@ -58,9 +58,9 @@ export async function deleteResource(id: string, courseId: string) {
 }
 
 // Assignment Actions
-export async function createAssignment(lessonId: string, title: string, instructions: string, courseId: string) {
+export async function createAssignment(lessonId: string, instructions: string, courseId: string) {
     await checkAuth(courseId);
-    await prisma.assignment.create({ data: { lessonId, title, instructions } });
+    await prisma.assignment.create({ data: { lessonId, instructions } });
     revalidatePath(`/instructor/courses/${courseId}`);
 }
 export async function deleteAssignment(id: string, courseId: string) {

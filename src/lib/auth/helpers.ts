@@ -1,7 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth/config";
-import { NextResponse } from "next/server";
-import type { AuthUser } from "@/lib/auth/types";
+import type { AuthUser } from "@/types/auth";
 
 export async function getSession() {
   const session = await getServerSession(authConfig);
@@ -13,30 +12,30 @@ export async function getCurrentUser() {
   return (session?.user as AuthUser | null) || null;
 }
 
-export async function requireUser() {
+export async function requireUser(): Promise<AuthUser> {
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new Error("Unauthorized");
   }
   return user;
 }
 
-export async function requireRole(role: string) {
+export async function requireRole(role: string): Promise<AuthUser> {
   const user = await requireUser();
-  if (user && user.role !== role) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (user.role !== role) {
+    throw new Error("Forbidden");
   }
   return user;
 }
 
-export async function requireStudent() {
+export async function requireStudent(): Promise<AuthUser> {
   return requireRole("STUDENT");
 }
 
-export async function requireInstructor() {
+export async function requireInstructor(): Promise<AuthUser> {
   return requireRole("INSTRUCTOR");
 }
 
-export async function requireAdmin() {
+export async function requireAdmin(): Promise<AuthUser> {
   return requireRole("ADMIN");
 }
