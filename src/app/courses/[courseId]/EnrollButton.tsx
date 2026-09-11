@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { enroll } from "../actions";
+import { enrollFree } from "../enrollment-actions";
 import { createPaymentOrder, verifyPayment } from "../actions";
 
 interface RazorpayResponse {
@@ -41,7 +41,7 @@ export default function EnrollButton({ courseId, isFree, isEnrolled }: { courseI
     setLoading(true);
     try {
         if (isFree) {
-            await enroll(courseId);
+            await enrollFree(courseId);
             router.push("/dashboard");
             router.refresh();
         } else {

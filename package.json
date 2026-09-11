@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
     "build": "next build",
+    "dev": "next dev",
+    "lint": "eslint",
     "start": "next start",
-    "lint": "eslint"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
