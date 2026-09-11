@@ -17,12 +17,14 @@ export const mapCourse = (course: PrismaCourse & { modules: (PrismaModule & { le
   modules: course.modules.map((m): Module => ({
     id: m.id,
     title: m.title,
+    position: m.position,
     lessons: m.lessons.map((l): Lesson => ({
       id: l.id,
       title: l.title,
       description: l.description,
-      videoUrl: l.videoUrl || undefined,
+      position: l.position,
       duration: l.duration,
+      videoUrl: l.videoUrl || undefined,
       type: l.type === "VIDEO" ? "video" : "assignment",
       resources: l.resources.map((r): Resource => ({
         id: r.id,
@@ -30,7 +32,7 @@ export const mapCourse = (course: PrismaCourse & { modules: (PrismaModule & { le
         type: r.type.toLowerCase() as "pdf" | "link" | "file",
         url: r.url
       })),
-      assignment: undefined // Assignment logic to be added
+      assignment: undefined
     }))
   }))
 });

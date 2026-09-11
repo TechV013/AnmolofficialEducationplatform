@@ -76,7 +76,9 @@ export default function EnrollButton({ courseId, isFree, isEnrolled }: { courseI
                             formData.append("razorpay_payment_id", response.razorpay_payment_id ?? "");
                             formData.append("razorpay_order_id", response.razorpay_order_id ?? "");
                             formData.append("razorpay_signature", response.razorpay_signature ?? "");
-                            formData.append("internal_order_id", order.internalOrderId);
+                            if (order.internalOrderId) {
+                                formData.append("internal_order_id", order.internalOrderId);
+                            }
                             
                             const result = await verifyPayment(formData);
                             if (result.success) {

@@ -10,6 +10,7 @@ export interface AuthUser {
 export interface AuthToken {
   id: string;
   role: UserRole;
+  email: string;
 }
 
 export interface AuthSession {

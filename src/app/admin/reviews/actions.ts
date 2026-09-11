@@ -1,7 +1,7 @@
 "use server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth/helpers";
-import { revalidatePath } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 export async function deleteReview(reviewId: string) {
     const user = await getCurrentUser();
