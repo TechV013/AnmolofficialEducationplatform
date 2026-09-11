@@ -8,34 +8,20 @@
 @theme {
   --color-primary: #0069E0;
   --color-primary-hover: #0055B3;
-  --color-blue: #0069E0;
-  --color-blue-hover: #0055B3;
-  --color-black: #181D27;
+  --color-dark: #181D27;
   --color-white: #FFFFFF;
-  --color-soft-cream: #FFF8E8;
+  --color-text: #111111;
+  --color-muted: #4A5565;
+  --color-soft-blue: #CCE1F9;
+  --color-border: #E5E7EB;
   --color-light-gray: #EBF5FF;
   --font-sans: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
-  background-color: #EBF5FF;
-  color: #181D27;
-  font-family: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-sans);
   margin: 0;
   padding: 0;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-plus-jakarta), sans-serif;
-}
-
-p, span, div, a, button, input, textarea, select {
-  font-family: var(--font-plus-jakarta), sans-serif;
-}
-
-.menu-hover-shadow {
-  transition: box-shadow 0.3s ease;
-}
-.menu-hover-shadow:hover {
-  box-shadow: 0 4px 20px rgba(24, 29, 39, 0.15);
 }

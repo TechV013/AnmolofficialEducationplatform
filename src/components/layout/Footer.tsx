@@ -56,8 +56,8 @@ export default function Footer() {
                   <li><Link href="#" className="hover:underline">Become a Creator</Link></li>
                   <li><Link href="#" className="hover:underline">Become a Speaker</Link></li>
                   <li><Link href="#" className="hover:underline">Testimonials</Link></li>
-                  <li><Link href="#" className="hover:underline">FAQ's</Link></li>
-                  <li><Link href="#" className="hover:underline">Community</Link></li>
+                  <li><Link href="/faq" className="hover:underline">FAQ&apos;s</Link></li>
+                  <li><Link href="/community" className="hover:underline">Community</Link></li>
                 </ul>
               </div>
               <div>
@@ -86,7 +86,7 @@ export default function Footer() {
 
           {/* Legal Links */}
           <div className="flex flex-wrap justify-center gap-6 text-sm opacity-70">
-            <Link href="#" className="hover:underline">Contact Us</Link>
+            <Link href="/contact" className="hover:underline">Contact Us</Link>
             <Link href="#" className="hover:underline">Privacy Policy</Link>
             <Link href="#" className="hover:underline">Terms of Use</Link>
             <span>&copy; 2026 All rights reserved.</span>

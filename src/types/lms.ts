@@ -48,11 +48,20 @@ export interface Lesson {
   assignment?: Assignment;
 }
 
+export interface LessonProgress {
+  position: number;
+  completed: boolean;
+}
+
 export interface Module {
   id: string;
   title: string;
   lessons: Lesson[];
 }
+
+import { UserRole as PrismaUserRole } from '@prisma/client';
+
+export type UserRole = PrismaUserRole;
 
 export interface Testimonial {
   name: string;
