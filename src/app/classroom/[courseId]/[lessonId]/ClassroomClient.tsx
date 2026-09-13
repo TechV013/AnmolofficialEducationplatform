@@ -37,11 +37,16 @@ export default function ClassroomClient({ course, lesson, initialProgress, cours
         </header>
 
         <div className="p-6 md:p-8 max-w-4xl mx-auto">
-           {lesson.videoUrl && (
-               <div className="bg-black aspect-video w-full rounded-2xl overflow-hidden shadow-lg mb-6">
-                 <video ref={videoRef} src={lesson.videoUrl} className="w-full h-full" controls />
+           <div className="bg-black aspect-video w-full rounded-2xl overflow-hidden shadow-lg mb-6 flex items-center justify-center">
+             {lesson.videoUrl ? (
+               <video ref={videoRef} src={lesson.videoUrl} className="w-full h-full" controls />
+             ) : (
+               <div className="text-white text-center p-6">
+                 <p className="text-lg font-bold">Video unavailable</p>
+                 <p className="text-sm text-gray-300">This lesson does not yet have a video assigned.</p>
                </div>
-           )}
+             )}
+           </div>
            
            <h1 className="text-3xl font-bold text-text">{lesson.title}</h1>
            <p className="text-muted mt-2">{lesson.description}</p>
@@ -54,11 +59,13 @@ export default function ClassroomClient({ course, lesson, initialProgress, cours
            </button>
            
            {/* Resources */}
-           {lesson.resources.length > 0 && (
+           {lesson.resources.length > 0 ? (
              <div className="mt-10 p-6 bg-surface rounded-2xl border border-border">
                 <h2 className="font-bold text-text text-lg mb-4">Resources</h2>
-                {lesson.resources.map(r => <a key={r.id} href={r.url} className="block text-primary hover:underline hover:text-primary-hover mb-2">{r.title} ({r.type})</a>)}
+                {lesson.resources.map(r => <a key={r.id} href={r.url || '#'} className="block text-primary hover:underline hover:text-primary-hover mb-2">{r.title} ({r.type})</a>)}
              </div>
+           ) : (
+             <div className="mt-10 p-6 bg-surface rounded-2xl border border-border text-muted">No resources available for this lesson.</div>
            )}
 
            <div className="mt-8 flex justify-between border-t border-border pt-8">
