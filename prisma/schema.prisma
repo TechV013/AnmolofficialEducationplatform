@@ -201,7 +201,7 @@ model Note {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id])
+  user      User   @relation(fields: [userId], references: [id])
 
   @@unique([userId, lessonId])
 }
@@ -215,7 +215,7 @@ model Review {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   course    Course   @relation(fields: [courseId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  user      User   @relation(fields: [userId], references: [id])
 
   @@unique([userId, courseId])
 }
@@ -256,9 +256,16 @@ model Certificate {
   certificateNumber String   @unique
   issuedAt          DateTime @default(now())
   course            Course   @relation(fields: [courseId], references: [id])
-  user              User     @relation(fields: [userId], references: [id])
+  user              User   @relation(fields: [userId], references: [id])
 
   @@unique([userId, courseId])
+}
+
+model WebhookEvent {
+  id              String   @id @default(uuid())
+  providerEventId String   @unique @map("provider_event_id")
+  eventType       String   @map("event_type")
+  processedAt     DateTime @default(now()) @map("processed_at")
 }
 
 enum UserRole {
@@ -312,11 +319,3 @@ enum PaymentStatus {
   FAILED
   REFUNDED
 }
-
- m o d e l   W e b h o o k E v e n t   { 
-     i d                             S t r i n g       @ i d   @ d e f a u l t ( u u i d ( ) ) 
-     p r o v i d e r E v e n t I d   S t r i n g       @ u n i q u e   @ m a p ( " p r o v i d e r _ e v e n t _ i d " ) 
-     e v e n t T y p e               S t r i n g       @ m a p ( " e v e n t _ t y p e " ) 
-     p r o c e s s e d A t           D a t e T i m e   @ d e f a u l t ( n o w ( ) )   @ m a p ( " p r o c e s s e d _ a t " ) 
- }  
- 
