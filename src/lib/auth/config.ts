@@ -4,6 +4,7 @@ import { UserRole } from "@/types/lms";
 
 import CredentialsProvider from "next-auth/providers/credentials";
 
+console.log("DEBUG: AUTH_SECRET exists:", !!process.env.AUTH_SECRET);
 export const authConfig: AuthOptions = {
   providers: [
     CredentialsProvider({

@@ -5,6 +5,8 @@ import { UserRole } from "@prisma/client";
 export async function authorizeRole(requiredRole: UserRole) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (user.role !== requiredRole) redirect("/dashboard"); // Or homepage
+  if (user.role !== requiredRole) {
+    redirect("/");
+  }
   return user;
 }
