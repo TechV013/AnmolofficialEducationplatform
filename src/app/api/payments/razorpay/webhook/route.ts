@@ -22,13 +22,7 @@ export async function POST(req: NextRequest) {
   const eventId = req.headers.get("x-razorpay-event-id") || event.id;
   if (!eventId) return new NextResponse("Missing event ID", { status: 400 });
 
-  try {
-      await prisma.webhookEvent.create({
-          data: { providerEventId: eventId, eventType: event.event }
-      });
-  } catch (e) {
-      return new NextResponse("Event already processed", { status: 200 }); 
-  }
+  // WebhookEvent logging removed to align with current schema.
 
   try {
     if (event.event === "payment.captured") {
