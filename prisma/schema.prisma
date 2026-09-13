@@ -10,11 +10,11 @@ datasource db {
 model User {
   id                   String                 @id @default(uuid())
   email                String                 @unique
-  name                 String?
   role                 UserRole               @default(STUDENT)
   passwordHash         String?
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @updatedAt
+  name                 String?
   assignmentsSubmitted AssignmentSubmission[]
   certificates         Certificate[]
   managedCourses       CourseInstructor[]
@@ -257,6 +257,8 @@ model Certificate {
   issuedAt          DateTime @default(now())
   course            Course   @relation(fields: [courseId], references: [id])
   user              User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, courseId])
 }
 
 enum UserRole {
