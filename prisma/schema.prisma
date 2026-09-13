@@ -187,7 +187,7 @@ model LessonProgress {
   lastWatchedAt  DateTime  @default(now())
   completedAt    DateTime?
   lesson         Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  user           User      @relation(fields: [userId], references: [id])
+  user           User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, lessonId])
   @@index([userId, lessonId])
@@ -265,7 +265,10 @@ model WebhookEvent {
   id              String   @id @default(uuid())
   providerEventId String   @unique @map("provider_event_id")
   eventType       String   @map("event_type")
-  processedAt     DateTime @default(now()) @map("processed_at")
+  status          String   @default("RECEIVED") @map("status")
+  processedAt     DateTime? @map("processed_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 }
 
 enum UserRole {
