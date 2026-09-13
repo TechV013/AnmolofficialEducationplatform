@@ -1,3 +1,9 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
+
 import { getCourseById } from "@/services/courses/courses.service";
 import { hasCourseAccess } from "@/services/enrollmentService";
 import { getLessonProgress } from "@/services/progressService";

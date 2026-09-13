@@ -1,3 +1,17 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Courses",
+  description: "Browse creative skill courses - 3D Modeling, Animation, VFX, Video Editing and more.",
+  alternates: { canonical: "/courses" },
+  openGraph: {
+    title: "Courses",
+    description: "Browse creative skill courses - 3D Modeling, Animation, VFX, Video Editing and more.",
+    type: "website",
+    url: "https://www.anmolofficial.com/courses",
+  },
+};
+
 import { getPublishedCourses } from "@/services/courses/courses.service";
 import CourseCard from "@/components/home/CourseCard";
 import Link from "next/link";

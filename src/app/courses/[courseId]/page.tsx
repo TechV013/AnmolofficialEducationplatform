@@ -6,6 +6,30 @@ import { Star, Clock, BookOpen, Users, Play, ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import EnrollButton from "./EnrollButton";
 
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: { courseId: string } }): Promise<Metadata> {
+  const course = await getCourseById(params.courseId);
+  if (!course) {
+    return { title: "Course Not Found" };
+  }
+  return {
+    title: course.title,
+    description: course.description,
+    alternates: {
+      canonical: `/courses/${course.id}`,
+    },
+    openGraph: {
+      title: course.title,
+      description: course.description,
+      type: "website",
+      url: `https://www.anmolofficial.com/courses/${course.id}`,
+    },
+    robots: { index: true, follow: true },
+  };
+}
+
+
 export default async function CourseDetailPage({ params }: { params: { courseId: string } }) {
   const course = await getCourseById(params.courseId);
   if (!course) notFound();

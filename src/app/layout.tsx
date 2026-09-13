@@ -9,8 +9,27 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "@anmlofficials - Learn Creative Skills",
-  description: "Master 3D Modeling, Animation, VFX, Video Editing and more.",
+  metadataBase: new URL("https://www.anmolofficial.com"),
+  title: {
+    default: "@anmlofficials - Learn Creative Skills",
+    template: "%s | @anmlofficials",
+  },
+  description: "Master 3D Modeling, Animation, VFX, Video Editing and more with @anmlofficials.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    siteName: "@anmlofficials",
+    type: "website",
+    locale: "en_US",
+    url: "https://www.anmolofficial.com",
+    title: "@anmlofficials - Learn Creative Skills",
+    description: "Master 3D Modeling, Animation, VFX, Video Editing and more.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
