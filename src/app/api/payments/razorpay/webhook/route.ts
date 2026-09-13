@@ -10,7 +10,6 @@ export async function POST(req: NextRequest) {
   const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
   if (!webhookSecret) return new NextResponse("Webhook configuration missing", { status: 500 });
   
-  // Manual signature verification (avoids Razorpay SDK type error)
   const expectedSignature = crypto
     .createHmac("sha256", webhookSecret)
     .update(rawBody)
@@ -22,7 +21,14 @@ export async function POST(req: NextRequest) {
   const eventId = req.headers.get("x-razorpay-event-id") || event.id;
   if (!eventId) return new NextResponse("Missing event ID", { status: 400 });
 
-  // WebhookEvent logging removed to align with current schema.
+  // Idempotency check
+  try {
+      await prisma.webhookEvent.create({
+          data: { providerEventId: eventId, eventType: event.event }
+      });
+  } catch (e) {
+      return new NextResponse("Event already processed", { status: 200 }); 
+  }
 
   try {
     if (event.event === "payment.captured") {
@@ -51,6 +57,9 @@ export async function POST(req: NextRequest) {
                              status: "PAID",
                              paidAt: new Date(payment.captured_at * 1000)
                          }
+                     }),
+                     prisma.enrollment.create({
+                         data: { userId: internalOrder.userId, courseId: internalOrder.courseId, status: "ACTIVE" }
                      })
                  ]);
              }

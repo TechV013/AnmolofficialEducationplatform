@@ -312,3 +312,11 @@ enum PaymentStatus {
   FAILED
   REFUNDED
 }
+
+ m o d e l   W e b h o o k E v e n t   { 
+     i d                             S t r i n g       @ i d   @ d e f a u l t ( u u i d ( ) ) 
+     p r o v i d e r E v e n t I d   S t r i n g       @ u n i q u e   @ m a p ( " p r o v i d e r _ e v e n t _ i d " ) 
+     e v e n t T y p e               S t r i n g       @ m a p ( " e v e n t _ t y p e " ) 
+     p r o c e s s e d A t           D a t e T i m e   @ d e f a u l t ( n o w ( ) )   @ m a p ( " p r o c e s s e d _ a t " ) 
+ }  
+ 
