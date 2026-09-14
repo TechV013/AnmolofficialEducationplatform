@@ -22,6 +22,9 @@
     "react-dom": "19.2.8",
     "tailwind-merge": "^3.6.0"
   },
+  "prisma": {
+    "seed": "npx ts-node prisma/seed.ts"
+  },
   "devDependencies": {
     "@prisma/client": "^6.19.3",
     "@tailwindcss/postcss": "^4",
