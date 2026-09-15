@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth/helpers";
 import { hasCourseAccess } from "@/services/enrollmentService";
-import { enrollFree } from "@/src/app/(public)/courses/\[courseId\]/enrollment-actions";
+import { enrollFree } from "@/app/(public)/courses/[courseId]/enrollment-actions";
 
 // Mock modules
 vi.mock("@/lib/prisma", () => ({
