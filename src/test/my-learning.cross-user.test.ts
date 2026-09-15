@@ -4,9 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    enrollment: {
-      findMany: vi.fn()
-    }
+    enrollment: { findMany: vi.fn() }
   }
 }));
 
@@ -14,15 +12,15 @@ describe("Cross-user isolation (B2.2)", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("Student A with enrollment sees Course A; Student B without does NOT", async () => {
-    const courseA = { id: "course-a", title: "Course A", status: "PUBLISHED" };
+    const courseA = { id: "course-a", title: "Course A", status: "PUBLISHED" } as any;
     
     // Student A
     const studentAEnrollments = [
       { id: "enr-a", userId: "user-a", status: "ACTIVE", course: courseA }
     ];
-    prisma.enrollment.findMany.mockImplementation(({ where }) => {
-      if (where.userId === "user-a") return Promise.resolve(studentAEnrollments);
-      return Promise.resolve([]);
+    vi.mocked(prisma.enrollment.findMany).mockImplementation((args: any) => {
+      if (args?.where?.userId === "user-a") return Promise.resolve(studentAEnrollments) as any;
+      return Promise.resolve([]) as any;
     });
     
     const studentAResult = await getStudentEnrollmentsForMyLearning("user-a");

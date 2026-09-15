@@ -14,9 +14,10 @@ interface Props {
   courseId: string;
   prevLessonId: string | null;
   nextLessonId: string | null;
+  progressMap: Record<string, { completed: boolean; watchedSeconds: number; }>;
 }
 
-export default function ClassroomClient({ course, lesson, initialProgress, courseId, prevLessonId, nextLessonId }: Props) {
+export default function ClassroomClient({ course, lesson, initialProgress, courseId, prevLessonId, nextLessonId, progressMap }: Props) {
   const router = useRouter();
   const [completed, setCompleted] = useState(initialProgress?.completed || false);
   const videoRef = useRef<HTMLVideoElement>(null);

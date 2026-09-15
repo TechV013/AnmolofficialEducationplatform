@@ -13,6 +13,7 @@ export interface Course {
   thumbnail: string;
   instructorId?: string;
   modules: Module[];
+  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 }
 
 export interface Instructor {

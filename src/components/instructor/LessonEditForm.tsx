@@ -8,7 +8,7 @@ interface Props {
   courseId: string;
   initialTitle: string;
   initialDescription: string;
-  initialVideoUrl?: string;
+  initialVideoUrl?: string | null;
 }
 
 export default function LessonEditForm({ lessonId, courseId, initialTitle, initialDescription, initialVideoUrl }: Props) {

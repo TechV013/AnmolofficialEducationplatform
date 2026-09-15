@@ -14,6 +14,7 @@ export const mapCourse = (course: PrismaCourse & { modules: (PrismaModule & { le
   price: Number(course.price),
   isFree: Number(course.price) === 0,
   thumbnail: course.thumbnail,
+  status: course.status as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED',
   modules: course.modules.map((m): Module => ({
     id: m.id,
     title: m.title,
