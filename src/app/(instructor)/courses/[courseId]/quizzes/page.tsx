@@ -1,10 +1,14 @@
 import WorkspaceHeader from "@/components/layout/WorkspaceHeader";
-import NavMenu from "@/components/nav/InstructorNavMenu";
+import NavMenu from "@/components/nav/StudentNavMenu";
 
-export default function QuizzesPage({ params }: { params: { courseId?: string } }) {
+export default function Page() {
   return (
     <>
-      <WorkspaceHeader title="Quizzes" />
+      <WorkspaceHeader title="Page" />
       <div className="space-y-6 p-6">
-        <h1 className="text-2xl font-bold">Quizzes</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl font-bold">Page</h1>
+        <p className="text-muted-foreground">Content coming soon.</p>
+      </div>
+    </>
+  );
+}

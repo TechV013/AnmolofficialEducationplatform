@@ -42,12 +42,12 @@ export default function EnrollButton({ courseId, isFree, isEnrolled }: { courseI
     try {
         if (isFree) {
             await enrollFree(courseId);
-            router.push("/dashboard");
+            router.push("/my-learning");
             router.refresh();
         } else {
             const order = await createPaymentOrder(courseId);
             if (order && 'status' in order && order.status === "ALREADY_ENROLLED") {
-                router.push("/dashboard");
+                router.push("/my-learning");
             } else if (order) {
                 if (!razorpayReady) {
                     await new Promise<void>((resolve) => {
@@ -82,7 +82,7 @@ export default function EnrollButton({ courseId, isFree, isEnrolled }: { courseI
                             
                             const result = await verifyPayment(formData);
                             if (result.success) {
-                                router.push("/dashboard");
+                                router.push("/my-learning");
                                 router.refresh();
                             } else {
                                 throw new Error("Verification failed");
