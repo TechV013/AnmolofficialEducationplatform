@@ -1,13 +1,14 @@
+"use client";
 import Link from "next/link";
 import { LogOut } from "lucide-react";
+import { signOut } from "next-auth/react";
 
 interface WorkspaceHeaderProps {
   title?: string;
   user?: { name?: string; role?: string } | null;
-  onSignOut?: () => void;
 }
 
-export default function WorkspaceHeader({ title = "Anmolofficial", user, onSignOut }: WorkspaceHeaderProps) {
+export default function WorkspaceHeader({ title = "Anmolofficial", user }: WorkspaceHeaderProps) {
   return (
     <header className="flex h-16 items-center justify-between px-6 border-b bg-white shadow-sm">
       <div className="flex items-center space-x-4">
@@ -21,7 +22,7 @@ export default function WorkspaceHeader({ title = "Anmolofficial", user, onSignO
           <>
             <span className="text-sm font-medium">{user.name || user.role || "User"}</span>
             <button
-              onClick={onSignOut}
+              onClick={() => signOut()}
               className="text-muted-foreground hover:text-danger flex items-center text-sm"
               aria-label="Sign out"
             >

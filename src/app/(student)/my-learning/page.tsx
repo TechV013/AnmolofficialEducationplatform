@@ -5,7 +5,6 @@ import { getStudentEnrollmentsForMyLearning } from "@/services/enrollmentService
 import { getCourseProgress } from "@/services/progressService";
 import { getCurrentUser } from "@/lib/auth/helpers";
 import { redirect } from "next/navigation";
-import { signOut } from "next-auth/react";
 
 export default async function MyLearningPage() {
   const user = await getCurrentUser();
@@ -26,7 +25,7 @@ export default async function MyLearningPage() {
   
   return (
     <>
-      <WorkspaceHeader user={{ name: user.name }} onSignOut={() => signOut()} />
+      <WorkspaceHeader user={{ name: user.name || "User" }} />
       <div className="min-h-screen bg-light-gray py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-bold text-center mb-8">My Learning</h1>
