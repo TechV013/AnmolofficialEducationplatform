@@ -4,13 +4,12 @@ import { UserRole } from "@/types/lms";
 
 import CredentialsProvider from "next-auth/providers/credentials";
 
-console.log("DEBUG: AUTH_SECRET exists:", !!process.env.AUTH_SECRET);
 export const authConfig: AuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: { email: { type: "text" }, password: { type: "password" } },
-      async authorize(credentials) { return null; }
+      async authorize() { return null; }
     })
   ],
   secret: process.env.AUTH_SECRET,
@@ -22,25 +21,32 @@ export const authConfig: AuthOptions = {
     strategy: "jwt" as const,
   },
   callbacks: {
-    jwt: async ({ token, user }) => {
+    jwt: async ({ token, user, trigger, session }) => {
       if (user) {
         token.id = user.id;
         token.role = (user as User & { role: UserRole }).role;
+      }
+      if (trigger === "update" && session?.user) {
+        token.id = session.user.id || token.id;
       }
       return token;
     },
     session: async ({ session, token }) => {
       if (session.user) {
         const t = token as unknown as AuthToken;
-        session.user = { 
-            ...session.user, 
-            id: t.id, 
-            role: t.role,
-            email: t.email || session.user.email || "",
-            name: session.user.name || ""
+        session.user = {
+          ...session.user,
+          id: t.id,
+          role: t.role,
+          email: t.email || session.user.email || "",
+          name: session.user.name || ""
         } as AuthUser;
       }
       return session;
     },
-  },
+    redirect: async ({ url, baseUrl }) => {
+      if (url.startsWith("/")) return url;
+      return baseUrl;
+    }
+  }
 };
