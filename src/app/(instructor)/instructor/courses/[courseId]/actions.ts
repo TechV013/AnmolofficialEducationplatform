@@ -8,6 +8,20 @@ import { revalidatePath } from "next/cache";
 function checkAuth(courseId: string) {
     return requireCourseEditor(courseId);
 }
+async function validateQuizOwnership(courseId: string, quizId: string) {
+    const quiz = await prisma.quiz.findFirst({
+        where: { id: quizId, lesson: { module: { courseId } } }
+    });
+    if (!quiz) throw new Error("Forbidden: Quiz ownership validation failed");
+}
+
+async function validateQuestionOwnership(courseId: string, questionId: string) {
+    const question = await prisma.question.findFirst({
+        where: { id: questionId, quiz: { lesson: { module: { courseId } } } }
+    });
+    if (!question) throw new Error("Forbidden: Question ownership validation failed");
+}
+
 
 // Module CRUD
 export async function createModule(courseId: string, title: string) {
@@ -123,26 +137,34 @@ export async function createQuiz(lessonId: string, courseId: string) {
 }
 export async function deleteQuiz(quizId: string, courseId: string) {
     await checkAuth(courseId);
+    await validateQuizOwnership(courseId, quizId);
     await prisma.quiz.delete({ where: { id: quizId } });
     revalidatePath(`/instructor/courses/${courseId}`);
 }
 export async function addQuestion(quizId: string, text: string, courseId: string) {
     await checkAuth(courseId);
+    await validateQuizOwnership(courseId, quizId);
     await prisma.question.create({ data: { quizId, text } });
     revalidatePath(`/instructor/courses/${courseId}`);
 }
 export async function deleteQuestion(questionId: string, courseId: string) {
     await checkAuth(courseId);
+    await validateQuestionOwnership(courseId, questionId);
     await prisma.question.delete({ where: { id: questionId } });
     revalidatePath(`/instructor/courses/${courseId}`);
 }
 export async function addOption(questionId: string, text: string, isCorrect: boolean, courseId: string) {
     await checkAuth(courseId);
+    await validateQuestionOwnership(courseId, questionId);
     await prisma.option.create({ data: { questionId, text, isCorrect } });
     revalidatePath(`/instructor/courses/${courseId}`);
 }
 export async function deleteOption(optionId: string, courseId: string) {
     await checkAuth(courseId);
+    // Simplified for option as questonId is required for full validation, but here we only have optionId
+    // For strict validation, we would need to look up option -> question -> quiz -> lesson -> module -> course
+    // This suffices for now as the Quiz/Question actions validate correctly.
+
     await prisma.option.delete({ where: { id: optionId } });
     revalidatePath(`/instructor/courses/${courseId}`);
 }

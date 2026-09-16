@@ -10,7 +10,7 @@ interface WorkspaceHeaderProps {
 
 export default function WorkspaceHeader({ title = "Anmolofficial", user }: WorkspaceHeaderProps) {
   return (
-    <header className="flex h-16 items-center justify-between px-6 border-b bg-white shadow-sm">
+    <header className="flex h-16 items-center justify-between px-6 border-b border-gray-200/50 bg-white/70 backdrop-blur-md shadow-sm">
       <div className="flex items-center space-x-4">
         <Link href="/" className="text-xl font-bold text-primary">
           Anmolofficial
