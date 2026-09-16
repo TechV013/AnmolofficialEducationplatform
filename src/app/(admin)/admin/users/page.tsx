@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth/helpers";
-import { updateUserRole } from "./actions";
+import { updateUserRole, deleteUser } from "./actions";
 
 export default async function Page() {
   await requireAdmin();
@@ -29,7 +29,7 @@ export default async function Page() {
               <td className="py-2">{user.name}</td>
               <td className="py-2">{user.email}</td>
               <td className="py-2">{user.role}</td>
-              <td className="py-2">
+              <td className="py-2 flex gap-2">
                 <form action={async (formData) => {
                   "use server";
                   await updateUserRole(user.id, formData.get("role") as any);
@@ -40,6 +40,12 @@ export default async function Page() {
                     <option value="ADMIN">ADMIN</option>
                   </select>
                   <button className="bg-primary text-white px-3 py-1 rounded text-sm">Update</button>
+                </form>
+                <form action={async () => {
+                    "use server";
+                    await deleteUser(user.id);
+                }}>
+                    <button className="bg-red-500 text-white px-3 py-1 rounded text-sm">Delete</button>
                 </form>
               </td>
             </tr>

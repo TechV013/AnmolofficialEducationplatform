@@ -40,3 +40,30 @@ export async function updateUserRole(userId: string, newRole: "STUDENT" | "INSTR
 
     revalidatePath("/admin/users");
 }
+
+export async function deleteUser(userId: string) {
+    const currentUser = await requireAdmin();
+    const targetUser = await prisma.user.findUnique({ where: { id: userId } });
+    
+    if (!targetUser) throw new Error("User not found");
+    // Safeguard: Cannot delete self
+    if (currentUser.id === userId) throw new Error("Cannot delete yourself.");
+    // Safeguard: Cannot delete Admin
+    if (targetUser.role === "ADMIN") throw new Error("Cannot delete Admin.");
+
+    // Manual cascading delete
+    await prisma.$transaction([
+        prisma.enrollment.deleteMany({ where: { userId } }),
+        prisma.order.deleteMany({ where: { userId } }),
+        prisma.quizAttempt.deleteMany({ where: { userId } }),
+        prisma.assignmentSubmission.deleteMany({ where: { userId } }),
+        prisma.lessonProgress.deleteMany({ where: { userId } }),
+        prisma.note.deleteMany({ where: { userId } }),
+        prisma.review.deleteMany({ where: { userId } }),
+        prisma.courseInstructor.deleteMany({ where: { userId } }),
+        prisma.certificate.deleteMany({ where: { userId } }),
+        prisma.user.delete({ where: { id: userId } })
+    ]);
+
+    revalidatePath("/admin/users");
+}
