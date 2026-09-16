@@ -5,6 +5,7 @@ import ModuleForm from "@/components/instructor/ModuleForm";
 import LessonEditForm from "@/components/instructor/LessonEditForm";
 import LessonCreateForm from "@/components/instructor/LessonCreateForm";
 import ResourceForm from "@/components/instructor/ResourceForm";
+import { QuizEditor } from "@/components/instructor/QuizEditor";
 import Link from "next/link";
 
 export default async function CourseManagementPage({ params }: { params: { courseId: string } }) {
@@ -109,12 +110,7 @@ export default async function CourseManagementPage({ params }: { params: { cours
                                     <div className="border-t border-border/30 pt-3">
                                       <h4 className="font-bold text-sm mb-2">Quiz</h4>
                                       {lesson.quiz ? (
-                                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                                          <p className="text-sm font-bold">Quiz Created</p>
-                                          <form action={deleteQuiz.bind(null, lesson.quiz.id, course.id)}>
-                                            <button className="text-xs text-red-600 mt-2 hover:underline">Delete Quiz</button>
-                                          </form>
-                                        </div>
+                                        <QuizEditor quiz={lesson.quiz} courseId={course.id} />
                                       ) : (
                                         <form action={createQuiz.bind(null, lesson.id, course.id)} className="flex gap-2 items-center">
                                           <button className="bg-primary text-white px-3 py-1 rounded-lg text-sm">Create Quiz</button>

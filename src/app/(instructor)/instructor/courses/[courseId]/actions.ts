@@ -8,6 +8,24 @@ import { revalidatePath } from "next/cache";
 function checkAuth(courseId: string) {
     return requireCourseEditor(courseId);
 }
+
+async function validateOptionOwnership(courseId: string, optionId: string) {
+  const option = await prisma.option.findFirst({
+    where: {
+      id: optionId,
+      question: { quiz: { lesson: { module: { courseId } } } }
+    }
+  });
+  if (!option) throw new Error("Forbidden: Option ownership validation failed");
+}
+
+async function validateQuestionOwnershipForAction(courseId: string, questionId: string) {
+    const question = await prisma.question.findFirst({
+        where: { id: questionId, quiz: { lesson: { module: { courseId } } } }
+    });
+    if (!question) throw new Error("Forbidden: Question ownership validation failed");
+}
+
 async function validateQuizOwnership(courseId: string, quizId: string) {
     const quiz = await prisma.quiz.findFirst({
         where: { id: quizId, lesson: { module: { courseId } } }
@@ -15,7 +33,25 @@ async function validateQuizOwnership(courseId: string, quizId: string) {
     if (!quiz) throw new Error("Forbidden: Quiz ownership validation failed");
 }
 
-async function validateQuestionOwnership(courseId: string, questionId: string) {
+
+async function validateOptionOwnership(courseId: string, optionId: string) {
+  const option = await prisma.option.findFirst({
+    where: {
+      id: optionId,
+      question: { quiz: { lesson: { module: { courseId } } } }
+    }
+  });
+  if (!option) throw new Error("Forbidden: Option ownership validation failed");
+}
+
+async function validateQuestionOwnershipForActionForAction(courseId: string, questionId: string) {
+    const question = await prisma.question.findFirst({
+        where: { id: questionId, quiz: { lesson: { module: { courseId } } } }
+    });
+    if (!question) throw new Error("Forbidden: Question ownership validation failed");
+}
+
+async function validateQuestionOwnershipForAction(courseId: string, questionId: string) {
     const question = await prisma.question.findFirst({
         where: { id: questionId, quiz: { lesson: { module: { courseId } } } }
     });
@@ -127,9 +163,31 @@ export async function createCourse(formData: FormData) {
 }
 
 
+
+export async function updateQuestion(questionId: string, text: string, courseId: string) {
+    await checkAuth(courseId);
+    await validateQuestionOwnershipForAction(courseId, questionId);
+    await prisma.question.update({ where: { id: questionId }, data: { text } });
+    revalidatePath(`/instructor/courses/${courseId}`);
+}
+
+export async function updateOption(optionId: string, text: string, isCorrect: boolean, courseId: string) {
+    await checkAuth(courseId);
+    await validateOptionOwnership(courseId, optionId);
+    await validateOptionOwnership(courseId, optionId);
+    // Note: The previous simplified action for deleteOption was acceptable,
+    // but update requires finding the question for full validation.
+    // This assumes existing validation architecture is sufficient or update is
+    // allowed if the question belongs to this quiz.
+    await prisma.option.update({ where: { id: optionId }, data: { text, isCorrect } });
+    revalidatePath(`/instructor/courses/${courseId}`);
+}
+
 // Quiz Authoring Actions (server-authoritative: isCorrect set server-side via separate option creation)
 export async function createQuiz(lessonId: string, courseId: string) {
     await checkAuth(courseId);
+    const existingQuiz = await prisma.quiz.findUnique({ where: { lessonId } });
+    if (existingQuiz) throw new Error("A quiz already exists for this lesson.");
     await prisma.quiz.create({
         data: { lessonId }
     });
@@ -149,18 +207,22 @@ export async function addQuestion(quizId: string, text: string, courseId: string
 }
 export async function deleteQuestion(questionId: string, courseId: string) {
     await checkAuth(courseId);
-    await validateQuestionOwnership(courseId, questionId);
+    await validateQuestionOwnershipForAction(courseId, questionId);
     await prisma.question.delete({ where: { id: questionId } });
     revalidatePath(`/instructor/courses/${courseId}`);
 }
 export async function addOption(questionId: string, text: string, isCorrect: boolean, courseId: string) {
     await checkAuth(courseId);
-    await validateQuestionOwnership(courseId, questionId);
+    await validateQuestionOwnershipForAction(courseId, questionId);
+    await validateQuestionOwnershipForAction(courseId, questionId);
+    await validateQuestionOwnershipForAction(courseId, questionId);
     await prisma.option.create({ data: { questionId, text, isCorrect } });
     revalidatePath(`/instructor/courses/${courseId}`);
 }
 export async function deleteOption(optionId: string, courseId: string) {
     await checkAuth(courseId);
+    await validateOptionOwnership(courseId, optionId);
+    await validateOptionOwnership(courseId, optionId);
     // Simplified for option as questonId is required for full validation, but here we only have optionId
     // For strict validation, we would need to look up option -> question -> quiz -> lesson -> module -> course
     // This suffices for now as the Quiz/Question actions validate correctly.
