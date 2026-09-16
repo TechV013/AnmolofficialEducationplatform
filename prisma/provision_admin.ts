@@ -4,12 +4,12 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function provisionAdmin() {
-  const email = process.env.DEMO_ADMIN_EMAIL;
-  const password = process.env.DEMO_ADMIN_PASSWORD;
+  const email = process.env.ADMIN_EMAIL;
+  const password = process.env.ADMIN_PASSWORD;
   const dbUrl = process.env.DATABASE_URL;
 
   if (!email || !password || !dbUrl) {
-    console.error("Missing DEMO_ADMIN_EMAIL, DEMO_ADMIN_PASSWORD, or DATABASE_URL");
+    console.error("Missing ADMIN_EMAIL, ADMIN_PASSWORD, or DATABASE_URL");
     process.exit(1);
   }
 
