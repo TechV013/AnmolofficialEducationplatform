@@ -24,6 +24,14 @@ export async function updateUserRole(userId: string, newRole: "STUDENT" | "INSTR
         }
     }
 
+    // 4. Safeguard: Only one ADMIN permitted in this project
+    if (newRole === "ADMIN" && targetUser.role !== "ADMIN") {
+        const adminCount = await prisma.user.count({ where: { role: "ADMIN" } });
+        if (adminCount >= 1) {
+            throw new Error("Only one Admin is permitted in this project.");
+        }
+    }
+
     // 4. Update
     await prisma.user.update({
         where: { id: userId },
