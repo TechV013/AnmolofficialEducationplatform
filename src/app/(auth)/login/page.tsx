@@ -12,12 +12,6 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Demo role shortcuts (prefill email only; user enters password)
-  const demoRoles = [
-    { label: "Continue as Demo Student", email: "student.demo@anmolofficial.com", role: "STUDENT", color: "blue" },
-    { label: "Continue as Demo Instructor", email: "instructor.demo@anmolofficial.com", role: "INSTRUCTOR", color: "purple" },
-    { label: "Continue as Demo Admin", email: "admin.demo@anmolofficial.com", role: "ADMIN", color: "navy" },
-  ];
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -36,10 +30,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleDemoSelect = (demoEmail: string) => {
-    setEmail(demoEmail);
-    setPassword("");
-  };
 
 
   return (
@@ -87,30 +77,6 @@ export default function LoginPage() {
 
         <div className="mt-4 text-center">
           <Link href="#" className="text-primary text-sm hover:underline">Forgot password?</Link>
-        </div>
-
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
-          <div className="relative flex justify-center text-sm">
-            <span className="bg-white px-4 text-gray-400">or sign in with a demo account</span>
-          </div>
-        </div>
-
-        {/* Role-specific demo buttons — prefill email, require password from env */}
-        <div className="space-y-2">
-          {demoRoles.map((demo) => (
-            <button
-              key={demo.email}
-              onClick={() => handleDemoSelect(demo.email)}
-              className={`w-full border-2 rounded-xl font-bold py-3 transition-colors ${
-                demo.color === "blue" ? "border-blue-600 text-blue-600 hover:bg-blue-50" :
-                demo.color === "purple" ? "border-purple-600 text-purple-600 hover:bg-purple-50" :
-                "border-gray-800 text-gray-800 hover:bg-gray-50"
-              }`}
-            >
-              {demo.label}
-            </button>
-          ))}
         </div>
 
         <p className="mt-6 text-center text-sm text-gray-500">
