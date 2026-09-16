@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { requireCourseEditor } from "@/lib/auth/authorizer";
-import { publishCourse, deleteModule, deleteLesson, createQuiz, deleteQuiz } from "./actions";
+import { publishCourse, deleteModule, deleteLesson, createQuiz, deleteQuiz, createResource, updateResource, deleteResource } from "./actions";
 import ModuleForm from "@/components/instructor/ModuleForm";
 import LessonEditForm from "@/components/instructor/LessonEditForm";
 import LessonCreateForm from "@/components/instructor/LessonCreateForm";
+import ResourceForm from "@/components/instructor/ResourceForm";
 import Link from "next/link";
 
 export default async function CourseManagementPage({ params }: { params: { courseId: string } }) {
@@ -88,6 +89,22 @@ export default async function CourseManagementPage({ params }: { params: { cours
                                       )}
                                     </div>
 
+
+                                    {/* Resources */}
+                                    <div className="border-t border-border/30 pt-3">
+                                       <h4 className="font-bold text-sm mb-2">Resources</h4>
+                                       <ResourceForm lessonId={lesson.id} courseId={course.id} onSuccess={() => {}} />
+                                    </div>
+                                    <div className="space-y-1 mb-4">
+                                          {lesson.resources.map((r: any) => (
+                                              <div key={r.id} className="flex justify-between items-center bg-white p-2 rounded border text-sm">
+                                                <a href={r.url} target="_blank" className="text-primary hover:underline">{r.title} ({r.type})</a>
+                                                <form action={deleteResource.bind(null, r.id, course.id)}>
+                                                    <button className="text-red-500 hover:underline">Delete</button>
+                                                </form>
+                                              </div>
+                                          ))}
+                                    </div>
                                     {/* Quiz */}
                                     <div className="border-t border-border/30 pt-3">
                                       <h4 className="font-bold text-sm mb-2">Quiz</h4>

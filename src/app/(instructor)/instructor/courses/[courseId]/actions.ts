@@ -51,6 +51,13 @@ export async function createResource(lessonId: string, title: string, type: 'PDF
     await prisma.resource.create({ data: { lessonId, title, type, url } });
     revalidatePath(`/instructor/courses/${courseId}`);
 }
+
+export async function updateResource(id: string, title: string, type: 'PDF' | 'DOCUMENT' | 'PROJECT_FILE' | 'EXTERNAL_LINK', url: string, courseId: string) {
+    await checkAuth(courseId);
+    await prisma.resource.update({ where: { id }, data: { title, type, url } });
+    revalidatePath(`/instructor/courses/${courseId}`);
+}
+
 export async function deleteResource(id: string, courseId: string) {
     await checkAuth(courseId);
     await prisma.resource.delete({ where: { id } });
