@@ -14,10 +14,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // Dynamic published course pages
-  const publishedCourses = await prisma.course.findMany({
-    where: { status: "PUBLISHED" },
-    select: { id: true, updatedAt: true },
-  });
+  let publishedCourses: { id: string; updatedAt: Date }[] = [];
+  try {
+    publishedCourses = await prisma.course.findMany({
+      where: { status: "PUBLISHED" },
+      select: { id: true, updatedAt: true },
+    });
+  } catch (e) {
+    console.warn("Sitemap: DB unreachable during build, using static routes only:", e);
+  }
 
   const courseRoutes: MetadataRoute.Sitemap = publishedCourses.map((course) => ({
     url: `${baseUrl}/courses/${course.id}`,
