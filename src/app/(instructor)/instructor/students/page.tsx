@@ -40,7 +40,7 @@ export default async function InstructorStudentsPage() {
   courses.forEach(c => { studentTotal += c.enrollments.length; });
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-slate-800">My Students</h1>
@@ -63,7 +63,7 @@ export default async function InstructorStudentsPage() {
               {course.title}
               <span className="text-sm font-normal text-slate-500">{course.enrollments.length} students · {lessonCount} lessons</span>
             </h2>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
               {course.enrollments.length === 0 ? (
                 <p className="p-6 text-sm text-slate-400 text-center">No enrolled students yet.</p>
               ) : (

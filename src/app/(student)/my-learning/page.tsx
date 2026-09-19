@@ -1,5 +1,3 @@
-import WorkspaceHeader from "@/components/layout/WorkspaceHeader";
-import NavMenu from "@/components/nav/StudentNavMenu";
 import Link from "next/link";
 import { getStudentEnrollmentsForMyLearning } from "@/services/enrollmentService";
 import { getCourseProgress } from "@/services/progressService";
@@ -24,11 +22,9 @@ export default async function MyLearningPage() {
   );
   
   return (
-    <>
-      <WorkspaceHeader user={{ name: user.name || "User" }} />
-      <div className="min-h-screen bg-light-gray py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-center mb-8">My Learning</h1>
+    <div className="bg-light-gray">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-8">My Learning</h1>
           
           {progressResults.length === 0 ? (
             <div className="text-center py-12">
@@ -86,6 +82,5 @@ export default async function MyLearningPage() {
           )}
         </div>
       </div>
-    </>
   );
 }

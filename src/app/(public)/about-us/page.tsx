@@ -10,19 +10,19 @@ export default function AboutUsPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-background text-text">
+    <div className="bg-background text-text">
       {/* Hero Section */}
-      <section className="py-20 bg-surface">
-        <div className="max-w-7xl mx-auto px-6 text-center">
+      <section className="py-16 sm:py-20 bg-surface">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-primary font-bold tracking-widest uppercase text-sm mb-4">ABOUT US</p>
-          <h1 className="text-5xl font-bold mb-6">Meet the people behind Anmolofficial.</h1>
-          <p className="text-muted max-w-2xl mx-auto text-lg">We are a dedicated team passionate about empowering learners with practical creative and digital skills through structured, hands-on learning.</p>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">Meet the people behind Anmolofficial.</h1>
+          <p className="text-muted max-w-2xl mx-auto text-base sm:text-lg">We are a dedicated team passionate about empowering learners with practical creative and digital skills through structured, hands-on learning.</p>
         </div>
       </section>
 
       {/* Founder Section */}
-      <section className="py-20 bg-background">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center gap-12">
+      <section className="py-16 sm:py-20 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center gap-12">
             <div className="w-full md:w-1/3">
                 <Image src="/images/founder.png" alt="Anmol - Founder" width={400} height={400} className="rounded-3xl shadow-lg" />
             </div>
@@ -35,9 +35,9 @@ export default function AboutUsPage() {
       </section>
 
       {/* Team Grid */}
-      <section className="py-20 bg-surface">
-        <div className="max-w-7xl mx-auto px-6">
-            <h2 className="text-3xl font-bold text-center mb-12">Our Team</h2>
+      <section className="py-16 sm:py-20 bg-surface">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-center mb-12">Our Team</h2>
             <div className="grid md:grid-cols-3 gap-8">
                 {team.map((member) => (
                     <div key={member.name} className="bg-background p-6 rounded-3xl border border-border text-center">
@@ -51,8 +51,8 @@ export default function AboutUsPage() {
       </section>
 
       {/* Trust Section */}
-      <section className="py-20 max-w-7xl mx-auto px-6 text-center">
-        <h2 className="text-3xl font-bold mb-12">How We Work Together</h2>
+      <section className="py-16 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 className="text-2xl sm:text-3xl font-bold mb-12">How We Work Together</h2>
         <div className="grid md:grid-cols-3 gap-8 text-center">
             <div className="p-6">
                 <Users className="w-12 h-12 mx-auto text-primary mb-4" />
@@ -73,10 +73,10 @@ export default function AboutUsPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-20 text-center">
-        <h2 className="text-3xl font-bold text-text mb-6">Learn with us.</h2>
+      <section className="py-16 sm:py-20 text-center">
+        <h2 className="text-2xl sm:text-3xl font-bold text-text mb-6">Learn with us.</h2>
         <Link href="/courses" className="inline-block bg-primary text-white px-8 py-4 rounded-full font-bold hover:bg-primary-hover transition-all">Explore Courses</Link>
       </section>
-    </main>
+    </div>
   );
 }

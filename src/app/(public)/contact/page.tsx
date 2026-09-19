@@ -1,8 +1,8 @@
 export default function ContactPage() {
   return (
-    <main className="min-h-screen bg-background p-6 md:p-12">
+    <div className="bg-background px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-4xl mx-auto">
-            <h1 className="text-4xl font-bold text-text mb-6">Need help? We&apos;re here to help.</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold text-text mb-6">Need help? We&apos;re here to help.</h1>
             <p className="text-muted text-lg mb-12">Reach out to our team for questions about courses, enrollment, payments, or technical support.</p>
             
             <div className="grid md:grid-cols-2 gap-6 mb-12">
@@ -27,6 +27,6 @@ export default function ContactPage() {
                 </div>
             </div>
         </div>
-    </main>
+    </div>
   );
 }

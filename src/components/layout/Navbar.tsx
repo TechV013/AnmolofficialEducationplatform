@@ -4,11 +4,21 @@ import Image from "next/image";
 import { Home, BookOpen, LayoutDashboard, Users } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { AuthUser } from "@/types/auth";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+
+const NAV_LINKS = [
+  { href: "/", label: "Home" },
+  { href: "/courses", label: "Courses" },
+  { href: "/community", label: "Community" },
+  { href: "/about", label: "About" },
+  { href: "/about-us", label: "Team" },
+];
 
 export default function Navbar() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const user = session?.user as AuthUser | null;
 
   const handleMyCourses = () => {
@@ -17,19 +27,35 @@ export default function Navbar() {
     else router.push("/dashboard");
   };
 
+  const learnHref = user
+    ? user.role === "ADMIN"
+      ? "/admin"
+      : user.role === "INSTRUCTOR"
+        ? "/instructor"
+        : "/dashboard"
+    : "/login";
+
   return (
     <>
+      {/* Desktop / tablet top navigation */}
       <nav className="sticky top-0 z-50 bg-white/70 backdrop-blur-md border-b border-border/50 hidden md:block">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center">
             <Image src="/images/logo.png" alt="Logo" width={100} height={40} className="h-10 w-auto" />
           </Link>
-          <div className="flex items-center space-x-8 text-sm font-medium text-dark">
-            <Link href="/" className="hover:text-primary transition-colors">Home</Link>
-            <Link href="/courses" className="hover:text-primary transition-colors">Courses</Link>
-            <Link href="/community" className="hover:text-primary transition-colors">Community</Link>
-            <Link href="/about" className="hover:text-primary transition-colors">About</Link>
-            <Link href="/about-us" className="hover:text-primary transition-colors">Team</Link>
+          <div className="hidden lg:flex items-center space-x-8 text-sm font-medium text-dark">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "transition-colors",
+                  pathname === link.href ? "text-primary font-semibold" : "hover:text-primary"
+                )}
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
           {status === "loading" ? (
             <div className="w-8 h-8 bg-gray-300 rounded-full animate-pulse" />
@@ -50,12 +76,77 @@ export default function Navbar() {
         </div>
       </nav>
 
+      {/* Mobile top bar */}
+      <nav className="sticky top-0 z-50 h-14 flex items-center justify-between border-b border-border/50 bg-white/80 px-4 backdrop-blur-md md:hidden">
+        <Link href="/" className="flex items-center">
+          <Image src="/images/logo.png" alt="Logo" width={72} height={32} className="h-9 w-auto" />
+        </Link>
+        {status === "loading" ? (
+          <div className="w-8 h-8 bg-gray-300 rounded-full animate-pulse" />
+        ) : session ? (
+          <button
+            onClick={handleMyCourses}
+            className="rounded-full border-2 border-primary px-3.5 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white"
+          >
+            {user?.role === "ADMIN" ? "Admin" : user?.role === "INSTRUCTOR" ? "Instructor" : "My Courses"}
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            className="rounded-full border-2 border-dark px-4 py-1.5 text-xs font-semibold text-dark transition-colors hover:bg-dark hover:text-white"
+          >
+            Login
+          </Link>
+        )}
+      </nav>
+
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-md border-t border-border/50 py-3 flex justify-around items-center">
-        <Link href="/" className="flex flex-col items-center"><Home className="w-6 h-6" /><span className="text-[10px]">Home</span></Link>
-        <Link href="/courses" className="flex flex-col items-center"><BookOpen className="w-6 h-6" /><span className="text-[10px]">Courses</span></Link>
-        <Link href="/community" className="flex flex-col items-center"><Users className="w-6 h-6" /><span className="text-[10px]">Community</span></Link>
-        <button onClick={handleMyCourses} className="flex flex-col items-center"><LayoutDashboard className="w-6 h-6" /><span className="text-[10px]">Learn</span></button>
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-white/80 backdrop-blur-md md:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <div className="grid grid-cols-4">
+          <Link
+            href="/"
+            className={cn(
+              "flex flex-col items-center gap-1 py-2.5 text-[10px] font-semibold transition-colors",
+              pathname === "/" ? "text-primary" : "text-slate-500 hover:text-slate-800"
+            )}
+          >
+            <Home className="h-5 w-5" />
+            Home
+          </Link>
+          <Link
+            href="/courses"
+            className={cn(
+              "flex flex-col items-center gap-1 py-2.5 text-[10px] font-semibold transition-colors",
+              pathname.startsWith("/courses") ? "text-primary" : "text-slate-500 hover:text-slate-800"
+            )}
+          >
+            <BookOpen className="h-5 w-5" />
+            Courses
+          </Link>
+          <Link
+            href="/community"
+            className={cn(
+              "flex flex-col items-center gap-1 py-2.5 text-[10px] font-semibold transition-colors",
+              pathname.startsWith("/community") ? "text-primary" : "text-slate-500 hover:text-slate-800"
+            )}
+          >
+            <Users className="h-5 w-5" />
+            Community
+          </Link>
+          <Link
+            href={learnHref}
+            className={cn(
+              "flex flex-col items-center gap-1 py-2.5 text-[10px] font-semibold transition-colors",
+              pathname.startsWith(learnHref) && learnHref !== "/login" ? "text-primary" : "text-slate-500 hover:text-slate-800"
+            )}
+          >
+            <LayoutDashboard className="h-5 w-5" />
+            Learn
+          </Link>
+        </div>
       </nav>
     </>
   );

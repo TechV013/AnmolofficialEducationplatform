@@ -16,9 +16,9 @@ export default async function DashboardPage() {
   const data = await getStudentDashboard(user.id);
 
   return (
-    <main className="min-h-screen bg-background p-6 md:p-12">
+    <div className="bg-background px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-7xl mx-auto">
-            <h1 className="text-3xl font-bold text-text mb-2">Welcome back, {data.user.name || "Student"} 👋</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-text mb-2">Welcome back, {data.user.name || "Student"} 👋</h1>
             <p className="text-muted mb-10">Continue your learning journey.</p>
 
             <section className="mb-12">
@@ -50,6 +50,6 @@ export default async function DashboardPage() {
             )}
             </section>
         </div>
-    </main>
+    </div>
   );
 }

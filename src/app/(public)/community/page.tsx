@@ -5,11 +5,11 @@ import Link from "next/link";
 
 export default function CommunityPage() {
   return (
-    <main className="min-h-screen bg-background p-6 md:p-12">
+    <div className="min-h-screen bg-background px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-7xl mx-auto">
             <header className="mb-12 text-center">
                 <p className="text-primary font-bold tracking-widest uppercase text-sm mb-4">COMMUNITY</p>
-                <h1 className="text-4xl font-bold text-text mb-6">Learn together. Share ideas. Keep growing.</h1>
+                <h1 className="text-3xl sm:text-4xl font-bold text-text mb-6">Learn together. Share ideas. Keep growing.</h1>
                 <button className="bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-full font-bold">Start a Discussion</button>
             </header>
             
@@ -42,6 +42,6 @@ export default function CommunityPage() {
                 </aside>
             </div>
         </div>
-    </main>
+    </div>
   );
 }

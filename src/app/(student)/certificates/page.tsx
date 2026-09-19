@@ -20,8 +20,8 @@ export default async function CertificatesPage() {
   });
 
   return (
-    <main className="p-8 max-w-5xl mx-auto">
-      <h1 className="text-3xl font-bold text-text mb-2">My Certificates</h1>
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <h1 className="text-2xl sm:text-3xl font-bold text-text mb-2">My Certificates</h1>
       <p className="text-muted mb-8">Certificates are issued automatically when you complete 100% of a course.</p>
 
       {certificates.length === 0 ? (
@@ -60,6 +60,6 @@ export default async function CertificatesPage() {
           ))}
         </div>
       )}
-    </main>
+    </div>
   );
 }

@@ -60,10 +60,33 @@ export default function ClassroomClient({ course, lesson, initialProgress, cours
       
       <main className="flex-1 h-screen overflow-y-auto">
         <header className="bg-surface border-b border-border p-4 flex items-center justify-between sticky top-0 z-10">
-          <Link href="/dashboard" className="text-primary font-medium hover:underline">← Back to Dashboard</Link>
-          <h1 className="font-bold text-text">{course.title}</h1>
+          <Link href="/dashboard" className="text-primary font-medium hover:underline text-sm sm:text-base">← Back to Dashboard</Link>
+          <h1 className="font-bold text-text text-sm sm:text-base truncate px-2">{course.title}</h1>
           <div />
         </header>
+
+        {/* Mobile / tablet lesson navigation (sidebar is desktop-only) */}
+        <nav className="border-b border-border bg-white p-3 lg:hidden">
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {[...course.modules]
+              .sort((a, b) => a.position - b.position)
+              .flatMap((m) => [...m.lessons].sort((a, b) => a.position - b.position))
+              .map((l) => (
+                <Link
+                  key={l.id}
+                  href={`/classroom/${courseId}/${l.id}`}
+                  className={cn(
+                    "shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
+                    l.id === lesson.id
+                      ? "border-primary bg-primary text-white"
+                      : "border-border bg-white text-slate-600 hover:bg-soft-blue/50"
+                  )}
+                >
+                  {l.title}
+                </Link>
+              ))}
+          </div>
+        </nav>
 
         <div className="p-6 md:p-8 max-w-4xl mx-auto">
            <div className="bg-black aspect-video w-full rounded-2xl overflow-hidden shadow-lg mb-6 flex items-center justify-center">
