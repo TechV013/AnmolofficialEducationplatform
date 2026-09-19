@@ -19,7 +19,7 @@ export default function AboutPage() {
         <h2 className="text-2xl sm:text-3xl font-bold text-text mb-6">रचनात्मकता को अवसर में बदलने की एक कोशिश</h2>
         <div className="space-y-6 text-muted text-lg leading-relaxed text-left">
           <p>
-            हमारा मानना है कि Creative Education महंगी, मुश्किल या सिर्फ classroom तक सीमित नहीं होनी चाहिए। हमारा मिशन बिल्कुल सरल है — बेहतरीन creative और design education को हर किसी के लिए affordable, accessible और practical बनाना।
+            Anmolofficial एक ऑनलाइन लर्निंग प्लेटफ़ॉर्म है, जहाँ रचनात्मक क्षेत्रों से जुड़े कौशल को आसान, व्यवस्थित और practical तरीके से सीखने का अवसर मिलता है। हमारा उद्देश्य ऐसी शिक्षा देना है
           </p>
           <p>
             हमारा platform उन लोगों के लिए एक ऐसी जगह है जहाँ वे अपनी creativity को explore कर सकें, नए skills सीख सकें और अपने career में आगे बढ़ सकें। चाहे आप design की दुनिया में अपना career शुरू करना चाहते हों, अपनी existing skills को बेहतर बनाना चाहते हों या बस कुछ नया सीखने की इच्छा रखते हों — हम आपके learning journey को थोड़ा आसान और ज्यादा meaningful बनाने के लिए यहाँ हैं।
