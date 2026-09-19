@@ -10,6 +10,6 @@ export async function createPaymentOrder(courseId: string) {
     internalOrderId: "test_internal_" + courseId
   };
 }
-export async function verifyPayment(data: any) {
+export async function verifyPayment(data: FormData) {
   return { success: true };
 }

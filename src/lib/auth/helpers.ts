@@ -23,6 +23,10 @@ export async function requireUser(): Promise<AuthUser> {
 
 export async function requireRole(role: string): Promise<AuthUser> {
   const user = await requireUser();
+  
+  if (!user.id) {
+      throw new Error("Unauthorized: Missing user ID");
+  }
 
   // Authoritative check against database
   const dbUser = await prisma.user.findUnique({
@@ -30,8 +34,12 @@ export async function requireRole(role: string): Promise<AuthUser> {
       select: { role: true }
   });
 
-  if (!dbUser || dbUser.role !== role) {
-    throw new Error("Forbidden");
+  if (!dbUser) {
+      throw new Error("Forbidden: User not found in database");
+  }
+  
+  if (dbUser.role !== role) {
+    throw new Error("Forbidden: Role mismatch");
   }
   return user;
 }

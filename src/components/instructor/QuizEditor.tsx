@@ -2,16 +2,33 @@
 import { useState } from "react";
 import { addQuestion, deleteQuestion, updateQuestion, addOption, deleteOption, updateOption } from "@/app/(instructor)/instructor/courses/[courseId]/actions";
 
-export function QuizEditor({ quiz, courseId }: { quiz: any, courseId: string }) {
+interface QuizOption {
+  id: string;
+  text: string;
+  isCorrect: boolean;
+}
+
+interface QuizQuestion {
+  id: string;
+  text: string;
+  options: QuizOption[];
+}
+
+interface Quiz {
+  id: string;
+  questions: QuizQuestion[];
+}
+
+export function QuizEditor({ quiz, courseId }: { quiz: Quiz, courseId: string }) {
   const [newQuestion, setNewQuestion] = useState("");
 
   return (
     <div className="space-y-4">
-      {quiz.questions.map((q: any) => (
+      {quiz.questions.map((q) => (
         <div key={q.id} className="p-4 border rounded-lg bg-gray-50">
           <input defaultValue={q.text} className="w-full font-bold bg-transparent border-b p-1 mb-2" onBlur={(e) => updateQuestion(q.id, e.target.value, courseId)} />
           <div className="space-y-1">
-            {q.options.map((o: any) => (
+            {q.options.map((o) => (
               <div key={o.id} className="flex gap-2 items-center">
                   <input type="checkbox" defaultChecked={o.isCorrect} onChange={(e) => updateOption(o.id, o.text, e.target.checked, courseId)} />
                   <input defaultValue={o.text} className="flex-1 p-1" onBlur={e => updateOption(o.id, e.target.value, o.isCorrect, courseId)} />

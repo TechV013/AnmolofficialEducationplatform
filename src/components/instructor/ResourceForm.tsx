@@ -5,13 +5,15 @@ import { createResource, updateResource } from "@/app/(instructor)/instructor/co
 interface Props {
   lessonId: string;
   courseId: string;
-  initialData?: { id: string; title: string; type: 'PDF' | 'DOCUMENT' | 'PROJECT_FILE' | 'EXTERNAL_LINK'; url: string };
+  initialData?: { id: string; title: string; type: ResourceType; url: string };
   onSuccess: () => void;
 }
 
+type ResourceType = 'PDF' | 'DOCUMENT' | 'PROJECT_FILE' | 'EXTERNAL_LINK';
+
 export default function ResourceForm({ lessonId, courseId, initialData, onSuccess }: Props) {
   const [title, setTitle] = useState(initialData?.title || "");
-  const [type, setType] = useState<any>(initialData?.type || "PDF");
+  const [type, setType] = useState<ResourceType>(initialData?.type || "PDF");
   const [url, setUrl] = useState(initialData?.url || "");
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +35,7 @@ export default function ResourceForm({ lessonId, courseId, initialData, onSucces
     <form onSubmit={handleSubmit} className="space-y-3 p-4 bg-white rounded-xl shadow border border-border">
       <h3 className="font-bold text-text">{initialData ? "Edit" : "Create"} Resource</h3>
       <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" className="w-full px-3 py-2 rounded border" required />
-      <select value={type} onChange={e => setType(e.target.value as any)} className="w-full px-3 py-2 rounded border"><option value="PDF">PDF</option><option value="DOCUMENT">Document</option><option value="PROJECT_FILE">Project File</option><option value="EXTERNAL_LINK">External Link</option></select>
+      <select value={type} onChange={e => setType(e.target.value as ResourceType)} className="w-full px-3 py-2 rounded border"><option value="PDF">PDF</option><option value="DOCUMENT">Document</option><option value="PROJECT_FILE">Project File</option><option value="EXTERNAL_LINK">External Link</option></select>
       <input value={url} onChange={e => setUrl(e.target.value)} placeholder="URL" className="w-full px-3 py-2 rounded border" required />
       <button disabled={loading} className="w-full bg-primary text-white py-2 rounded font-medium">{loading ? "Saving..." : "Save Resource"}</button>
     </form>

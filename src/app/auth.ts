@@ -18,11 +18,20 @@ const handler = NextAuth({
           throw new Error("Missing credentials");
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
+        let user;
+        try {
+          user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+          });
+        } catch (e) {
+          console.error("Auth DB Error:", e);
+          throw new Error("Database error");
+        }
+        
+        console.log("Auth lookup for:", credentials.email, "Result found:", !!user);
 
         if (!user || !user.passwordHash) {
+          console.log("User or hash missing");
           throw new Error("Invalid credentials");
         }
 

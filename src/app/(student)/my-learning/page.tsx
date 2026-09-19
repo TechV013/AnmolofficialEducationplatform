@@ -33,7 +33,7 @@ export default async function MyLearningPage() {
           {progressResults.length === 0 ? (
             <div className="text-center py-12">
               <h2 className="text-2xl font-bold mb-4">No courses yet</h2>
-              <p className="text-gray-600 mb-6">You haven't enrolled in any courses yet. Start learning by exploring our course catalog.</p>
+              <p className="text-gray-600 mb-6">You haven&apos;t enrolled in any courses yet. Start learning by exploring our course catalog.</p>
               <Link href="/courses" className="inline-block bg-blue text-white py-3 px-6 rounded font-medium hover:bg-blue-dark transition-colors">
                 Explore Courses
               </Link>
