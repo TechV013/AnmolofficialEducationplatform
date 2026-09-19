@@ -1,0 +1,1 @@
+export const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "vishaltech013@gmail.com";

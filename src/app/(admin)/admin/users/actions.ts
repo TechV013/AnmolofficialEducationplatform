@@ -1,39 +1,30 @@
-
 "use server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth/helpers";
+import { ADMIN_EMAIL } from "@/lib/auth/admin";
 import { revalidatePath } from "next/cache";
 
-export async function updateUserRole(userId: string, newRole: "STUDENT" | "INSTRUCTOR" | "ADMIN") {
+export type AssignableRole = "STUDENT" | "INSTRUCTOR";
+
+export async function updateUserRole(userId: string, newRole: AssignableRole) {
     const currentUser = await requireAdmin();
 
+    if (newRole !== "STUDENT" && newRole !== "INSTRUCTOR") {
+        throw new Error("Only Student and Instructor roles can be assigned.");
+    }
+
     await prisma.$transaction(async (tx) => {
-        // 1. Load target user
         const targetUser = await tx.user.findUnique({ where: { id: userId } });
         if (!targetUser) throw new Error("User not found");
 
-        // 2. Safeguard: Admin cannot demote self
-        if (currentUser.id === userId && newRole !== "ADMIN") {
-            throw new Error("Cannot demote yourself from Admin role.");
+        if (currentUser.id === userId) {
+            throw new Error("Cannot change your own role.");
         }
 
-        // 3. Safeguard: Cannot demote the final ADMIN
-        if (targetUser.role === "ADMIN" && newRole !== "ADMIN") {
-            const adminCount = await tx.user.count({ where: { role: "ADMIN" } });
-            if (adminCount <= 1) {
-                throw new Error("Cannot demote the last Admin.");
-            }
+        if (targetUser.role === "ADMIN" || targetUser.email === ADMIN_EMAIL) {
+            throw new Error("The Admin account role is fixed and cannot be changed.");
         }
 
-        // 4. Safeguard: Only one ADMIN permitted
-        if (newRole === "ADMIN" && targetUser.role !== "ADMIN") {
-            const adminCount = await tx.user.count({ where: { role: "ADMIN" } });
-            if (adminCount >= 1) {
-                throw new Error("Only one Admin is permitted in this project.");
-            }
-        }
-
-        // 5. Update
         await tx.user.update({
             where: { id: userId },
             data: { role: newRole }
@@ -50,6 +41,7 @@ export async function toggleBlockUser(userId: string) {
     if (!targetUser) throw new Error("User not found");
     if (currentUser.id === userId) throw new Error("Cannot block yourself.");
     if (targetUser.role === "ADMIN") throw new Error("Cannot block the Admin.");
+    if (targetUser.email === ADMIN_EMAIL) throw new Error("The Admin account cannot be blocked.");
 
     await prisma.user.update({
         where: { id: userId },
@@ -62,10 +54,11 @@ export async function toggleBlockUser(userId: string) {
 export async function deleteUser(userId: string) {
     const currentUser = await requireAdmin();
     const targetUser = await prisma.user.findUnique({ where: { id: userId } });
-    
+
     if (!targetUser) throw new Error("User not found");
     if (currentUser.id === userId) throw new Error("Cannot delete yourself.");
     if (targetUser.role === "ADMIN") throw new Error("Cannot delete Admin.");
+    if (targetUser.email === ADMIN_EMAIL) throw new Error("The Admin account cannot be deleted.");
 
     await prisma.$transaction([
         prisma.enrollment.deleteMany({ where: { userId } }),
