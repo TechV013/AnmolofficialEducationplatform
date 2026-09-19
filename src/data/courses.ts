@@ -105,10 +105,10 @@ export const instructors = [
 ];
 
 export const testimonials = [
-  { name: "Rakesh Sharma", role: "3D Artist", rating: 5 },
-  { name: "Neha Kumari Mishra", role: "VFX Artist", rating: 5 },
-  { name: "Pooja Kumari Mishra", role: "Motion Designer", rating: 5 },
-  { name: "Shubam Kumar", role: "Video Editor", rating: 4 },
-  { name: "Rahul Kumar Yadav", role: "Animator", rating: 5 },
-  { name: "Kamal Kashyap", role: "Filmmaker", rating: 5 },
+  { name: "Rakesh Sharma", role: "3D Artist", rating: 5, quote: "The 3D modeling course changed how I approach my projects. I landed my first character modeling gig within two months of finishing it." },
+  { name: "Neha Kumari Mishra", role: "VFX Artist", rating: 5, quote: "Clear, structured lessons with real industry context. The mentorship pushed me to build a demo reel that actually got me hired." },
+  { name: "Pooja Kumari Mishra", role: "Motion Designer", rating: 5, quote: "I finally understand why certain techniques work. The founder's guidance on my portfolio made all the difference in interviews." },
+  { name: "Shubam Kumar", role: "Video Editor", rating: 4, quote: "Practical editing projects from day one. I went from cutting home videos to editing commercial projects professionally." },
+  { name: "Rahul Kumar Yadav", role: "Animator", rating: 5, quote: "Rigging used to feel overwhelming. Step-by-step lessons and timely feedback made it genuinely enjoyable to learn." },
+  { name: "Kamal Kashyap", role: "Filmmaker", rating: 5, quote: "One conversation with the founder redirected my career. The course structure is built for real-world filmmaking, not just theory." },
 ];

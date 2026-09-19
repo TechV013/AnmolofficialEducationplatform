@@ -7,7 +7,7 @@ export default function CourseSection() {
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-14">
-          <h2 className="text-3xl sm:text-4xl font-bold text-black">Creative Courses</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold text-text">Creative Courses</h2>
           <p className="mt-4 text-gray-600 max-w-2xl mx-auto text-lg">
             Learn with confidence, just like 91% of learners who have seen meaningful improvements in their careers, skills, and performance. Start now!
           </p>
