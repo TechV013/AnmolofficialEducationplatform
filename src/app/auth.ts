@@ -27,11 +27,8 @@ const handler = NextAuth({
           console.error("Auth DB Error:", e);
           throw new Error("Database error");
         }
-        
-        console.log("Auth lookup for:", credentials.email, "Result found:", !!user);
 
         if (!user || !user.passwordHash) {
-          console.log("User or hash missing");
           throw new Error("Invalid credentials");
         }
 

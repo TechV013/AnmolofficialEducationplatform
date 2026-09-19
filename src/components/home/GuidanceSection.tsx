@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { MessageCircle } from "lucide-react";
 
-const WHATSAPP_NUMBER = "919999999999";
+const WHATSAPP_NUMBER = "917073345025";
 
 export default function GuidanceSection() {
   const [name, setName] = useState("");

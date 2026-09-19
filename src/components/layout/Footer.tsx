@@ -31,7 +31,7 @@ export default function Footer() {
                   <p className="opacity-70">Timing: 10:00am - 8:00pm</p>
                 </div>
                 <a
-                  href="https://wa.me/919999999999"
+                  href="https://wa.me/917073345025"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 bg-[#25D366] text-white px-4 py-2 rounded-full font-bold text-sm hover:bg-[#1DA851] transition-colors"
