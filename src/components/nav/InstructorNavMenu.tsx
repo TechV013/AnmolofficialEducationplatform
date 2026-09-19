@@ -1,13 +1,15 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, BookOpen, User } from "lucide-react";
+import { Home, BookOpen, Users, MessageSquare, User } from "lucide-react";
 
 export default function InstructorNavMenu() {
   const pathname = usePathname();
   const baseRoutes = [
     { href: "/instructor", label: "Dashboard", icon: Home },
     { href: "/instructor/courses", label: "Courses", icon: BookOpen },
+    { href: "/instructor/students", label: "Students", icon: Users },
+    { href: "/instructor/reviews", label: "Reviews", icon: MessageSquare },
     { href: "/instructor/profile", label: "Profile", icon: User },
   ];
   const courseMatch = pathname.match(/^\/instructor\/courses\/([^\/]+)/);

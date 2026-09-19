@@ -25,6 +25,7 @@ model User {
   orders               Order[]
   quizAttempts         QuizAttempt[]
   reviews              Review[]
+  reviewReplies        Review[]         @relation("ReviewReplies")
 }
 
 model Course {
@@ -213,10 +214,14 @@ model Review {
   courseId  String
   rating    Int
   comment   String?
+  reply     String?
+  repliedAt DateTime?
+  repliedById String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   course    Course   @relation(fields: [courseId], references: [id])
-  user      User   @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  repliedBy User?    @relation("ReviewReplies", fields: [repliedById], references: [id])
 
   @@unique([userId, courseId])
 }
