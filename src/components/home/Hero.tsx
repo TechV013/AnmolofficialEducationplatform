@@ -5,75 +5,53 @@ import Image from "next/image";
 
 export default function Hero() {
   return (
-    <section className="relative overflow-hidden bg-background">
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
-        {/* Split headline with the founder image in the centre */}
-        <div className="grid items-center gap-8 sm:gap-10 lg:grid-cols-[1fr_auto_1fr]">
-          {/* Left clause */}
+    <section className="relative overflow-hidden bg-background min-h-[600px] flex items-center pb-0">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div className="grid lg:grid-cols-2 gap-8 items-center">
+          {/* Left - Text Content */}
           <motion.div
-            initial={{ opacity: 0, x: -40 }}
+            initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-center lg:text-right"
+            transition={{ duration: 0.6 }}
+            className="relative z-10 text-center lg:text-left"
           >
-            <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-text sm:text-6xl lg:text-7xl">
-              Your<br />Imagination.
+            <h1 className="text-4xl sm:text-5xl lg:text-[3.4rem] font-bold text-text leading-[1.15] tracking-tight">
+              Your Imagination.<br />
+              Our Expertise.<br />
+              Unstoppable Learning
             </h1>
+            <p className="mt-6 text-lg text-muted max-w-lg mx-auto lg:mx-0">
+              With Anmolofficial, learn affordable creative skills with structured, purpose-driven courses that teach not just what to learn, but why it matters and how to solve real-world problems with it.
+            </p>
+            <div className="mt-10">
+              <Link
+                href="/courses"
+                className="inline-flex items-center justify-center bg-dark text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-dark-hover transition-all shadow-lg hover:scale-105"
+              >
+                Explore Courses
+              </Link>
+            </div>
           </motion.div>
 
-          {/* Founder image centre */}
+          {/* Right - Founder Image (in-flow below text on mobile/tablet, absolute bottom-right bleed on desktop) */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.85 }}
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative mx-auto h-72 w-full max-w-[260px] sm:h-80 sm:max-w-[300px] lg:h-[420px] lg:max-w-[360px]"
+            transition={{ duration: 0.8 }}
+            className="relative flex justify-center items-end pointer-events-none lg:absolute lg:right-0 lg:bottom-0 lg:w-1/2 lg:h-[600px]"
           >
-            <div aria-hidden className="absolute -inset-8 rounded-full bg-primary/10 blur-2xl" />
+            <div aria-hidden className="absolute -inset-6 rounded-full bg-primary/10 blur-2xl lg:hidden" />
             <Image
               src="/images/founder.png"
               alt="Founder"
-              fill
+              width={500}
+              height={580}
               priority
-              sizes="(max-width: 640px) 260px, (max-width: 1024px) 300px, 360px"
-              className="relative z-10 object-contain object-bottom"
+              sizes="(max-width: 1024px) 60vw, 500px"
+              className="relative z-10 h-72 w-auto object-contain object-bottom sm:h-96 lg:h-[580px] lg:translate-y-4"
             />
           </motion.div>
-
-          {/* Right clause */}
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-center lg:text-left"
-          >
-            <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-text sm:text-6xl lg:text-7xl">
-              Our<br />Expertise.
-            </h1>
-          </motion.div>
         </div>
-
-        {/* Punchline + subtext + CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.4 }}
-          className="mt-12 text-center sm:mt-14"
-        >
-          <h2 className="text-3xl font-bold tracking-tight text-text sm:text-5xl lg:text-6xl">
-            Unstoppable Learning
-          </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-base text-muted sm:text-lg">
-            With Anmolofficial, learn affordable creative skills with structured, purpose-driven courses that teach not just what to learn, but why it matters and how to solve real-world problems with it.
-          </p>
-          <div className="mt-8 sm:mt-10">
-            <Link
-              href="/courses"
-              className="inline-flex items-center justify-center bg-dark px-8 py-4 text-lg font-bold text-white shadow-lg transition-all hover:scale-105 hover:bg-dark-hover rounded-full"
-            >
-              Explore Courses
-            </Link>
-          </div>
-        </motion.div>
       </div>
     </section>
   );
