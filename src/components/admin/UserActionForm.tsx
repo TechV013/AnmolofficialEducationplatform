@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { updateUserRole, deleteUser } from "@/app/(admin)/admin/users/actions";
+import { updateUserRole, deleteUser, toggleBlockUser } from "@/app/(admin)/admin/users/actions";
 import { useRouter } from "next/navigation";
 import type { UserRole } from "@/types/lms";
 
@@ -29,6 +29,38 @@ export function UserActionForm({ userId, currentRole }: { userId: string, curren
                 </select>
                 <button className="bg-primary text-white px-3 py-1 rounded text-sm">Update</button>
             </form>
+        </div>
+    );
+}
+
+export function BlockUserForm({ userId, isActive }: { userId: string, isActive: boolean }) {
+    const [error, setError] = useState<string | null>(null);
+    const [busy, setBusy] = useState(false);
+    const router = useRouter();
+
+    const handleToggle = async () => {
+        setError(null);
+        setBusy(true);
+        try {
+            await toggleBlockUser(userId);
+            router.refresh();
+        } catch (e: unknown) {
+            setError(e instanceof Error ? e.message : String(e));
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <div className="flex flex-col gap-1">
+            {error && <p className="text-red-500 text-xs">{error}</p>}
+            <button
+                onClick={handleToggle}
+                disabled={busy}
+                className={`px-3 py-1 rounded text-sm text-white ${isActive ? "bg-amber-500 hover:bg-amber-600" : "bg-emerald-600 hover:bg-emerald-700"} ${busy ? "opacity-60" : ""}`}
+            >
+                {busy ? "..." : isActive ? "Block" : "Unblock"}
+            </button>
         </div>
     );
 }

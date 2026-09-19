@@ -43,6 +43,22 @@ export async function updateUserRole(userId: string, newRole: "STUDENT" | "INSTR
     revalidatePath("/admin/users");
 }
 
+export async function toggleBlockUser(userId: string) {
+    const currentUser = await requireAdmin();
+    const targetUser = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (!targetUser) throw new Error("User not found");
+    if (currentUser.id === userId) throw new Error("Cannot block yourself.");
+    if (targetUser.role === "ADMIN") throw new Error("Cannot block the Admin.");
+
+    await prisma.user.update({
+        where: { id: userId },
+        data: { isActive: !targetUser.isActive }
+    });
+
+    revalidatePath("/admin/users");
+}
+
 export async function deleteUser(userId: string) {
     const currentUser = await requireAdmin();
     const targetUser = await prisma.user.findUnique({ where: { id: userId } });
