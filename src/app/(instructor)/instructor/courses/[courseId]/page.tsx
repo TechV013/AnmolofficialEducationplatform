@@ -12,7 +12,7 @@ export default async function CourseManagementPage({ params }: { params: { cours
     await requireCourseEditor(params.courseId);
     const course = await prisma.course.findUnique({
         where: { id: params.courseId },
-        include: { modules: { include: { lessons: { include: { resources: true, quiz: true, assignment: true } } } } }
+        include: { modules: { include: { lessons: { include: { resources: true, quiz: { include: { questions: { include: { options: true } } } }, assignment: true } } } } }
     });
     if (!course) return <div className="p-12 text-xl">Course not found</div>;
     const isDraft = course.status === "DRAFT";
@@ -97,7 +97,7 @@ export default async function CourseManagementPage({ params }: { params: { cours
                                        <ResourceForm lessonId={lesson.id} courseId={course.id} onSuccess={() => {}} />
                                     </div>
                                     <div className="space-y-1 mb-4">
-                                          {lesson.resources.map((r: any) => (
+                                          {lesson.resources.map((r) => (
                                               <div key={r.id} className="flex justify-between items-center bg-white p-2 rounded border text-sm">
                                                 <a href={r.url} target="_blank" className="text-primary hover:underline">{r.title} ({r.type})</a>
                                                 <form action={deleteResource.bind(null, r.id, course.id)}>
