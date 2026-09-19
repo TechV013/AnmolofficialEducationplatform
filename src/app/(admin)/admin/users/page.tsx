@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth/helpers";
-import { updateUserRole, deleteUser } from "./actions";
+import { UserActionForm, DeleteUserForm } from "@/components/admin/UserActionForm";
 
 export default async function Page() {
   await requireAdmin();
@@ -12,46 +12,47 @@ export default async function Page() {
   });
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">User Management</h1>
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="border-b">
-            <th className="text-left py-2">Name</th>
-            <th className="text-left py-2">Email</th>
-            <th className="text-left py-2">Role</th>
-            <th className="text-left py-2">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map(user => (
-            <tr key={user.id} className="border-b">
-              <td className="py-2">{user.name}</td>
-              <td className="py-2">{user.email}</td>
-              <td className="py-2">{user.role}</td>
-              <td className="py-2 flex gap-2">
-                <form action={async (formData) => {
-                  "use server";
-                  await updateUserRole(user.id, formData.get("role") as any);
-                }} className="flex gap-2">
-                  <select name="role" defaultValue={user.role} className="border rounded px-2 py-1">
-                    <option value="STUDENT">STUDENT</option>
-                    <option value="INSTRUCTOR">INSTRUCTOR</option>
-                    <option value="ADMIN">ADMIN</option>
-                  </select>
-                  <button className="bg-primary text-white px-3 py-1 rounded text-sm">Update</button>
-                </form>
-                <form action={async () => {
-                    "use server";
-                    await deleteUser(user.id);
-                }}>
-                    <button className="bg-red-500 text-white px-3 py-1 rounded text-sm">Delete</button>
-                </form>
-              </td>
+    <div className="p-6 max-w-6xl mx-auto">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-slate-800">User Management</h1>
+        <span className="text-sm text-slate-500">{users.length} Users</span>
+      </div>
+      
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <table className="w-full text-sm">
+            <thead className="bg-slate-50 border-b border-slate-200 uppercase text-slate-500 text-xs font-semibold">
+            <tr>
+                <th className="px-6 py-3 text-left">User</th>
+                <th className="px-6 py-3 text-left">Email</th>
+                <th className="px-6 py-3 text-left">Role</th>
+                <th className="px-6 py-3 text-right">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+            {users.map(user => (
+                <tr key={user.id} className="hover:bg-slate-50 transition-colors">
+                <td className="px-6 py-4 font-medium text-slate-900">{user.name}</td>
+                <td className="px-6 py-4 text-slate-600">{user.email}</td>
+                <td className="px-6 py-4">
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' :
+                        user.role === 'INSTRUCTOR' ? 'bg-blue-100 text-blue-700' :
+                        'bg-slate-100 text-slate-600'
+                    }`}>
+                        {user.role}
+                    </span>
+                </td>
+                <td className="px-6 py-4 text-right">
+                    <div className="flex gap-2 justify-end">
+                        <UserActionForm userId={user.id} currentRole={user.role} />
+                        <DeleteUserForm userId={user.id} />
+                    </div>
+                </td>
+                </tr>
+            ))}
+            </tbody>
+        </table>
+      </div>
     </div>
   );
 }
