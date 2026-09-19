@@ -5,6 +5,7 @@ import { authorizeRole } from "@/lib/auth/guard";
 import Link from "next/link";
 import CourseCreateForm from "@/components/admin/CourseCreateForm";
 import CourseActions from "@/components/admin/CourseActions";
+import Badge from "@/components/ui/Badge";
 
 export const metadata: Metadata = {
   title: "Courses — Admin",
@@ -30,15 +31,18 @@ export default async function AdminCoursesPage() {
   ]);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-8">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-slate-800">Course Management</h1>
-        <span className="text-sm text-slate-500">{courses.length} Courses</span>
+    <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">Course Management</h1>
+          <p className="text-sm text-slate-500">Create, publish, and assign courses to instructors</p>
+        </div>
+        <Badge variant="info">{courses.length} Courses</Badge>
       </div>
 
       <CourseCreateForm />
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200 uppercase text-slate-500 text-xs font-semibold">
             <tr>

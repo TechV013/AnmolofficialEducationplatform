@@ -2,15 +2,29 @@ export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { authorizeRole } from "@/lib/auth/guard";
+import Badge from "@/components/ui/Badge";
 
 export const metadata: Metadata = { title: "Payments — Admin", robots: { index: false, follow: false } };
 
-const statusColor: Record<string, string> = {
-  PAID: "bg-emerald-100 text-emerald-700",
-  PENDING: "bg-amber-100 text-amber-700",
-  FAILED: "bg-red-100 text-red-700",
-  REFUNDED: "bg-blue-100 text-blue-700",
-};
+function initials(name: string | null) {
+  if (!name) return "?";
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
+
+function statusBadge(status: string) {
+  switch (status) {
+    case "PAID": return <Badge variant="success">{status}</Badge>;
+    case "PENDING": return <Badge variant="warning">{status}</Badge>;
+    case "FAILED": return <Badge variant="danger">{status}</Badge>;
+    case "REFUNDED": return <Badge variant="info">{status}</Badge>;
+    default: return <Badge variant="secondary">{status}</Badge>;
+  }
+}
 
 export default async function AdminPaymentsPage() {
   await authorizeRole("ADMIN");
@@ -28,35 +42,38 @@ export default async function AdminPaymentsPage() {
   });
 
   const totalPaid = payments
-    .filter(p => p.status === "PAID")
+    .filter((p) => p.status === "PAID")
     .reduce((sum, p) => sum + Number(p.amount), 0);
 
   const summary = [
-    { label: "Total", value: payments.length },
-    { label: "Paid", value: payments.filter(p => p.status === "PAID").length },
-    { label: "Pending", value: payments.filter(p => p.status === "PENDING").length },
-    { label: "Failed", value: payments.filter(p => p.status === "FAILED").length },
+    { label: "Total Transactions", value: payments.length, accent: "border-l-slate-400" },
+    { label: "Paid", value: payments.filter((p) => p.status === "PAID").length, accent: "border-l-emerald-500" },
+    { label: "Pending", value: payments.filter((p) => p.status === "PENDING").length, accent: "border-l-amber-500" },
+    { label: "Failed", value: payments.filter((p) => p.status === "FAILED").length, accent: "border-l-red-500" },
   ];
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="flex flex-wrap justify-between items-center mb-6 gap-2">
-        <h1 className="text-2xl font-bold text-slate-800">Payments</h1>
-        <span className="text-sm text-slate-500">Collected: <span className="font-semibold text-slate-800">INR {totalPaid.toFixed(2)}</span></span>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">Payments</h1>
+          <p className="text-sm text-slate-500">Transaction history across the platform</p>
+        </div>
+        <Badge variant="success">Collected INR {totalPaid.toFixed(2)}</Badge>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {summary.map((s) => (
-          <div key={s.label} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div key={s.label} className={`rounded-2xl border border-border border-l-4 bg-white p-5 shadow-sm ${s.accent}`}>
             <p className="text-xs font-medium text-slate-500">{s.label}</p>
             <p className="mt-1 text-2xl font-bold text-slate-900">{s.value}</p>
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 border-b border-slate-200 uppercase text-slate-500 text-xs font-semibold">
+          <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase text-slate-500">
             <tr>
               <th className="px-6 py-3 text-left">User</th>
               <th className="px-6 py-3 text-left">Course</th>
@@ -73,24 +90,23 @@ export default async function AdminPaymentsPage() {
               </tr>
             )}
             {payments.map((p) => (
-              <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+              <tr key={p.id} className="transition-colors hover:bg-slate-50">
                 <td className="px-6 py-4">
-                  <p className="font-medium text-slate-900">{p.order.user.name || "—"}</p>
-                  <p className="text-xs text-slate-500">{p.order.user.email}</p>
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+                      {initials(p.order.user.name)}
+                    </span>
+                    <div>
+                      <p className="font-medium text-slate-900">{p.order.user.name || "—"}</p>
+                      <p className="text-xs text-slate-500">{p.order.user.email}</p>
+                    </div>
+                  </div>
                 </td>
                 <td className="px-6 py-4 text-slate-700">{p.order.course.title}</td>
-                <td className="px-6 py-4 text-slate-900 font-medium">
-                  INR {Number(p.amount).toFixed(2)}
-                </td>
+                <td className="px-6 py-4 font-medium text-slate-900">INR {Number(p.amount).toFixed(2)}</td>
+                <td className="px-6 py-4">{statusBadge(p.status)}</td>
                 <td className="px-6 py-4">
-                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColor[p.status] || "bg-slate-100 text-slate-600"}`}>
-                    {p.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
-                    {p.provider}
-                  </span>
+                  <Badge variant="secondary">{p.provider}</Badge>
                 </td>
                 <td className="px-6 py-4 text-slate-500">
                   {p.paidAt ? new Date(p.paidAt).toLocaleDateString() : "—"}

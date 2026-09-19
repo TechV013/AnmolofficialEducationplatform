@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth/helpers";
 import { ADMIN_EMAIL } from "@/lib/auth/admin";
 import { RoleSwitch, BlockUserButton, DeleteUserButton } from "@/components/admin/UserActionForm";
+import Badge from "@/components/ui/Badge";
 import { Crown, Info } from "lucide-react";
 
 function initials(name: string | null) {
@@ -24,13 +25,16 @@ export default async function Page() {
   });
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-slate-800">User Management</h1>
-        <span className="text-sm text-slate-500">{users.length} Users</span>
+    <div className="p-6 max-w-6xl mx-auto space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">User Management</h1>
+          <p className="text-sm text-slate-500">Every account, its role, and access state</p>
+        </div>
+        <Badge variant="info">{users.length} Users</Badge>
       </div>
 
-      <div className="flex items-start gap-2 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 mb-6">
+      <div className="flex items-start gap-2 rounded-xl border border-blue-200/60 bg-blue-50/70 px-4 py-3 mb-6">
         <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
         <p className="text-sm text-slate-700">
           Only <span className="font-semibold">{ADMIN_EMAIL}</span> is the Admin. Role changes are limited to
@@ -77,19 +81,13 @@ export default async function Page() {
                         Super Admin
                       </span>
                     ) : (
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        user.role === "INSTRUCTOR" ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-600"
-                      }`}>
-                        {user.role}
-                      </span>
+                      <Badge variant={user.role === "INSTRUCTOR" ? "info" : "secondary"}>{user.role}</Badge>
                     )}
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      user.isActive ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-                    }`}>
+                    <Badge variant={user.isActive ? "success" : "danger"}>
                       {user.isActive ? "Active" : "Blocked"}
-                    </span>
+                    </Badge>
                   </td>
                   <td className="px-6 py-4 text-slate-500">{new Date(user.createdAt).toLocaleDateString()}</td>
                   <td className="px-6 py-4">
