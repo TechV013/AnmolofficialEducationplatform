@@ -31,7 +31,17 @@ interface Props {
   progressMap: Record<string, { completed: boolean; watchedSeconds: number; }>;
   quiz: QuizView | null;
   previousAttempts: AttemptView[];
-  assignment: { id: string; instructions: string } | null;
+  assignment: {
+    id: string;
+    instructions: string;
+    submission?: {
+      id: string;
+      fileUrl: string | null;
+      status: string;
+      score: number | null;
+      feedback: string | null;
+    } | null;
+  } | null;
   lessonResources: { id: string; title: string; type: string; url: string }[];
 }
 
@@ -89,7 +99,7 @@ export default function ClassroomClient({ course, lesson, initialProgress, cours
 
            {quiz && <QuizCard quiz={quiz} previousAttempts={previousAttempts} />}
 
-           {assignment && <AssignmentBox assignmentId={assignment.id} instructions={assignment.instructions} submitted={false} />}
+           {assignment && <AssignmentBox assignment={assignment} />}
 
            <div className="mt-8 flex justify-between border-t border-border pt-8">
               {prevLessonId ? (

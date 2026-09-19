@@ -91,8 +91,18 @@ export default async function ClassroomPage({ params }: { params: { courseId: st
       })
     : [];
 
-  const assignment = lessonDetail?.assignment
-    ? { id: lessonDetail.assignment.id, instructions: lessonDetail.assignment.instructions }
+  const assignmentDetail = lessonDetail?.assignment ?? null;
+
+  const assignment = assignmentDetail
+    ? {
+        id: assignmentDetail.id,
+        instructions: assignmentDetail.instructions,
+        submission: await prisma.assignmentSubmission.findFirst({
+          where: { assignmentId: assignmentDetail.id, userId: user.id },
+          orderBy: { submittedAt: "desc" },
+          select: { id: true, fileUrl: true, status: true, score: true, feedback: true }
+        })
+      }
     : null;
 
   const lessonResources = lessonDetail?.resources ?? [];
