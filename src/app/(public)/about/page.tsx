@@ -8,7 +8,7 @@ export default function AboutPage() {
       <section className="py-20 bg-surface">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <p className="text-primary font-bold tracking-widest uppercase text-sm mb-4">ABOUT ANMLOFFICIAL</p>
-          <h1 className="text-5xl font-bold text-text mb-6">Learning built around creativity,<br /> skills, and your future.</h1>
+          <h1 className="text-5xl font-bold text-text mb-6">A platform for creative upskilling at your ease</h1>
           <p className="text-muted max-w-2xl mx-auto text-lg mb-10">Anmolofficial is an online learning platform focused on structured, practical, and purpose-driven education in creative skill areas.</p>
           <Link href="/courses" className="bg-primary text-white px-8 py-4 rounded-full font-bold hover:bg-primary-hover transition-all">Explore Courses</Link>
         </div>
@@ -16,8 +16,34 @@ export default function AboutPage() {
 
       {/* Our Story */}
       <section className="py-20 max-w-4xl mx-auto px-6 text-center">
-        <h2 className="text-3xl font-bold text-text mb-6">Our Story</h2>
-        <p className="text-muted text-lg leading-relaxed">Anmolofficial was founded with the belief that creative education should be accessible, structured, and focused on real-world application. We saw a gap between static tutorials and formal schooling, and built a platform that bridges it through project-based learning.</p>
+        <h2 className="text-3xl font-bold text-text mb-6">रचनात्मकता को अवसर में बदलने की एक कोशिश</h2>
+        <div className="space-y-6 text-muted text-lg leading-relaxed text-left">
+          <p>
+            हमारा मानना है कि Creative Education महंगी, मुश्किल या सिर्फ classroom तक सीमित नहीं होनी चाहिए। हमारा मिशन बिल्कुल सरल है — बेहतरीन creative और design education को हर किसी के लिए affordable, accessible और practical बनाना।
+          </p>
+          <p>
+            हमारा platform उन लोगों के लिए एक ऐसी जगह है जहाँ वे अपनी creativity को explore कर सकें, नए skills सीख सकें और अपने career में आगे बढ़ सकें। चाहे आप design की दुनिया में अपना career शुरू करना चाहते हों, अपनी existing skills को बेहतर बनाना चाहते हों या बस कुछ नया सीखने की इच्छा रखते हों — हम आपके learning journey को थोड़ा आसान और ज्यादा meaningful बनाने के लिए यहाँ हैं।
+          </p>
+          <p>
+            हम industry experts के साथ मिलकर creative design और उससे जुड़े क्षेत्रों के practical, expert-led online courses लेकर आते हैं। इन courses को इस तरह तैयार किया गया है कि आप सिर्फ सीखें ही नहीं, बल्कि उस knowledge को अपने काम और career में भी इस्तेमाल कर सकें।
+          </p>
+          <p className="text-2xl font-bold text-text text-center">सीखिए। बनाइए। आगे बढ़िए।</p>
+          <p>
+            हम एक ऐसी growing learning community बना रहे हैं जो मानती है कि learning की कोई expiry date नहीं होती।
+          </p>
+          <p>
+            College खत्म होने या job शुरू होने के बाद या फिर किसी कारणवश जिन्हें स्कूल या कॉलेज से ब्रेक लेना पड़ा, या जो किसी वजह से स्कूल-कॉलेज की पढ़ाई जारी ही नहीं रख पाए ऐसे सभी लोगों का सीखना रुकना नहीं चाहिए। Creative industry लगातार बदल रही है, नए tools और ideas हर दिन सामने आ रहे हैं और ऐसे में खुद को सीखते और evolve करते रहना ही growth का हिस्सा है।
+          </p>
+          <p>
+            इसी सोच के साथ हम online creative education को ज्यादा simple, flexible और accessible बनाने की कोशिश कर रहे हैं। ताकि आप अपनी सुविधा के अनुसार सीख सकें, अपने skills को upgrade कर सकें और अपने career के लिए नए opportunities तैयार कर सकें।
+          </p>
+          <p>
+            क्योंकि हमारे लिए education सिर्फ certificates हासिल करने का नाम नहीं है।
+          </p>
+          <p className="font-semibold">
+            यह उस confidence को पाने के बारे में है जो आपको कहने देता है &ldquo;मैं यह कर सकता हूँ। मैं कुछ नया बना सकता हूँ।&rdquo;
+          </p>
+        </div>
       </section>
 
       {/* Values */}
