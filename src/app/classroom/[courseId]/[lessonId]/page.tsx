@@ -63,6 +63,40 @@ export default async function ClassroomPage({ params }: { params: { courseId: st
     completed: currentLessonProgress.completed
   };
 
+  // Authoritative lesson detail (assignment, resources, quiz) for the current lesson
+  const lessonDetail = await prisma.lesson.findUnique({
+    where: { id: currentLessonId },
+    include: {
+      resources: true,
+      assignment: true,
+      quiz: { include: { questions: { include: { options: true } } } }
+    }
+  });
+
+  const quiz = lessonDetail?.quiz
+    ? {
+        id: lessonDetail.quiz.id,
+        questions: lessonDetail.quiz.questions.map(q => ({
+          id: q.id,
+          text: q.text,
+          options: q.options.map(o => ({ id: o.id, text: o.text }))
+        }))
+      }
+    : null;
+
+  const previousAttempts = quiz
+    ? await prisma.quizAttempt.findMany({
+        where: { userId: user.id, quizId: quiz.id },
+        orderBy: { attemptedAt: "desc" }
+      })
+    : [];
+
+  const assignment = lessonDetail?.assignment
+    ? { id: lessonDetail.assignment.id, instructions: lessonDetail.assignment.instructions }
+    : null;
+
+  const lessonResources = lessonDetail?.resources ?? [];
+
   return <ClassroomClient 
     course={course}
     lesson={lesson}
@@ -71,5 +105,9 @@ export default async function ClassroomPage({ params }: { params: { courseId: st
     progressMap={progressMap}
     prevLessonId={orderedLessons[currentLessonIndex - 1]?.id || null}
     nextLessonId={orderedLessons[currentLessonIndex + 1]?.id || null}
+    quiz={quiz}
+    previousAttempts={previousAttempts}
+    assignment={assignment}
+    lessonResources={lessonResources}
   />;
 }

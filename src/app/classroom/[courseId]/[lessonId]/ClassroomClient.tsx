@@ -6,6 +6,20 @@ import { useRouter } from "next/navigation";
 import { Lesson, Resource, Course } from "@/types/lms";
 import Sidebar from "@/components/classroom/Sidebar";
 import Link from "next/link";
+import QuizCard from "./QuizCard";
+import AssignmentBox from "./AssignmentBox";
+
+interface QuizView {
+  id: string;
+  questions: { id: string; text: string; options: { id: string; text: string }[] }[];
+}
+
+interface AttemptView {
+  id: string;
+  score: number;
+  passed: boolean;
+  attemptedAt: Date;
+}
 
 interface Props {
   course: Course;
@@ -15,9 +29,13 @@ interface Props {
   prevLessonId: string | null;
   nextLessonId: string | null;
   progressMap: Record<string, { completed: boolean; watchedSeconds: number; }>;
+  quiz: QuizView | null;
+  previousAttempts: AttemptView[];
+  assignment: { id: string; instructions: string } | null;
+  lessonResources: { id: string; title: string; type: string; url: string }[];
 }
 
-export default function ClassroomClient({ course, lesson, initialProgress, courseId, prevLessonId, nextLessonId, progressMap }: Props) {
+export default function ClassroomClient({ course, lesson, initialProgress, courseId, prevLessonId, nextLessonId, progressMap, quiz, previousAttempts, assignment, lessonResources }: Props) {
   const router = useRouter();
   const [completed, setCompleted] = useState(initialProgress?.completed || false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -60,14 +78,18 @@ export default function ClassroomClient({ course, lesson, initialProgress, cours
            </button>
            
            {/* Resources */}
-           {lesson.resources.length > 0 ? (
+           {lessonResources.length > 0 ? (
              <div className="mt-10 p-6 bg-surface rounded-2xl border border-border">
                 <h2 className="font-bold text-text text-lg mb-4">Resources</h2>
-                {lesson.resources.map(r => <a key={r.id} href={r.url || '#'} className="block text-primary hover:underline hover:text-primary-hover mb-2">{r.title} ({r.type})</a>)}
+                {lessonResources.map(r => <a key={r.id} href={r.url || '#'} target="_blank" className="block text-primary hover:underline hover:text-primary-hover mb-2">{r.title} ({r.type})</a>)}
              </div>
            ) : (
              <div className="mt-10 p-6 bg-surface rounded-2xl border border-border text-muted">No resources available for this lesson.</div>
            )}
+
+           {quiz && <QuizCard quiz={quiz} previousAttempts={previousAttempts} />}
+
+           {assignment && <AssignmentBox assignmentId={assignment.id} instructions={assignment.instructions} submitted={false} />}
 
            <div className="mt-8 flex justify-between border-t border-border pt-8">
               {prevLessonId ? (

@@ -2,6 +2,8 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth/helpers";
 import { hasCourseAccess } from "@/services/enrollmentService";
+import { getCourseCompletionStatus } from "@/services/progressService";
+import { issueCertificate } from "@/services/certificates/certificate.service";
 
 export async function saveNote(lessonId: string, content: string) {
     const user = await getCurrentUser();
@@ -54,11 +56,25 @@ export async function updateProgress(lessonId: string, watchedSeconds: number, c
   const enrolled = await hasCourseAccess(user.id, lesson.module.courseId);
   if (!enrolled) throw new Error("Unauthorized");
 
-  return await prisma.lessonProgress.upsert({
+  const progress = await prisma.lessonProgress.upsert({
     where: { userId_lessonId: { userId: user.id, lessonId } },
     update: { watchedSeconds, completed, lastWatchedAt: new Date(), completedAt: completed ? new Date() : null },
     create: { userId: user.id, lessonId, watchedSeconds, completed }
   });
+
+  // Auto-issue certificate as soon as a student reaches 100% completion
+  if (completed) {
+    const completion = await getCourseCompletionStatus(user.id, lesson.module.courseId);
+    if (completion.completed) {
+      try {
+        await issueCertificate(user.id, lesson.module.courseId);
+      } catch (e) {
+        console.error("Certificate issuance failed:", e);
+      }
+    }
+  }
+
+  return progress;
 }
 
 export async function submitQuiz(quizId: string, answers: { questionId: string, optionId: string }[]) {

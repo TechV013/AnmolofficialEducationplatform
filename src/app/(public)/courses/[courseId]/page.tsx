@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Star, Clock, BookOpen, Play, ArrowRight, Users } from "lucide-react";
 import { notFound } from "next/navigation";
 import EnrollButton from "./EnrollButton";
+import ReviewSection from "./ReviewSection";
 import type { Metadata } from "next";
 
 export async function generateMetadata({ params }: { params: { courseId: string } }): Promise<Metadata> {
@@ -56,6 +57,22 @@ export default async function CourseDetailPage({ params }: { params: { courseId:
   const totalLessons = course.modules.reduce((sum, m) => sum + m.lessons.length, 0);
   const isFree = Number(course.price) === 0;
 
+  const reviews = await prisma.review.findMany({
+    where: { courseId: course.id },
+    orderBy: { createdAt: "desc" },
+    include: { user: { select: { name: true } }, repliedBy: { select: { name: true } } }
+  });
+  const avgRating = reviews.length > 0
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+    : "0";
+  const reviewItems = reviews.map(r => ({
+    id: r.id,
+    rating: r.rating,
+    comment: r.comment,
+    reply: r.reply,
+    createdByName: r.user.name || "Student"
+  }));
+
   return (
     <div className="min-h-screen bg-light-gray">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -79,7 +96,7 @@ export default async function CourseDetailPage({ params }: { params: { courseId:
             )}
             <p className="text-gray-600 leading-relaxed mb-6">{course.description}</p>
             <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-6">
-              <span className="flex items-center gap-1"><Star className="w-4 h-4 text-primary fill-primary" /> 0</span>
+              <span className="flex items-center gap-1"><Star className="w-4 h-4 text-primary fill-primary" /> {avgRating} ({reviews.length})</span>
               <span className="flex items-center gap-1"><Clock className="w-4 h-4 text-primary" /> —</span>
               <span className="flex items-center gap-1"><BookOpen className="w-4 h-4 text-primary" /> {totalLessons} lessons</span>
               <span className="flex items-center gap-1"><Users className="w-4 h-4 text-primary" /> 0 students</span>
@@ -122,6 +139,7 @@ export default async function CourseDetailPage({ params }: { params: { courseId:
             </div>
           </div>
         </div>
+        <ReviewSection courseId={course.id} reviews={reviewItems} canReview={enrolled} />
       </div>
     </div>
   );
