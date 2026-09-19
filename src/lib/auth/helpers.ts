@@ -31,11 +31,15 @@ export async function requireRole(role: string): Promise<AuthUser> {
   // Authoritative check against database
   const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
-      select: { role: true }
+      select: { role: true, isActive: true }
   });
 
   if (!dbUser) {
       throw new Error("Forbidden: User not found in database");
+  }
+
+  if (!dbUser.isActive) {
+    throw new Error("Forbidden: Account deactivated");
   }
   
   if (dbUser.role !== role) {

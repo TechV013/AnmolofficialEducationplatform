@@ -21,7 +21,7 @@ const handler = NextAuth({
         let user;
         try {
           user = await prisma.user.findUnique({
-            where: { email: credentials.email },
+            where: { email: credentials.email.toLowerCase() },
           });
         } catch (e) {
           console.error("Auth DB Error:", e);
@@ -30,6 +30,10 @@ const handler = NextAuth({
 
         if (!user || !user.passwordHash) {
           throw new Error("Invalid credentials");
+        }
+
+        if (!user.isActive) {
+          throw new Error("Your account has been deactivated. Please contact support.");
         }
 
         const isValid = await bcrypt.compare(credentials.password, user.passwordHash);
