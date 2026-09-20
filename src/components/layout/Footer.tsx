@@ -47,15 +47,11 @@ export default function Footer() {
                 <ul className="space-y-3 text-sm opacity-80">
                   <li><Link href="/about-us" className="hover:underline">About founder</Link></li>
                   <li><Link href="/courses" className="hover:underline">All Courses</Link></li>
-                  <li><Link href="#" className="hover:underline">Earn money by referring</Link></li>
                 </ul>
               </div>
               <div>
                 <h4 className="font-bold text-lg mb-4">Important Links</h4>
                 <ul className="space-y-3 text-sm opacity-80">
-                  <li><Link href="#" className="hover:underline">Become a Creator</Link></li>
-                  <li><Link href="#" className="hover:underline">Become a Speaker</Link></li>
-                  <li><Link href="#" className="hover:underline">Testimonials</Link></li>
                   <li><Link href="/faq" className="hover:underline">FAQ&apos;s</Link></li>
                   <li><Link href="/community" className="hover:underline">Community</Link></li>
                 </ul>
@@ -63,9 +59,17 @@ export default function Footer() {
               <div>
                 <h4 className="font-bold text-lg mb-4">Other Links</h4>
                 <ul className="space-y-3 text-sm opacity-80">
-                  <li><Link href="/blogs">Blogs</Link></li>
-                  <li><Link href="#">Jobs</Link></li>
-                  <li><Link href="#">Internships</Link></li>
+                  <li><Link href="/blogs" className="hover:underline">Blogs</Link></li>
+                  <li>
+                    <a
+                      href="https://wa.me/917073345025"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:underline"
+                    >
+                      Career
+                    </a>
+                  </li>
                 </ul>
               </div>
             </div>
