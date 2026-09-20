@@ -1,7 +1,6 @@
 "use server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth/helpers";
-import { requireRole } from "@/lib/auth/helpers";
 import { enrollInFreeCourse } from "@/services/enrollmentService";
 
 export async function enrollFree(courseId: string) {
