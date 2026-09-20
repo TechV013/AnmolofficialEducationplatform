@@ -12,9 +12,23 @@ import AssignmentBox from "./AssignmentBox";
 function getEmbedUrl(url: string): { type: "youtube" | "vimeo" | "html5"; embedUrl: string } {
   if (!url) return { type: "html5", embedUrl: "" };
 
-  const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
-  if (ytMatch && ytMatch[1]) {
-    return { type: "youtube", embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1` };
+  let videoId = "";
+  if (url.includes("youtu.be/")) {
+    videoId = url.split("youtu.be/")[1]?.split(/[?#]/)[0];
+  } else if (url.includes("youtube.com/embed/")) {
+    videoId = url.split("youtube.com/embed/")[1]?.split(/[?#]/)[0];
+  } else if (url.includes("youtube.com/shorts/")) {
+    videoId = url.split("youtube.com/shorts/")[1]?.split(/[?#]/)[0];
+  } else if (url.includes("v=")) {
+    const queryPart = url.split("?")[1];
+    if (queryPart) {
+      const urlParams = new URLSearchParams(queryPart);
+      videoId = urlParams.get("v") || "";
+    }
+  }
+
+  if (videoId && videoId.length === 11) {
+    return { type: "youtube", embedUrl: `https://www.youtube.com/embed/${videoId}?autoplay=1` };
   }
 
   const vimeoMatch = url.match(/(?:vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/[^\/]*\/videos\/|album\/\d+\/video\/|video\/|)(\d+)(?:[a-zA-Z0-9_\-]+)?)/);
