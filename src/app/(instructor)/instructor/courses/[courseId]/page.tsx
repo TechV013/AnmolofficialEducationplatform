@@ -1,6 +1,6 @@
 import { requireInstructor } from "@/lib/auth/helpers";
-import { getCourseForInstructor } from "@/services/courses/instructor.service";
-import { notFound } from "next/navigation";
+import { getCourseForInstructor, togglePublish, deleteCourse } from "@/services/courses/instructor.service";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Globe, Eye, Trash2, Plus, Film } from "lucide-react";
 import VideoUploader from "@/components/courses/VideoUploader";
@@ -28,7 +28,11 @@ export default async function EditCoursePage({ params }: { params: Promise<{ cou
           </Link>
           <form action={async () => {
             "use server";
-            await fetch(`http://localhost:3000/api/courses/${course.id}/publish`, { method: "POST" });
+            try {
+              await togglePublish(course.id);
+            } catch (err: any) {
+              console.error("Publish error:", err);
+            }
           }}>
             <button type="submit" className={`inline-flex items-center gap-2 px-5 py-2 rounded-xl font-bold text-white transition-all ${course.status === "PUBLISHED" ? "bg-amber-600 hover:bg-amber-700" : "bg-emerald-600 hover:bg-emerald-700"}`}>
               <Globe className="h-4 w-4" />
@@ -37,11 +41,14 @@ export default async function EditCoursePage({ params }: { params: Promise<{ cou
           </form>
           <form action={async () => {
             "use server";
-            await fetch(`http://localhost:3000/api/courses/${course.id}`, { method: "DELETE" });
+            try {
+              await deleteCourse(course.id);
+            } catch (err) {
+              console.error("Delete error:", err);
+            }
+            redirect("/instructor");
           }}>
-            <button type="submit" onClick={async (e) => {
-              // Note: client side confirm handled by browser or form action
-            }} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-rose-200 bg-rose-50 text-sm font-bold text-rose-600 hover:bg-rose-100 transition-colors">
+            <button type="submit" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-rose-200 bg-rose-50 text-sm font-bold text-rose-600 hover:bg-rose-100 transition-colors">
               <Trash2 className="h-4 w-4" />
               <span>Delete</span>
             </button>

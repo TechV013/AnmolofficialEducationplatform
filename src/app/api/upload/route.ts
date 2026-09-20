@@ -17,14 +17,20 @@ export async function POST(req: NextRequest) {
     if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
     if (file.size > MAX_SIZE) return NextResponse.json({ error: "File exceeds 1GB limit" }, { status: 400 });
 
-    const fileName = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
-    const filePath = join(UPLOAD_DIR, fileName);
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    await mkdir(UPLOAD_DIR, { recursive: true });
-    await writeFile(filePath, buffer);
+    const fileName = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
+    let fileUrl = `/uploads/${fileName}`;
 
-    const fileUrl = `/uploads/${fileName}`;
+    try {
+      await mkdir(UPLOAD_DIR, { recursive: true });
+      await writeFile(join(UPLOAD_DIR, fileName), buffer);
+    } catch (fsErr) {
+      // Vercel serverless read-only filesystem fallback: convert to base64 Data URI
+      console.warn("Filesystem write failed (likely serverless read-only environment), falling back to data URI:", fsErr);
+      const base64 = buffer.toString("base64");
+      fileUrl = `data:${file.type || "application/octet-stream"};base64,${base64}`;
+    }
 
     if (lessonId) {
       await prisma.lesson.update({
