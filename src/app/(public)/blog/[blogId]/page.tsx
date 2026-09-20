@@ -38,7 +38,7 @@ export default async function BlogDetailPage({ params }: Props) {
     <div className="min-h-screen bg-background">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <Link
-          href="/blogs"
+          href="/blog"
           className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline mb-8"
         >
           <ArrowLeft className="h-4 w-4" /> Back to blog

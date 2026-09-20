@@ -59,7 +59,7 @@ export default function Footer() {
               <div>
                 <h4 className="font-bold text-lg mb-4">Other Links</h4>
                 <ul className="space-y-3 text-sm opacity-80">
-                  <li><Link href="/blogs" className="hover:underline">Blogs</Link></li>
+                  <li><Link href="/blog" className="hover:underline">Blogs</Link></li>
                   <li>
                     <a
                       href="https://wa.me/917073345025"

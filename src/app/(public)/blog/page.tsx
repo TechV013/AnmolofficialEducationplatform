@@ -3,12 +3,12 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Blog — Anmolofficial",
   description: "Insights on 3D modeling, animation, VFX, and creative careers from the Anmolofficial team.",
-  alternates: { canonical: "/blogs" },
+  alternates: { canonical: "/blog" },
   openGraph: {
     title: "Blog — Anmolofficial",
     description: "Insights on 3D modeling, animation, VFX, and creative careers from the Anmolofficial team.",
     type: "website",
-    url: "https://www.anmolofficial.com/blogs",
+    url: "https://www.anmolofficial.com/blog",
   },
 };
 
