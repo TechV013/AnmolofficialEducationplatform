@@ -13,6 +13,7 @@ interface CourseSettings {
   thumbnail: string;
   slug: string;
   price?: string;
+  promoVideoUrl?: string | null;
 }
 
 export default function CourseForm({ course }: { course?: CourseSettings }) {
@@ -20,7 +21,9 @@ export default function CourseForm({ course }: { course?: CourseSettings }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [thumbnail, setThumbnail] = useState(course?.thumbnail || "");
+  const [promoVideoUrl, setPromoVideoUrl] = useState(course?.promoVideoUrl || "");
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const isEdit = Boolean(course);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,6 +51,36 @@ export default function CourseForm({ course }: { course?: CourseSettings }) {
     }
   };
 
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 1024 * 1024 * 1024) {
+      setError("Promo video file exceeds 1GB limit");
+      return;
+    }
+
+    setUploadingVideo(true);
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append("video", file);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Video upload failed");
+
+      setPromoVideoUrl(data.videoUrl);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Video upload failed");
+    } finally {
+      setUploadingVideo(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
@@ -61,11 +94,13 @@ export default function CourseForm({ course }: { course?: CourseSettings }) {
           category: String(form.get("category") || ""),
           level: String(form.get("level") || ""),
           thumbnail: thumbnail || String(form.get("thumbnail") || ""),
-          slug: String(form.get("slug") || "")
+          slug: String(form.get("slug") || ""),
+          promoVideoUrl: promoVideoUrl || null
         });
         router.refresh();
       } else {
         form.set("thumbnail", thumbnail);
+        form.set("promoVideoUrl", promoVideoUrl);
         const id = await createCourse(form);
         router.push(`/instructor/courses/${id}`);
       }
@@ -119,7 +154,7 @@ export default function CourseForm({ course }: { course?: CourseSettings }) {
             <input name="thumbnail" value={thumbnail} onChange={e => setThumbnail(e.target.value)} className="flex-1 rounded-lg border px-3 py-2 text-sm" placeholder="https://... or upload file" />
             <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-soft-blue text-primary font-semibold text-xs hover:bg-soft-blue/80 transition-colors">
               {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-              <span>{uploadingImage ? "Uploading..." : "Upload from Device"}</span>
+              <span>{uploadingImage ? "Uploading..." : "Upload Image"}</span>
               <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploadingImage} />
             </label>
           </div>
@@ -127,6 +162,21 @@ export default function CourseForm({ course }: { course?: CourseSettings }) {
             <div className="mt-2 h-32 w-48 overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
               <img src={thumbnail} alt="Thumbnail preview" className="h-full w-full object-cover" />
             </div>
+          )}
+        </div>
+
+        <div className="md:col-span-2 space-y-2">
+          <label className="mb-1 block text-xs font-semibold text-slate-500">Course Promo/Preview Video (URL or Local Upload up to 1GB)</label>
+          <div className="flex items-center gap-3">
+            <input name="promoVideoUrl" value={promoVideoUrl} onChange={e => setPromoVideoUrl(e.target.value)} className="flex-1 rounded-lg border px-3 py-2 text-sm" placeholder="https://... or upload video file" />
+            <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-soft-blue text-primary font-semibold text-xs hover:bg-soft-blue/80 transition-colors">
+              {uploadingVideo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              <span>{uploadingVideo ? "Uploading..." : "Upload Video"}</span>
+              <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" disabled={uploadingVideo} />
+            </label>
+          </div>
+          {promoVideoUrl && (
+            <p className="text-xs text-emerald-600 font-medium">✓ Promo video attached: {promoVideoUrl}</p>
           )}
         </div>
       </div>

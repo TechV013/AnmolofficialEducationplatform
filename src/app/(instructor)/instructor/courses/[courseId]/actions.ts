@@ -1,4 +1,3 @@
-
 "use server";
 import { prisma } from "@/lib/prisma";
 import { requireCourseEditor } from "@/lib/auth/authorizer";
@@ -178,8 +177,8 @@ export async function createCourse(formData: FormData) {
     }
 
     const data = Object.fromEntries(formData);
-    const { title, description, price, category, level, thumbnail, slug } = data as {
-        title: string; description: string; price: string; category: string; level: string; thumbnail: string; slug: string;
+    const { title, description, price, category, level, thumbnail, slug, promoVideoUrl } = data as {
+        title: string; description: string; price: string; category: string; level: string; thumbnail: string; slug: string; promoVideoUrl?: string;
     };
     if (!title || !title.trim()) throw new Error("Title is required");
 
@@ -197,6 +196,7 @@ export async function createCourse(formData: FormData) {
             category: category?.trim() || "General",
             level: level?.trim() || "Beginner",
             thumbnail: thumbnail?.trim(),
+            promoVideoUrl: promoVideoUrl?.trim() || null,
             slug: cleanSlug,
             status: "DRAFT"
         }
@@ -211,9 +211,9 @@ export async function createCourse(formData: FormData) {
     return course.id;
 }
 
-// Edit course settings (price/status stay under admin control for existing courses)
+// Edit course settings
 export async function updateCourse(courseId: string, data: {
-    title: string; description: string; category: string; level: string; thumbnail: string; slug: string;
+    title: string; description: string; category: string; level: string; thumbnail: string; slug: string; promoVideoUrl?: string | null;
 }) {
     await checkAuth(courseId);
 
@@ -233,7 +233,8 @@ export async function updateCourse(courseId: string, data: {
             description: data.description.trim(),
             category: data.category.trim() || "General",
             level: data.level.trim() || "Beginner",
-            thumbnail: data.thumbnail.trim()
+            thumbnail: data.thumbnail.trim(),
+            promoVideoUrl: data.promoVideoUrl?.trim() || null
         }
     });
     revalidateCourse(updated);

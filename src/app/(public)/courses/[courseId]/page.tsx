@@ -159,7 +159,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
           {/* Left: hero + tabs */}
           <div className="min-w-0">
-            <HeroMedia thumbnail={course.thumbnail || undefined} title={course.title} category={course.category} />
+            <HeroMedia thumbnail={course.thumbnail || undefined} title={course.title} category={course.category} promoVideoUrl={course.promoVideoUrl} />
 
             <div className="mt-6">
               <div className="flex flex-wrap items-center gap-2">
