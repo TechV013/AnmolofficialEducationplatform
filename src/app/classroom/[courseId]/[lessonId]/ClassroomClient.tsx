@@ -9,6 +9,22 @@ import Link from "next/link";
 import QuizCard from "./QuizCard";
 import AssignmentBox from "./AssignmentBox";
 
+function getEmbedUrl(url: string): { type: "youtube" | "vimeo" | "html5"; embedUrl: string } {
+  if (!url) return { type: "html5", embedUrl: "" };
+
+  const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+  if (ytMatch && ytMatch[1]) {
+    return { type: "youtube", embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1` };
+  }
+
+  const vimeoMatch = url.match(/(?:vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/[^\/]*\/videos\/|album\/\d+\/video\/|video\/|)(\d+)(?:[a-zA-Z0-9_\-]+)?)/);
+  if (vimeoMatch && vimeoMatch[1]) {
+    return { type: "vimeo", embedUrl: `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1` };
+  }
+
+  return { type: "html5", embedUrl: url };
+}
+
 interface QuizView {
   id: string;
   questions: { id: string; text: string; options: { id: string; text: string }[] }[];
@@ -24,74 +40,74 @@ interface AttemptView {
 interface Props {
   course: Course;
   lesson: Lesson & { resources: Resource[] };
-  initialProgress: { position: number; completed: boolean } | null;
+  initialProgress: { position: number; completed: boolean };
   courseId: string;
   prevLessonId: string | null;
   nextLessonId: string | null;
   progressMap: Record<string, { completed: boolean; watchedSeconds: number; }>;
-  quiz: QuizView | null;
-  previousAttempts: AttemptView[];
-  assignment: {
-    id: string;
-    instructions: string;
-    submission?: {
-      id: string;
-      fileUrl: string | null;
-      status: string;
-      score: number | null;
-      feedback: string | null;
-    } | null;
-  } | null;
+  quiz?: QuizView | null;
+  previousAttempts?: AttemptView[];
+  assignment?: any;
   lessonResources: { id: string; title: string; type: string; url: string }[];
 }
 
 export default function ClassroomClient({ course, lesson, initialProgress, courseId, prevLessonId, nextLessonId, progressMap, quiz, previousAttempts, assignment, lessonResources }: Props) {
+  const [completed, setCompleted] = useState(progressMap[lesson.id]?.completed || initialProgress.completed || false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const router = useRouter();
-  const [completed, setCompleted] = useState(initialProgress?.completed || false);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   const saveProgress = async (seconds: number, isComplete: boolean) => {
-    await updateProgress(lesson.id, Math.floor(seconds), isComplete);
+    try {
+      await updateProgress(lesson.id, Math.floor(seconds), isComplete);
+    } catch (e) {
+      console.error("Failed to save progress:", e);
+    }
   };
 
+  const mediaInfo = getEmbedUrl(lesson.videoUrl || "");
+
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar courseId={courseId} lessonId={lesson.id} modules={course.modules} />
-      
-      <main className="flex-1 h-screen overflow-y-auto">
-        <header className="bg-surface border-b border-border p-4 flex items-center justify-between sticky top-0 z-10">
-          <Link href="/dashboard" className="text-primary font-medium hover:underline text-sm sm:text-base">← Back to Dashboard</Link>
-          <h1 className="font-bold text-text text-sm sm:text-base truncate px-2">{course.title}</h1>
-          <div />
-        </header>
+    <div className="flex h-screen bg-background overflow-hidden">
+      <div className="hidden lg:block w-80 shrink-0">
+        <Sidebar courseId={courseId} lessonId={lesson.id} modules={course.modules} />
+      </div>
 
-        {/* Mobile / tablet lesson navigation (sidebar is desktop-only) */}
-        <nav className="border-b border-border bg-white p-3 lg:hidden">
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {[...course.modules]
-              .sort((a, b) => a.position - b.position)
-              .flatMap((m) => [...m.lessons].sort((a, b) => a.position - b.position))
-              .map((l) => (
-                <Link
-                  key={l.id}
-                  href={`/classroom/${courseId}/${l.id}`}
-                  className={cn(
-                    "shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
-                    l.id === lesson.id
-                      ? "border-primary bg-primary text-white"
-                      : "border-border bg-white text-slate-600 hover:bg-soft-blue/50"
-                  )}
-                >
-                  {l.title}
-                </Link>
-              ))}
-          </div>
-        </nav>
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <div className="p-4 bg-white border-b border-border flex items-center justify-between lg:hidden">
+          <span className="font-bold text-sm truncate">{course.title}</span>
+          <Link href="/my-learning" className="text-xs font-semibold text-primary">My Learning</Link>
+        </div>
 
-        <div className="p-6 md:p-8 max-w-4xl mx-auto">
+        <div className="p-6 md:p-8 max-w-4xl mx-auto w-full">
            <div className="bg-black aspect-video w-full rounded-2xl overflow-hidden shadow-lg mb-6 flex items-center justify-center">
              {lesson.videoUrl ? (
-               <video ref={videoRef} src={lesson.videoUrl} className="w-full h-full" controls />
+               mediaInfo.type === "youtube" || mediaInfo.type === "vimeo" ? (
+                 <iframe
+                   src={mediaInfo.embedUrl}
+                   title={lesson.title}
+                   className="h-full w-full border-0"
+                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                   allowFullScreen
+                 />
+               ) : (
+                 <video
+                   ref={videoRef}
+                   src={lesson.videoUrl}
+                   className="w-full h-full object-contain"
+                   controls
+                   playsInline
+                   onTimeUpdate={() => {
+                     if (videoRef.current && Math.floor(videoRef.current.currentTime) % 10 === 0) {
+                       saveProgress(videoRef.current.currentTime, completed);
+                     }
+                   }}
+                   onEnded={() => {
+                     setCompleted(true);
+                     saveProgress(videoRef.current?.currentTime || 0, true);
+                     router.refresh();
+                   }}
+                 />
+               )
              ) : (
                <div className="text-white text-center p-6">
                  <p className="text-lg font-bold">Video unavailable</p>
@@ -104,36 +120,43 @@ export default function ClassroomClient({ course, lesson, initialProgress, cours
            <p className="text-muted mt-2">{lesson.description}</p>
            
            <button 
-                 onClick={() => { setCompleted(true); saveProgress(0, true); router.refresh(); }}
-                 className={cn("mt-6 px-6 py-3 rounded-full font-bold text-white transition-colors", completed ? "bg-green-600" : "bg-primary hover:bg-primary-hover")}
-              >
-                 {completed ? "✓ Lesson Completed" : "Mark as Complete"}
+              onClick={() => { setCompleted(true); saveProgress(videoRef.current?.currentTime || 0, true); router.refresh(); }}
+              className={cn("mt-6 px-6 py-3 rounded-full font-bold text-white transition-colors", completed ? "bg-green-600" : "bg-primary hover:bg-primary-hover")}
+           >
+              {completed ? "✓ Lesson Completed" : "Mark as Complete"}
            </button>
            
-           {/* Resources */}
-           {lessonResources.length > 0 ? (
-             <div className="mt-10 p-6 bg-surface rounded-2xl border border-border">
-                <h2 className="font-bold text-text text-lg mb-4">Resources</h2>
-                {lessonResources.map(r => <a key={r.id} href={r.url || '#'} target="_blank" className="block text-primary hover:underline hover:text-primary-hover mb-2">{r.title} ({r.type})</a>)}
+           {/* Quiz / Assignment */}
+           {quiz && (
+             <div className="mt-8">
+               <QuizCard quiz={quiz} previousAttempts={previousAttempts || []} />
              </div>
-           ) : (
-             <div className="mt-10 p-6 bg-surface rounded-2xl border border-border text-muted">No resources available for this lesson.</div>
            )}
 
-           {quiz && <QuizCard quiz={quiz} previousAttempts={previousAttempts} />}
+           {assignment && (
+             <div className="mt-8">
+               <AssignmentBox assignment={assignment} />
+             </div>
+           )}
 
-           {assignment && <AssignmentBox assignment={assignment} />}
-
-           <div className="mt-8 flex justify-between border-t border-border pt-8">
-              {prevLessonId ? (
-                  <Link href={`/classroom/${courseId}/${prevLessonId}`} className="text-text hover:text-primary font-medium">← Previous Lesson</Link>
-              ) : <div />}
-              {nextLessonId ? (
-                  <Link href={`/classroom/${courseId}/${nextLessonId}`} className="text-primary font-bold hover:text-primary-hover">Next Lesson →</Link>
-              ) : <div />}
+           {/* Resources */}
+           <div className="mt-10">
+             <h3 className="text-lg font-bold text-text mb-4">Downloadable Resources</h3>
+             {lessonResources.length > 0 ? (
+               <div className="space-y-2">
+                 {lessonResources.map(r => (
+                   <a key={r.id} href={r.url || '#'} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-4 bg-white rounded-xl border border-border hover:border-primary transition-colors">
+                     <span className="font-medium text-text text-sm">{r.title}</span>
+                     <span className="text-xs font-bold text-primary uppercase bg-soft-blue px-2.5 py-1 rounded-md">{r.type}</span>
+                   </a>
+                 ))}
+               </div>
+             ) : (
+               <div className="p-6 bg-surface rounded-2xl border border-border text-muted text-sm">No resources available for this lesson.</div>
+             )}
            </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

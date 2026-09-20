@@ -9,21 +9,49 @@ interface HeroMediaProps {
   promoVideoUrl?: string | null;
 }
 
+function getEmbedUrl(url: string): { type: "youtube" | "vimeo" | "html5"; embedUrl: string } {
+  if (!url) return { type: "html5", embedUrl: "" };
+
+  // YouTube match
+  const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+  if (ytMatch && ytMatch[1]) {
+    return { type: "youtube", embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1` };
+  }
+
+  // Vimeo match
+  const vimeoMatch = url.match(/(?:vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/[^\/]*\/videos\/|album\/\d+\/video\/|video\/|)(\d+)(?:[a-zA-Z0-9_\-]+)?)/);
+  if (vimeoMatch && vimeoMatch[1]) {
+    return { type: "vimeo", embedUrl: `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1` };
+  }
+
+  return { type: "html5", embedUrl: url };
+}
+
 export default function HeroMedia({ thumbnail, title, category, promoVideoUrl }: HeroMediaProps) {
   const [imgError, setImgError] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const showImage = Boolean(thumbnail) && !imgError;
 
+  const mediaInfo = getEmbedUrl(promoVideoUrl || "");
+
   if (isPlaying && promoVideoUrl) {
     return (
       <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black shadow-lg flex items-center justify-center">
-        {videoError ? (
+        {mediaInfo.type === "youtube" || mediaInfo.type === "vimeo" ? (
+          <iframe
+            src={mediaInfo.embedUrl}
+            title={title}
+            className="h-full w-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        ) : videoError ? (
           <div className="p-6 text-center text-white space-y-3">
             <AlertCircle className="h-10 w-10 text-rose-500 mx-auto" />
             <p className="text-sm font-semibold">Video failed to load or unsupported format.</p>
             <p className="text-xs text-slate-400 max-w-sm mx-auto">
-              Large files stored as Data URIs may exceed browser limits. Please use a direct MP4/WebM video URL or CDN link in course settings.
+              Please use a YouTube link, Vimeo link, or direct MP4 video URL in course settings.
             </p>
             <button
               onClick={() => { setVideoError(false); setIsPlaying(false); }}
