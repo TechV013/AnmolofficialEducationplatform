@@ -1,5 +1,8 @@
 import { requireAdmin } from "@/lib/auth/helpers";
 import { prisma } from "@/lib/prisma";
+import { deleteCourse } from "@/services/courses/instructor.service";
+import { UserRole } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 import AdminCourseTable from "@/components/courses/AdminCourseTable";
 
 export default async function AdminDashboardPage() {
@@ -26,11 +29,26 @@ export default async function AdminDashboardPage() {
           users={users}
           onDeleteCourse={async (id) => {
             "use server";
-            await fetch(`http://localhost:3000/api/courses/${id}`, { method: "DELETE" });
+            try {
+              await deleteCourse(id);
+              revalidatePath("/admin");
+            } catch (err) {
+              console.error("Admin delete course error:", err);
+              throw err;
+            }
           }}
           onPromoteUser={async (id) => {
             "use server";
-            await fetch(`http://localhost:3000/api/admin/users/${id}/promote`, { method: "POST" });
+            try {
+              await prisma.user.update({
+                where: { id },
+                data: { role: UserRole.INSTRUCTOR }
+              });
+              revalidatePath("/admin");
+            } catch (err) {
+              console.error("Admin promote user error:", err);
+              throw err;
+            }
           }}
         />
       </div>
