@@ -45,7 +45,7 @@ export default function Footer() {
               <div>
                 <h4 className="font-bold text-lg mb-4">Quick Links</h4>
                 <ul className="space-y-3 text-sm opacity-80">
-                  <li><Link href="#" className="hover:underline">About founder</Link></li>
+                  <li><Link href="/about-us" className="hover:underline">About founder</Link></li>
                   <li><Link href="/courses" className="hover:underline">All Courses</Link></li>
                   <li><Link href="#" className="hover:underline">Earn money by referring</Link></li>
                 </ul>
@@ -63,9 +63,9 @@ export default function Footer() {
               <div>
                 <h4 className="font-bold text-lg mb-4">Other Links</h4>
                 <ul className="space-y-3 text-sm opacity-80">
-                  <li><Link href="#" className="hover:underline">Blogs</Link></li>
-                  <li><Link href="#" className="hover:underline">Jobs</Link></li>
-                  <li><Link href="#" className="hover:underline">Internships</Link></li>
+                  <li><Link href="/blogs">Blogs</Link></li>
+                  <li><Link href="#">Jobs</Link></li>
+                  <li><Link href="#">Internships</Link></li>
                 </ul>
               </div>
             </div>
@@ -86,9 +86,9 @@ export default function Footer() {
 
           {/* Legal Links */}
           <div className="flex flex-wrap justify-center gap-6 text-sm opacity-70">
-            <Link href="/contact" className="hover:underline">Contact Us</Link>
-            <Link href="#" className="hover:underline">Privacy Policy</Link>
-            <Link href="#" className="hover:underline">Terms of Use</Link>
+              <Link href="/contact" className="hover:underline">Contact Us</Link>
+              <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
+              <Link href="/terms" className="hover:underline">Terms of Use</Link>
             <span>&copy; 2026 All rights reserved.</span>
           </div>
         </div>
