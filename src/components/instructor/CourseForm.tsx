@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createCourse, updateCourse } from "@/app/(instructor)/instructor/courses/[courseId]/actions";
-import { Upload, Loader2, CheckCircle2 } from "lucide-react";
+import { Upload, Loader2, Play } from "lucide-react";
 
 interface CourseSettings {
   id: string;
@@ -98,6 +98,7 @@ export default function CourseForm({ course }: { course?: CourseSettings }) {
           promoVideoUrl: promoVideoUrl || null
         });
         router.refresh();
+        alert("Course settings saved successfully!");
       } else {
         form.set("thumbnail", thumbnail);
         form.set("promoVideoUrl", promoVideoUrl);
@@ -165,7 +166,7 @@ export default function CourseForm({ course }: { course?: CourseSettings }) {
           )}
         </div>
 
-        <div className="md:col-span-2 space-y-2">
+        <div className="md:col-span-2 space-y-3">
           <label className="mb-1 block text-xs font-semibold text-slate-500">Course Promo/Preview Video (URL or Local Upload up to 1GB)</label>
           <div className="flex items-center gap-3">
             <input name="promoVideoUrl" value={promoVideoUrl} onChange={e => setPromoVideoUrl(e.target.value)} className="flex-1 rounded-lg border px-3 py-2 text-sm" placeholder="https://... or upload video file" />
@@ -175,8 +176,23 @@ export default function CourseForm({ course }: { course?: CourseSettings }) {
               <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" disabled={uploadingVideo} />
             </label>
           </div>
+
+          {/* Interactive Video Preview Player */}
           {promoVideoUrl && (
-            <p className="text-xs text-emerald-600 font-medium">✓ Promo video attached: {promoVideoUrl}</p>
+            <div className="mt-3 space-y-2">
+              <p className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <Play className="h-3.5 w-3.5 text-primary fill-primary" />
+                <span>Video Preview Player (Test before publishing):</span>
+              </p>
+              <div className="aspect-video w-full max-w-xl overflow-hidden rounded-2xl bg-black border border-border shadow-md">
+                <video
+                  src={promoVideoUrl}
+                  controls
+                  playsInline
+                  className="h-full w-full object-contain"
+                />
+              </div>
+            </div>
           )}
         </div>
       </div>

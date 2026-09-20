@@ -1,11 +1,12 @@
 import { requireInstructor } from "@/lib/auth/helpers";
-import { getCourseForInstructor, togglePublish, deleteCourse } from "@/services/courses/instructor.service";
+import { getCourseForInstructor, deleteCourse } from "@/services/courses/instructor.service";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Globe, Eye, Trash2, Plus, Film } from "lucide-react";
+import { ArrowLeft, Eye, Trash2, Plus, Film } from "lucide-react";
 import VideoUploader from "@/components/courses/VideoUploader";
 import { createModule, createLesson, deleteModule, deleteLesson } from "./actions";
 import CourseForm from "@/components/instructor/CourseForm";
+import PublishButton from "@/components/instructor/PublishButton";
 
 export default async function EditCoursePage({ params }: { params: Promise<{ courseId: string }> }) {
   const { courseId } = await params;
@@ -26,19 +27,7 @@ export default async function EditCoursePage({ params }: { params: Promise<{ cou
             <Eye className="h-4 w-4" />
             <span>Preview</span>
           </Link>
-          <form action={async () => {
-            "use server";
-            try {
-              await togglePublish(course.id);
-            } catch (err: any) {
-              console.error("Publish error:", err);
-            }
-          }}>
-            <button type="submit" className={`inline-flex items-center gap-2 px-5 py-2 rounded-xl font-bold text-white transition-all ${course.status === "PUBLISHED" ? "bg-amber-600 hover:bg-amber-700" : "bg-emerald-600 hover:bg-emerald-700"}`}>
-              <Globe className="h-4 w-4" />
-              <span>{course.status === "PUBLISHED" ? "Unpublish" : "Publish Course"}</span>
-            </button>
-          </form>
+          <PublishButton courseId={course.id} initialStatus={course.status} />
           <form action={async () => {
             "use server";
             try {
