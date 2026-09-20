@@ -12,49 +12,49 @@ export default async function InstructorDashboardPage() {
   const publishedCount = courses.filter((c: any) => c.status === "PUBLISHED").length;
 
   return (
-    <div className="min-h-screen bg-background py-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-text">Instructor Dashboard</h1>
-            <p className="mt-1 text-sm text-muted">Welcome back, {user.name || "Instructor"}. Manage your courses and lessons.</p>
-          </div>
-          <Link href="/instructor/courses/new" className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-primary-hover transition-all">
-            <Plus className="h-5 w-5" />
-            <span>Create New Course</span>
-          </Link>
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-text">Instructor Dashboard</h1>
+          <p className="mt-1 text-sm text-muted">Welcome back, {user.name || "Instructor"}. Manage your courses and lessons.</p>
         </div>
+        <Link href="/instructor/courses/new" className="inline-flex items-center justify-center gap-2 bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-primary-hover transition-all shrink-0">
+          <Plus className="h-5 w-5" />
+          <span>Create New Course</span>
+        </Link>
+      </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
-          <div className="rounded-2xl border border-border bg-white p-6 shadow-sm flex items-center gap-4">
-            <div className="p-4 rounded-2xl bg-soft-blue text-primary">
-              <BookOpen className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted">Total Courses</p>
-              <p className="text-2xl font-bold text-text">{courses.length} ({publishedCount} published)</p>
-            </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="rounded-2xl border border-border bg-white p-6 shadow-sm flex items-center gap-4">
+          <div className="p-4 rounded-2xl bg-soft-blue text-primary shrink-0">
+            <BookOpen className="h-6 w-6" />
           </div>
-          <div className="rounded-2xl border border-border bg-white p-6 shadow-sm flex items-center gap-4">
-            <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-600">
-              <Users className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted">Total Students</p>
-              <p className="text-2xl font-bold text-text">{totalStudents}</p>
-            </div>
-          </div>
-          <div className="rounded-2xl border border-border bg-white p-6 shadow-sm flex items-center gap-4">
-            <div className="p-4 rounded-2xl bg-amber-50 text-amber-600">
-              <Award className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted">Instructor Status</p>
-              <p className="text-2xl font-bold text-text">Active</p>
-            </div>
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-muted truncate">Total Courses</p>
+            <p className="text-xl sm:text-2xl font-bold text-text truncate">{courses.length} ({publishedCount} published)</p>
           </div>
         </div>
+        <div className="rounded-2xl border border-border bg-white p-6 shadow-sm flex items-center gap-4">
+          <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-600 shrink-0">
+            <Users className="h-6 w-6" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-muted truncate">Total Students</p>
+            <p className="text-xl sm:text-2xl font-bold text-text truncate">{totalStudents}</p>
+          </div>
+        </div>
+        <div className="rounded-2xl border border-border bg-white p-6 shadow-sm flex items-center gap-4">
+          <div className="p-4 rounded-2xl bg-amber-50 text-amber-600 shrink-0">
+            <Award className="h-6 w-6" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-muted truncate">Instructor Status</p>
+            <p className="text-xl sm:text-2xl font-bold text-text truncate">Active</p>
+          </div>
+        </div>
+      </div>
 
+      <div>
         <h2 className="text-xl font-bold text-text mb-6">Your Courses</h2>
         {courses.length === 0 ? (
           <div className="rounded-2xl border border-border bg-white p-12 text-center">

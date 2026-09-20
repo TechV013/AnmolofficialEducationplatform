@@ -7,15 +7,19 @@ export default async function InstructorLayout({ children }: { children: React.R
   const user = await requireInstructor();
 
   return (
-    <>
+    <div className="min-h-screen bg-background flex flex-col">
       <WorkspaceHeader user={user} />
-      <div className="flex h-[calc(100vh-64px)]">
-        <NavMenu />
-        <main className="flex-1 overflow-y-auto p-4 pb-24 md:p-6 md:pb-6 lg:p-8">
-          {children}
+      <div className="flex flex-1 relative overflow-hidden">
+        <aside className="hidden md:block w-64 shrink-0 border-r border-border bg-white overflow-y-auto">
+          <NavMenu />
+        </aside>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-28 md:pb-8">
+          <div className="max-w-7xl mx-auto w-full">
+            {children}
+          </div>
         </main>
       </div>
       <MobileBottomNav panel="instructor" />
-    </>
+    </div>
   );
 }
