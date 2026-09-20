@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Play, Box } from "lucide-react";
+import { Play, Box, X } from "lucide-react";
 
 interface HeroMediaProps {
   thumbnail?: string;
@@ -21,8 +21,16 @@ export default function HeroMedia({ thumbnail, title, category, promoVideoUrl }:
           src={promoVideoUrl}
           controls
           autoPlay
+          playsInline
           className="h-full w-full object-contain"
         />
+        <button
+          onClick={() => setIsPlaying(false)}
+          className="absolute top-3 right-3 z-10 flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-sm transition-colors hover:bg-black/90"
+        >
+          <X className="h-4 w-4" />
+          <span>Close Preview</span>
+        </button>
       </div>
     );
   }
@@ -63,7 +71,7 @@ export default function HeroMedia({ thumbnail, title, category, promoVideoUrl }:
 
       {promoVideoUrl && (
         <div className="absolute bottom-3 left-3 rounded-full bg-black/60 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
-          ▶ Watch Preview
+          ▶ Watch Preview Video
         </div>
       )}
     </div>
