@@ -8,8 +8,8 @@ export default function AboutPage() {
       <section className="py-16 sm:py-20 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-primary font-bold tracking-widest uppercase text-sm mb-4">ABOUT ANMLOFFICIAL</p>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-text mb-6">A platform for creative upskilling at your ease</h1>
-          <p className="text-muted max-w-2xl mx-auto text-base sm:text-lg mb-10">Anmolofficial is an online learning platform focused on structured, practical, and purpose-driven education in creative skill areas.</p>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-text mb-6">रचनात्मकता को अवसर में बदलने की एक कोशिश</h1>
+          <p className="text-muted max-w-2xl mx-auto text-base sm:text-lg mb-10">एक ऑनलाइन लर्निंग प्लेटफ़ॉर्म है, जहाँ रचनात्मक क्षेत्रों से जुड़े कौशल को आसान, व्यवस्थित और practical तरीके से सीखने का अवसर मिलता है। हमारा उद्देश्य ऐसी शिक्षा देना है</p>
           <Link href="/courses" className="bg-primary text-white px-8 py-4 rounded-full font-bold hover:bg-primary-hover transition-all">Explore Courses</Link>
         </div>
       </section>
