@@ -77,7 +77,52 @@ export async function updateCourse(courseId: string, userId: string, data: Parti
 }
 
 export async function deleteCourse(courseId: string) {
-  await prisma.course.delete({ where: { id: courseId } });
+  // Use transaction to safely cascade delete all dependent records without foreign key constraint errors
+  await prisma.$transaction(async (tx) => {
+    const modules = await tx.module.findMany({ where: { courseId }, select: { id: true } });
+    const moduleIds = modules.map(m => m.id);
+
+    const lessons = await tx.lesson.findMany({ where: { moduleId: { in: moduleIds } }, select: { id: true } });
+    const lessonIds = lessons.map(l => l.id);
+
+    // Delete lesson sub-relations
+    await tx.lessonProgress.deleteMany({ where: { lessonId: { in: lessonIds } } });
+    await tx.note.deleteMany({ where: { lessonId: { in: lessonIds } } });
+    await tx.resource.deleteMany({ where: { lessonId: { in: lessonIds } } });
+
+    const assignments = await tx.assignment.findMany({ where: { lessonId: { in: lessonIds } }, select: { id: true } });
+    const assignmentIds = assignments.map(a => a.id);
+    await tx.assignmentSubmission.deleteMany({ where: { assignmentId: { in: assignmentIds } } });
+    await tx.assignment.deleteMany({ where: { lessonId: { in: lessonIds } } });
+
+    const quizzes = await tx.quiz.findMany({ where: { lessonId: { in: lessonIds } }, select: { id: true } });
+    const quizIds = quizzes.map(q => q.id);
+    await tx.quizAttempt.deleteMany({ where: { quizId: { in: quizIds } } });
+    const questions = await tx.question.findMany({ where: { quizId: { in: quizIds } }, select: { id: true } });
+    const questionIds = questions.map(q => q.id);
+    await tx.option.deleteMany({ where: { questionId: { in: questionIds } } });
+    await tx.question.deleteMany({ where: { quizId: { in: quizIds } } });
+    await tx.quiz.deleteMany({ where: { lessonId: { in: lessonIds } } });
+
+    // Delete lessons & modules
+    await tx.lesson.deleteMany({ where: { moduleId: { in: moduleIds } } });
+    await tx.module.deleteMany({ where: { courseId } });
+
+    // Delete course-level relations
+    await tx.courseInstructor.deleteMany({ where: { courseId } });
+    await tx.enrollment.deleteMany({ where: { courseId } });
+    await tx.review.deleteMany({ where: { courseId } });
+    await tx.certificate.deleteMany({ where: { courseId } });
+    
+    const orders = await tx.order.findMany({ where: { courseId }, select: { id: true } });
+    const orderIds = orders.map(o => o.id);
+    await tx.payment.deleteMany({ where: { orderId: { in: orderIds } } });
+    await tx.order.deleteMany({ where: { courseId } });
+
+    // Finally delete the course
+    await tx.course.delete({ where: { id: courseId } });
+  });
+
   return { deleted: true };
 }
 
