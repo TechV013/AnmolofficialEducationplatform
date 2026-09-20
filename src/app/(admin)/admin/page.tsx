@@ -8,12 +8,21 @@ import AdminCourseTable from "@/components/courses/AdminCourseTable";
 export default async function AdminDashboardPage() {
   await requireAdmin();
 
-  const courses = await prisma.course.findMany({
-    include: { instructors: { include: { user: { select: { name: true } } } } }
-  });
-  const users = await prisma.user.findMany({
-    select: { id: true, name: true, email: true, role: true, isActive: true }
-  });
+  let courses: any[] = [];
+  let users: any[] = [];
+  let dbError: string | null = null;
+
+  try {
+    courses = await prisma.course.findMany({
+      include: { instructors: { include: { user: { select: { name: true } } } } }
+    });
+    users = await prisma.user.findMany({
+      select: { id: true, name: true, email: true, role: true, isActive: true }
+    });
+  } catch (err) {
+    console.error("AdminDashboard DB fetch error:", err);
+    dbError = "Database connection error or cold start. Please refresh the page.";
+  }
 
   return (
     <div className="min-h-screen bg-background py-10">
@@ -24,33 +33,41 @@ export default async function AdminDashboardPage() {
             <p className="mt-1 text-sm text-muted">Manage all platform courses and promote instructors.</p>
           </div>
         </div>
-        <AdminCourseTable
-          courses={courses}
-          users={users}
-          onDeleteCourse={async (id) => {
-            "use server";
-            try {
-              await deleteCourse(id);
-              revalidatePath("/admin");
-            } catch (err) {
-              console.error("Admin delete course error:", err);
-              throw err;
-            }
-          }}
-          onPromoteUser={async (id) => {
-            "use server";
-            try {
-              await prisma.user.update({
-                where: { id },
-                data: { role: UserRole.INSTRUCTOR }
-              });
-              revalidatePath("/admin");
-            } catch (err) {
-              console.error("Admin promote user error:", err);
-              throw err;
-            }
-          }}
-        />
+
+        {dbError ? (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-600">
+            <p className="font-bold">⚠️ {dbError}</p>
+            <p className="text-xs mt-1 text-red-500">Neon serverless DB might be waking up from cold start.</p>
+          </div>
+        ) : (
+          <AdminCourseTable
+            courses={courses}
+            users={users}
+            onDeleteCourse={async (id) => {
+              "use server";
+              try {
+                await deleteCourse(id);
+                revalidatePath("/admin");
+              } catch (err) {
+                console.error("Admin delete course error:", err);
+                throw err;
+              }
+            }}
+            onPromoteUser={async (id) => {
+              "use server";
+              try {
+                await prisma.user.update({
+                  where: { id },
+                  data: { role: UserRole.INSTRUCTOR }
+                });
+                revalidatePath("/admin");
+              } catch (err) {
+                console.error("Admin promote user error:", err);
+                throw err;
+              }
+            }}
+          />
+        )}
       </div>
     </div>
   );
