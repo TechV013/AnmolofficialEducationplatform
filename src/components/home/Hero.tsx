@@ -21,7 +21,10 @@ export default function Hero() {
               Unstoppable Learning
             </h1>
             <p className="mt-6 text-lg text-muted max-w-lg mx-auto lg:mx-0">
-              With Anmolofficial, learn affordable creative skills with structured, purpose-driven courses that teach not just what to learn, but why it matters and how to solve real-world problems with it.
+              रचनात्मकता को अवसर में बदलने की एक कोशिश
+            </p>
+            <p className="mt-2 text-lg text-muted max-w-lg mx-auto lg:mx-0">
+              एक ऑनलाइन लर्निंग प्लेटफ़ॉर्म है, जहाँ रचनात्मक क्षेत्रों से जुड़े कौशल को आसान, व्यवस्थित और practical तरीके से सीखने का अवसर मिलता है। हमारा उद्देश्य ऐसी शिक्षा देना है
             </p>
             <div className="mt-10">
               <Link
