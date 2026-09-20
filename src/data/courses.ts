@@ -7,15 +7,30 @@ export const courses: Course[] = [
     description: "Master the fundamentals of 3D modeling, from basic shapes to complex character modeling, using industry-standard tools in Autodesk Maya.",
     category: "3D & Animation",
     level: "Beginner",
-    duration: "12 hrs",
+    duration: "1 hr 30 min",
+    durationMinutes: 90,
     totalLessons: 6,
     rating: 4.8,
+    reviewsCount: 482,
     students: 1240,
     price: 1999,
+    priceOld: 2999,
     status: "PUBLISHED",
     isFree: false,
     thumbnail: "/images/course1.jpg",
     instructorId: "1",
+    instructorName: "Dr. Rajesh Sharma",
+    whatYouWillLearn: [
+      "Navigate Autodesk Maya's interface and core tools",
+      "Model hard-surface and organic objects from scratch",
+      "Apply extrude, bevel, and boolean workflows",
+      "Set up lights and render a final scene"
+    ],
+    requirements: [
+      "Autodesk Maya (any 2020+ version)",
+      "A computer with at least 8GB RAM",
+      "No prior 3D experience needed"
+    ],
     modules: [
       {
         id: "m1",
@@ -52,15 +67,30 @@ export const courses: Course[] = [
     description: "Advanced rigging techniques for character animation, including skeletal systems, IK/FK switches, and muscle simulations.",
     category: "Rigging",
     level: "Intermediate",
-    duration: "10 hrs",
+    duration: "1 hr 15 min",
+    durationMinutes: 75,
     totalLessons: 5,
     rating: 4.9,
+    reviewsCount: 310,
     students: 890,
     price: 1999,
+    priceOld: 2999,
     status: "PUBLISHED",
     isFree: false,
     thumbnail: "/images/course2.jpg",
     instructorId: "1",
+    instructorName: "Dr. Rajesh Sharma",
+    whatYouWillLearn: [
+      "Build clean bone hierarchies for characters",
+      "Switch between IK and FK rigs with confidence",
+      "Paint weights for smooth, natural deformation",
+      "Troubleshoot and fix common rigging issues"
+    ],
+    requirements: [
+      "Completed a basic 3D modeling course",
+      "Working knowledge of Autodesk Maya",
+      "Autodesk Maya (any 2020+ version)"
+    ],
     modules: [
       { id: "m4", title: "Skeleton Setup", position: 0, lessons: [
         { id: "2.1", title: "Bone Hierarchy", position: 0, description: "Understand bone hierarchy.", duration: "20 min", type: "video", videoUrl: "", resources: [] },
@@ -77,15 +107,29 @@ export const courses: Course[] = [
     description: "Learn professional video editing from basic cuts to advanced color grading and motion graphics.",
     category: "Video Editing",
     level: "Beginner",
-    duration: "8 hrs",
+    duration: "1 hr",
+    durationMinutes: 60,
     totalLessons: 5,
     rating: 4.7,
+    reviewsCount: 620,
     students: 2100,
     price: 1999,
+    priceOld: 2499,
     status: "PUBLISHED",
     isFree: false,
     thumbnail: "/images/course3.jpg",
     instructorId: "3",
+    instructorName: "Prof. Arjun Nair",
+    whatYouWillLearn: [
+      "Edit and trim footage with professional precision",
+      "Grade color like a professional editor",
+      "Design motion graphics and animated titles",
+      "Export optimized videos for any platform"
+    ],
+    requirements: [
+      "Adobe Premiere Pro (any recent version)",
+      "Basic computer skills"
+    ],
     modules: [
       { id: "m6", title: "Editing Basics", position: 0, lessons: [
         { id: "3.1", title: "Interface Overview", position: 0, description: "Learn the Premiere Pro interface.", duration: "15 min", type: "video", videoUrl: "", resources: [] },

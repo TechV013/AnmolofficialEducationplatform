@@ -5,13 +5,20 @@ export interface Course {
   category: string;
   level: "Beginner" | "Intermediate" | "Advanced";
   duration: string;
+  durationMinutes: number;
   totalLessons: number;
   rating: number;
+  reviewsCount: number;
   students: number;
   price: number;
+  priceOld?: number;
   isFree: boolean;
   thumbnail: string;
   instructorId?: string;
+  instructorName?: string;
+  whatYouWillLearn: string[];
+  requirements: string[];
+  promoVideoUrl?: string;
   modules: Module[];
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 }

@@ -37,8 +37,12 @@ model Course {
   level        String
   thumbnail    String
   price        Decimal            @db.Decimal(10, 2)
+  priceOld     Decimal?           @db.Decimal(10, 2)
   currency     String             @default("INR")
   status       CourseStatus       @default(DRAFT)
+  whatYouWillLearn String[]       @default([])
+  requirements String[]           @default([])
+  promoVideoUrl String?
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
   certificates Certificate[]

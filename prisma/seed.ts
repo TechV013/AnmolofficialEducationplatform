@@ -34,6 +34,16 @@ async function seed() {
         level: c.level,
         thumbnail: c.thumbnail,
         price: new Decimal("0"),
+        priceOld: new Decimal("2999"),
+        whatYouWillLearn: [
+          "Master the core concepts of the topic",
+          "Apply practical, real-world workflows",
+          "Build a portfolio-ready project"
+        ],
+        requirements: [
+          "A computer with an internet connection",
+          "Willingness to practice hands-on"
+        ],
         status: "DRAFT"
       }
     });
