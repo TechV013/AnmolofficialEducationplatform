@@ -99,6 +99,11 @@ export default async function ClassroomPage({ params }: { params: { courseId: st
 
   const lessonResources = lessonDetail?.resources ?? [];
 
+  const note = await prisma.note.findUnique({
+    where: { userId_lessonId: { userId: user.id, lessonId: currentLessonId } },
+    select: { content: true }
+  });
+
   return <ClassroomClient 
     course={course}
     lesson={lesson}
@@ -111,5 +116,6 @@ export default async function ClassroomPage({ params }: { params: { courseId: st
     previousAttempts={previousAttempts}
     assignment={assignment}
     lessonResources={lessonResources}
+    noteContent={note?.content}
   />;
 }

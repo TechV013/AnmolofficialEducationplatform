@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
-import { Play, Box, X, AlertCircle } from "lucide-react";
+import { Play, Box, X } from "lucide-react";
+import { getEmbedUrl } from "@/lib/video/getEmbedUrl";
+import VideoPlayer from "@/components/video/VideoPlayer";
 
 interface HeroMediaProps {
   thumbnail?: string;
@@ -9,79 +11,20 @@ interface HeroMediaProps {
   promoVideoUrl?: string | null;
 }
 
-function getEmbedUrl(url: string): { type: "youtube" | "vimeo" | "html5"; embedUrl: string } {
-  if (!url) return { type: "html5", embedUrl: "" };
-
-  let videoId = "";
-  if (url.includes("youtu.be/")) {
-    videoId = url.split("youtu.be/")[1]?.split(/[?#]/)[0];
-  } else if (url.includes("youtube.com/embed/")) {
-    videoId = url.split("youtube.com/embed/")[1]?.split(/[?#]/)[0];
-  } else if (url.includes("youtube.com/shorts/")) {
-    videoId = url.split("youtube.com/shorts/")[1]?.split(/[?#]/)[0];
-  } else if (url.includes("v=")) {
-    const queryPart = url.split("?")[1];
-    if (queryPart) {
-      const urlParams = new URLSearchParams(queryPart);
-      videoId = urlParams.get("v") || "";
-    }
-  }
-
-  if (videoId && videoId.length === 11) {
-    return { type: "youtube", embedUrl: `https://www.youtube.com/embed/${videoId}?autoplay=1` };
-  }
-
-  const vimeoMatch = url.match(/(?:vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/[^\/]*\/videos\/|album\/\d+\/video\/|video\/|)(\d+)(?:[a-zA-Z0-9_\-]+)?)/);
-  if (vimeoMatch && vimeoMatch[1]) {
-    return { type: "vimeo", embedUrl: `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1` };
-  }
-
-  return { type: "html5", embedUrl: url };
-}
-
 export default function HeroMedia({ thumbnail, title, category, promoVideoUrl }: HeroMediaProps) {
   const [imgError, setImgError] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [videoError, setVideoError] = useState(false);
   const showImage = Boolean(thumbnail) && !imgError;
-
-  const mediaInfo = getEmbedUrl(promoVideoUrl || "");
+  const hasVideo = Boolean(promoVideoUrl);
 
   if (isPlaying && promoVideoUrl) {
     return (
-      <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black shadow-lg flex items-center justify-center">
-        {mediaInfo.type === "youtube" || mediaInfo.type === "vimeo" ? (
-          <iframe
-            src={mediaInfo.embedUrl}
-            title={title}
-            className="h-full w-full border-0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        ) : videoError ? (
-          <div className="p-6 text-center text-white space-y-3">
-            <AlertCircle className="h-10 w-10 text-rose-500 mx-auto" />
-            <p className="text-sm font-semibold">Video failed to load or unsupported format.</p>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">
-              Please use a valid YouTube watch/short link, Vimeo link, or direct MP4 video URL.
-            </p>
-            <button
-              onClick={() => { setVideoError(false); setIsPlaying(false); }}
-              className="px-4 py-2 rounded-xl bg-white text-black text-xs font-bold"
-            >
-              Back to Thumbnail
-            </button>
-          </div>
-        ) : (
-          <video
-            src={promoVideoUrl}
-            controls
-            autoPlay
-            playsInline
-            onError={() => setVideoError(true)}
-            className="h-full w-full object-contain"
-          />
-        )}
+      <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black shadow-lg">
+        <VideoPlayer
+          url={promoVideoUrl}
+          title={title}
+          mode="preview"
+        />
         <button
           onClick={() => setIsPlaying(false)}
           className="absolute top-3 right-3 z-10 flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-sm transition-colors hover:bg-black/90"
@@ -112,14 +55,13 @@ export default function HeroMedia({ thumbnail, title, category, promoVideoUrl }:
       <button
         type="button"
         onClick={() => {
-          if (promoVideoUrl) {
-            setVideoError(false);
+          if (hasVideo) {
             setIsPlaying(true);
           } else {
             alert("No preview video uploaded for this course yet. Instructors can upload a preview video in course settings.");
           }
         }}
-        title={promoVideoUrl ? `Play preview video` : `No video preview available`}
+        title={hasVideo ? "Play preview video" : "No video preview available"}
         aria-label={`Play preview for ${title}`}
         className="absolute inset-0 flex cursor-pointer items-center justify-center bg-black/25 transition-colors hover:bg-black/15"
       >
@@ -128,7 +70,7 @@ export default function HeroMedia({ thumbnail, title, category, promoVideoUrl }:
         </span>
       </button>
 
-      {promoVideoUrl && (
+      {hasVideo && (
         <div className="absolute bottom-3 left-3 rounded-full bg-black/60 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
           ▶ Watch Preview Video
         </div>
