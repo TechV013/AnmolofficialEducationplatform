@@ -10,7 +10,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
           {/* Left - Brand Info */}
           <div>
-            <div className="text-3xl font-bold mb-4">@anmlofficials</div>
+            <div className="text-3xl font-bold mb-4">@anmolofficials</div>
             <p className="text-sm opacity-80 leading-relaxed max-w-sm mb-6">
               an initiative by anmol deep
             </p>
@@ -47,6 +47,7 @@ export default function Footer() {
                 <ul className="space-y-3 text-sm opacity-80">
                   <li><Link href="/about-us" className="hover:underline">About founder</Link></li>
                   <li><Link href="/courses" className="hover:underline">All Courses</Link></li>
+                  <li><Link href="/testimonials" className="hover:underline">Testimonials</Link></li>
                 </ul>
               </div>
               <div>

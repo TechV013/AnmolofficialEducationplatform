@@ -13,19 +13,19 @@ const plusJakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.anmolofficial.com"),
   title: {
-    default: "@anmlofficials - Learn Creative Skills",
-    template: "%s | @anmlofficials",
+    default: "@anmolofficials - Learn Creative Skills",
+    template: "%s | @anmolofficials",
   },
-  description: "Master 3D Modeling, Animation, VFX, Video Editing and more with @anmlofficials.",
+  description: "Master 3D Modeling, Animation, VFX, Video Editing and more with @anmolofficials.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    siteName: "@anmlofficials",
+    siteName: "@anmolofficials",
     type: "website",
     locale: "en_US",
     url: "https://www.anmolofficial.com",
-    title: "@anmlofficials - Learn Creative Skills",
+    title: "@anmolofficials - Learn Creative Skills",
     description: "Master 3D Modeling, Animation, VFX, Video Editing and more.",
   },
   robots: {
