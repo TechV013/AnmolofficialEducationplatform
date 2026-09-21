@@ -5,10 +5,10 @@ import { AlertTriangle, RefreshCw, LogIn, Home } from "lucide-react";
 
 export default function GlobalError({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
   return (
     <html lang="en">
@@ -27,7 +27,7 @@ export default function GlobalError({
 
           <div className="mt-8 flex flex-col gap-3">
             <button
-              onClick={() => reset()}
+              onClick={() => retry()}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary py-3 px-4 text-sm font-bold text-white transition-all hover:bg-primary-hover"
             >
               <RefreshCw className="h-4 w-4" />
