@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getCourseById } from "@/services/courses/courses.service";
-import { hasCourseAccess } from "@/services/enrollmentService";
+import { evaluateCourseAccess } from "@/services/courseAccessService";
 import { getCurrentUser } from "@/lib/auth/helpers";
 import { notFound, redirect } from "next/navigation";
 import ClassroomClient from "./ClassroomClient";
@@ -17,19 +17,11 @@ export default async function ClassroomPage({ params }: { params: { courseId: st
   const course = await getCourseById(params.courseId);
   if (!course) notFound();
 
-  const enrolled = await hasCourseAccess(user.id, params.courseId);
-  if (!enrolled) notFound();
-
-  // If course is not published, only admins and instructors of the course can access
-  if (course.status !== "PUBLISHED") {
-    if (user.role !== "ADMIN") {
-      // Check if the user is an instructor of this course
-      const assignment = await prisma.courseInstructor.findUnique({
-        where: { courseId_userId: { courseId: course.id, userId: user.id } }
-      });
-      if (!assignment) notFound();
-    }
-  }
+  // Server-authoritative content access:
+  // admin/instructor always; published free courses for any signed-in user;
+  // published paid courses only with an active/completed enrollment (purchase).
+  const access = await evaluateCourseAccess({ userId: user.id, courseId: params.courseId });
+  if (!access.allowed) notFound();
 
   // Get all lessons in the course, ordered by module position and lesson position
   const orderedLessons = course.modules

@@ -21,8 +21,11 @@ vi.mock("@/services/progressService", () => ({
   getCourseCompletionStatus: vi.fn(),
 }));
 
-vi.mock("@/services/enrollmentService", () => ({
-  hasCourseAccess: vi.fn(),
+vi.mock("@/services/courseAccessService", () => ({
+  assertCourseContentAccess: vi.fn(),
+  canAccessCourseContent: vi.fn(),
+  evaluateCourseAccess: vi.fn(),
+  isCourseAccessError: vi.fn()
 }));
 
 vi.mock("@/services/certificates/certificate.service", () => ({
@@ -33,7 +36,7 @@ import { verifyPayment, submitReview, createPaymentOrder } from "@/app/(public)/
 import { updateProgress } from "@/app/classroom/actions";
 import { getCurrentUser } from "@/lib/auth/helpers";
 import { getCourseCompletionStatus } from "@/services/progressService";
-import { hasCourseAccess } from "@/services/enrollmentService";
+import { assertCourseContentAccess } from "@/services/courseAccessService";
 import { issueCertificate } from "@/services/certificates/certificate.service";
 import { prisma } from "@/lib/prisma";
 import { EnrollmentStatus } from "@prisma/client";
@@ -114,7 +117,7 @@ describe("Auto certificate issuance on 100% completion (Phase 4)", () => {
   it("issues a certificate when the last lesson completes the course", async () => {
     vi.mocked(prisma.lesson.findUnique).mockResolvedValue({ id: "l9", module: { courseId: "c1" } } as any);
     vi.mocked(prisma.lessonProgress.upsert).mockResolvedValue({ id: "p1" } as any);
-    vi.mocked(hasCourseAccess).mockResolvedValue(true);
+    vi.mocked(assertCourseContentAccess).mockResolvedValue({ allowed: true, reason: "ACTIVE_ENROLLMENT" } as any);
     vi.mocked(getCourseCompletionStatus).mockResolvedValue({ completed: true, percentage: 100 });
     vi.mocked(issueCertificate).mockResolvedValue({ id: "cert1" } as any);
 
@@ -126,7 +129,7 @@ describe("Auto certificate issuance on 100% completion (Phase 4)", () => {
   it("does not issue a certificate below 100%", async () => {
     vi.mocked(prisma.lesson.findUnique).mockResolvedValue({ id: "l1", module: { courseId: "c1" } } as any);
     vi.mocked(prisma.lessonProgress.upsert).mockResolvedValue({ id: "p1" } as any);
-    vi.mocked(hasCourseAccess).mockResolvedValue(true);
+    vi.mocked(assertCourseContentAccess).mockResolvedValue({ allowed: true, reason: "ACTIVE_ENROLLMENT" } as any);
     vi.mocked(getCourseCompletionStatus).mockResolvedValue({ completed: false, percentage: 50 });
 
     await updateProgress("l1", 60, true);

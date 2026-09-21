@@ -1,7 +1,7 @@
 "use server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth/helpers";
-import { hasCourseAccess } from "@/services/enrollmentService";
+import { assertCourseContentAccess } from "@/services/courseAccessService";
 import { getCourseCompletionStatus } from "@/services/progressService";
 import { issueCertificate } from "@/services/certificates/certificate.service";
 
@@ -14,8 +14,7 @@ export async function saveNote(lessonId: string, content: string) {
         include: { module: { include: { course: true } } }
     });
     if (!lesson) throw new Error("Lesson not found");
-    const enrolled = await hasCourseAccess(user.id, lesson.module.courseId);
-    if (!enrolled) throw new Error("Unauthorized");
+    await assertCourseContentAccess(user.id, lesson.module.courseId);
 
     return await prisma.note.upsert({
         where: { userId_lessonId: { userId: user.id, lessonId } },
@@ -33,8 +32,7 @@ export async function submitAssignment(assignmentId: string, content: string) {
         include: { lesson: { include: { module: { include: { course: true } } } } }
     });
     if (!assignment) throw new Error("Assignment not found");
-    const enrolled = await hasCourseAccess(user.id, assignment.lesson.module.courseId);
-    if (!enrolled) throw new Error("Unauthorized");
+    await assertCourseContentAccess(user.id, assignment.lesson.module.courseId);
 
     return await prisma.assignmentSubmission.create({
         data: { assignmentId, userId: user.id, fileUrl: content } // Treating content as text/url submission
@@ -53,8 +51,7 @@ export async function updateProgress(lessonId: string, watchedSeconds: number, c
   });
   if (!lesson) throw new Error("Lesson not found");
   
-  const enrolled = await hasCourseAccess(user.id, lesson.module.courseId);
-  if (!enrolled) throw new Error("Unauthorized");
+  await assertCourseContentAccess(user.id, lesson.module.courseId);
 
   const progress = await prisma.lessonProgress.upsert({
     where: { userId_lessonId: { userId: user.id, lessonId } },
@@ -86,8 +83,7 @@ export async function submitQuiz(quizId: string, answers: { questionId: string, 
         include: { lesson: { include: { module: { include: { course: true } } } }, questions: { include: { options: true } } }
     });
     if (!quiz) throw new Error("Quiz not found");
-    const enrolled = await hasCourseAccess(user.id, quiz.lesson.module.courseId);
-    if (!enrolled) throw new Error("Unauthorized");
+    await assertCourseContentAccess(user.id, quiz.lesson.module.courseId);
 
     let score = 0;
     for (const answer of answers) {
