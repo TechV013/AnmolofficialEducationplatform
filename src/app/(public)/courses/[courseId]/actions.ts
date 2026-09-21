@@ -34,11 +34,39 @@ export async function createPaymentOrder(courseId: string) {
   if (course.status !== "PUBLISHED") throw new Error("Course not published");
   if (Number(course.price) <= 0) throw new Error("Course is not paid");
 
-  const existing = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId: user.id, courseId } }
+  // Atomic check-and-create to prevent duplicate PENDING orders from concurrent clicks
+  const result = await prisma.$transaction(async (tx) => {
+    const existing = await tx.enrollment.findUnique({
+      where: { userId_courseId: { userId: user.id, courseId } }
+    });
+    if (existing && (existing.status === "ACTIVE" || existing.status === "COMPLETED")) {
+      return { alreadyEnrolled: true as const };
+    }
+
+    // If a PENDING order already exists for this user+course, reuse it
+    const pendingOrder = await tx.order.findFirst({
+      where: { userId: user.id, courseId, status: "PENDING" },
+      orderBy: { createdAt: "desc" }
+    });
+    if (pendingOrder) {
+      return { existingOrder: pendingOrder };
+    }
+
+    // No active enrollment, no pending order — safe to create
+    return { createNew: true as const };
   });
-  if (existing && existing.status === "ACTIVE") {
-    return { status: "ALREADY_ENROLLED" };
+
+  if ("alreadyEnrolled" in result) return { status: "ALREADY_ENROLLED" };
+
+  if ("existingOrder" in result && result.existingOrder) {
+    const o = result.existingOrder;
+    return {
+      key_id: process.env.RAZORPAY_KEY_ID,
+      amount: Math.round(Number(o.amount) * 100),
+      currency: o.currency,
+      order_id: o.providerOrderId,
+      internalOrderId: o.id
+    };
   }
 
   const checkout = await getCheckoutClient();

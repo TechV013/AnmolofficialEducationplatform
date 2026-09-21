@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authConfig } from "@/lib/auth/config";
 import type { AuthUser } from "@/types/auth";
 import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 
 export async function getSession() {
   const session = await getServerSession(authConfig);
@@ -58,4 +59,42 @@ export async function requireInstructor(): Promise<AuthUser> {
 
 export async function requireAdmin(): Promise<AuthUser> {
   return requireRole("ADMIN");
+}
+
+/**
+ * Safe version of requireInstructor that redirects to login instead of throwing.
+ * Use in layouts to prevent the error boundary from catching session changes.
+ */
+export async function requireInstructorOrRedirect(): Promise<AuthUser> {
+  const user = await getCurrentUser();
+  if (!user || !user.id) redirect("/login");
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { role: true, isActive: true }
+  });
+
+  if (!dbUser || !dbUser.isActive) redirect("/login?reason=account_inactive");
+  if (dbUser.role !== "INSTRUCTOR") redirect("/login?reason=session_changed");
+
+  return { ...user, role: dbUser.role } as AuthUser;
+}
+
+/**
+ * Safe version of requireAdmin that redirects to login instead of throwing.
+ * Use in layouts to prevent the error boundary from catching session changes.
+ */
+export async function requireAdminOrRedirect(): Promise<AuthUser> {
+  const user = await getCurrentUser();
+  if (!user || !user.id) redirect("/login");
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { role: true, isActive: true }
+  });
+
+  if (!dbUser || !dbUser.isActive) redirect("/login?reason=account_inactive");
+  if (dbUser.role !== "ADMIN") redirect("/login?reason=session_changed");
+
+  return { ...user, role: dbUser.role } as AuthUser;
 }

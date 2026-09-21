@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -25,32 +26,32 @@ model User {
   orders               Order[]
   quizAttempts         QuizAttempt[]
   reviews              Review[]
-  reviewReplies        Review[]         @relation("ReviewReplies")
+  reviewReplies        Review[]               @relation("ReviewReplies")
 }
 
 model Course {
-  id           String             @id @default(uuid())
-  title        String
-  slug         String             @unique
-  description  String
-  category     String
-  level        String
-  thumbnail    String
-  price        Decimal            @db.Decimal(10, 2)
-  priceOld     Decimal?           @db.Decimal(10, 2)
-  currency     String             @default("INR")
-  status       CourseStatus       @default(DRAFT)
-  whatYouWillLearn String[]       @default([])
-  requirements String[]           @default([])
-  promoVideoUrl String?
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-  certificates Certificate[]
-  instructors  CourseInstructor[]
-  enrollments  Enrollment[]
-  modules      Module[]
-  orders       Order[]
-  reviews      Review[]
+  id               String             @id @default(uuid())
+  title            String
+  slug             String             @unique
+  description      String
+  category         String
+  level            String
+  thumbnail        String
+  price            Decimal            @db.Decimal(10, 2)
+  priceOld         Decimal?           @db.Decimal(10, 2)
+  currency         String             @default("INR")
+  status           CourseStatus       @default(DRAFT)
+  whatYouWillLearn String[]           @default([])
+  requirements     String[]           @default([])
+  promoVideoUrl    String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  certificates     Certificate[]
+  instructors      CourseInstructor[]
+  enrollments      Enrollment[]
+  modules          Module[]
+  orders           Order[]
+  reviews          Review[]
 
   @@index([slug])
   @@index([status])
@@ -111,6 +112,8 @@ model Resource {
   url       String
   createdAt DateTime     @default(now())
   lesson    Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([lessonId])
 }
 
 model Quiz {
@@ -127,6 +130,8 @@ model Question {
   text    String
   options Option[]
   quiz    Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@index([quizId])
 }
 
 model Option {
@@ -135,6 +140,8 @@ model Option {
   text       String
   isCorrect  Boolean  @default(false)
   question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
 }
 
 model QuizAttempt {
@@ -146,6 +153,8 @@ model QuizAttempt {
   attemptedAt DateTime @default(now())
   quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
   user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, quizId])
 }
 
 model Assignment {
@@ -169,6 +178,8 @@ model AssignmentSubmission {
   reviewedAt   DateTime?
   assignment   Assignment                 @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
   user         User                       @relation(fields: [userId], references: [id])
+
+  @@index([assignmentId, userId])
 }
 
 model Enrollment {
@@ -193,7 +204,7 @@ model LessonProgress {
   lastWatchedAt  DateTime  @default(now())
   completedAt    DateTime?
   lesson         Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  user           User     @relation(fields: [userId], references: [id])
+  user           User      @relation(fields: [userId], references: [id])
 
   @@unique([userId, lessonId])
   @@index([userId, lessonId])
@@ -207,27 +218,28 @@ model Note {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  user      User   @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, lessonId])
 }
 
 model Review {
-  id        String   @id @default(uuid())
-  userId    String
-  courseId  String
-  rating    Int
-  comment   String?
-  reply     String?
-  repliedAt DateTime?
+  id          String    @id @default(uuid())
+  userId      String
+  courseId    String
+  rating      Int
+  comment     String?
+  reply       String?
+  repliedAt   DateTime?
   repliedById String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  course    Course   @relation(fields: [courseId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
-  repliedBy User?    @relation("ReviewReplies", fields: [repliedById], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  course      Course    @relation(fields: [courseId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+  repliedBy   User?     @relation("ReviewReplies", fields: [repliedById], references: [id])
 
   @@unique([userId, courseId])
+  @@index([courseId])
 }
 
 model Order {
@@ -244,6 +256,8 @@ model Order {
   payments        Payment[]
 
   @@index([providerOrderId])
+  @@index([userId, courseId])
+  @@index([status])
 }
 
 model Payment {
@@ -266,19 +280,19 @@ model Certificate {
   certificateNumber String   @unique
   issuedAt          DateTime @default(now())
   course            Course   @relation(fields: [courseId], references: [id])
-  user              User   @relation(fields: [userId], references: [id])
+  user              User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, courseId])
 }
 
 model WebhookEvent {
-  id              String   @id @default(uuid())
-  providerEventId String   @unique @map("provider_event_id")
-  eventType       String   @map("event_type")
-  status          String   @default("RECEIVED") @map("status")
+  id              String    @id @default(uuid())
+  providerEventId String    @unique @map("provider_event_id")
+  eventType       String    @map("event_type")
+  status          String    @default("RECEIVED") @map("status")
   processedAt     DateTime? @map("processed_at")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
 }
 
 enum UserRole {

@@ -1,10 +1,10 @@
-import { requireAdmin } from "@/lib/auth/helpers";
+import { requireAdminOrRedirect } from "@/lib/auth/helpers";
 import NavMenu from "@/components/nav/AdminNavMenu";
 import MobileBottomNav from "@/components/nav/MobileBottomNav";
 import WorkspaceHeader from "@/components/layout/WorkspaceHeader";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireAdmin();
+  const user = await requireAdminOrRedirect();
 
   return (
     <>

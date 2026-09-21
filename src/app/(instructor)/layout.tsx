@@ -1,10 +1,10 @@
-import { requireInstructor } from "@/lib/auth/helpers";
+import { requireInstructorOrRedirect } from "@/lib/auth/helpers";
 import NavMenu from "@/components/nav/InstructorNavMenu";
 import MobileBottomNav from "@/components/nav/MobileBottomNav";
 import WorkspaceHeader from "@/components/layout/WorkspaceHeader";
 
 export default async function InstructorLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireInstructor();
+  const user = await requireInstructorOrRedirect();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
