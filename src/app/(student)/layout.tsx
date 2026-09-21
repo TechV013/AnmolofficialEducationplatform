@@ -1,10 +1,10 @@
-import { requireStudent } from "@/lib/auth/helpers";
+import { requireStudentOrRedirect } from "@/lib/auth/helpers";
 import NavMenu from "@/components/nav/StudentNavMenu";
 import MobileBottomNav from "@/components/nav/MobileBottomNav";
 import WorkspaceHeader from "@/components/layout/WorkspaceHeader";
 
 export default async function StudentLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireStudent();
+  const user = await requireStudentOrRedirect();
 
   return (
     <>

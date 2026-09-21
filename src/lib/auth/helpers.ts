@@ -81,6 +81,25 @@ export async function requireInstructorOrRedirect(): Promise<AuthUser> {
 }
 
 /**
+ * Safe version of requireStudent that redirects to login instead of throwing.
+ * Use in layouts to prevent the error boundary from catching session changes.
+ */
+export async function requireStudentOrRedirect(): Promise<AuthUser> {
+  const user = await getCurrentUser();
+  if (!user || !user.id) redirect("/login");
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { role: true, isActive: true }
+  });
+
+  if (!dbUser || !dbUser.isActive) redirect("/login?reason=account_inactive");
+  if (dbUser.role !== "STUDENT") redirect("/login?reason=session_changed");
+
+  return { ...user, role: dbUser.role } as AuthUser;
+}
+
+/**
  * Safe version of requireAdmin that redirects to login instead of throwing.
  * Use in layouts to prevent the error boundary from catching session changes.
  */

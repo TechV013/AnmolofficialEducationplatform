@@ -1,14 +1,23 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
 import { getSession } from "next-auth/react";
-import { Mail, Lock, Eye, EyeOff, ArrowLeft, Loader2 } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowLeft, Loader2, Info } from "lucide-react";
+
+const REASON_MESSAGES: Record<string, string> = {
+  session_changed:
+    "Your session has changed in another tab. Please sign in again.",
+  account_inactive:
+    "Your account has been deactivated. Please contact support.",
+};
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const reason = searchParams.get("reason") || "";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -80,6 +89,13 @@ export default function LoginPage() {
           <div className="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm flex items-center gap-2.5">
             <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
             <span>{error}</span>
+          </div>
+        )}
+
+        {reason && REASON_MESSAGES[reason] && (
+          <div className="mb-5 p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-sm flex items-center gap-2.5">
+            <Info className="h-4 w-4 shrink-0" />
+            <span>{REASON_MESSAGES[reason]}</span>
           </div>
         )}
 
