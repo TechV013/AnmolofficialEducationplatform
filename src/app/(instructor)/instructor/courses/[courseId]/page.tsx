@@ -149,7 +149,7 @@ export default async function EditCoursePage({ params }: { params: Promise<{ cou
 
                       <div className="w-full md:w-auto flex flex-col sm:flex-row items-center gap-3">
                         <div className="w-full sm:w-64">
-                          <VideoUploader lessonId={l.id} onUploaded={(url) => { window.location.reload(); }} />
+                          <VideoUploader lessonId={l.id} />
                         </div>
                         <form action={async () => {
                           "use server";

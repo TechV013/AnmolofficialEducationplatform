@@ -11,7 +11,12 @@ export default async function InstructorDashboardPage() {
   let dbError: string | null = null;
 
   try {
-    courses = await getInstructorCourses(user.id);
+    const rawCourses = await getInstructorCourses(user.id);
+    courses = rawCourses.map(c => ({
+      ...c,
+      price: Number(c.price),
+      priceOld: c.priceOld ? Number(c.priceOld) : null
+    }));
   } catch (err) {
     console.error("InstructorDashboard DB fetch error:", err);
     dbError = "Database connection error or cold start. Please refresh the page.";

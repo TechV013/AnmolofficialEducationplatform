@@ -16,6 +16,11 @@ export default async function AdminDashboardPage() {
     courses = await prisma.course.findMany({
       include: { instructors: { include: { user: { select: { name: true } } } } }
     });
+    courses = courses.map(c => ({
+      ...c,
+      price: Number(c.price),
+      priceOld: c.priceOld ? Number(c.priceOld) : null
+    }));
     users = await prisma.user.findMany({
       select: { id: true, name: true, email: true, role: true, isActive: true }
     });

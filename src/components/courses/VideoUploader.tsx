@@ -1,8 +1,10 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Upload, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
-export default function VideoUploader({ lessonId, onUploaded }: { lessonId?: string; onUploaded: (url: string) => void }) {
+export default function VideoUploader({ lessonId }: { lessonId?: string }) {
+  const router = useRouter();
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +39,7 @@ export default function VideoUploader({ lessonId, onUploaded }: { lessonId?: str
 
       setProgress(100);
       setSuccess(true);
-      onUploaded(data.videoUrl);
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
