@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import SessionProvider from "@/components/auth/SessionProvider";
 import SessionGuard from "@/components/auth/SessionGuard";
+import AuthNotificationManager from "@/components/auth/AuthNotificationManager";
 import { ToastProvider } from "@/components/ui/Toast";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -48,6 +49,7 @@ export default function RootLayout({
         <SessionProvider>
           <ToastProvider>
             <SessionGuard />
+            <AuthNotificationManager />
             {children}
           </ToastProvider>
         </SessionProvider>

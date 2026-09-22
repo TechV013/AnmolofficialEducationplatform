@@ -30,7 +30,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 5000);
+    }, 2500);
   }, []);
 
   const dismiss = useCallback((id: number) => {
@@ -40,15 +40,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const contextValue = useMemo(() => ({ toast }), [toast]);
 
   const iconMap = {
-    success: <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />,
-    error: <AlertCircle className="h-4 w-4 text-rose-500 shrink-0" />,
-    info: <Info className="h-4 w-4 text-blue-500 shrink-0" />,
+    success: <CheckCircle2 className="h-4 w-4 text-blue-300 shrink-0" />,
+    error: <AlertCircle className="h-4 w-4 text-rose-300 shrink-0" />,
+    info: <Info className="h-4 w-4 text-blue-300 shrink-0" />,
   };
 
   const bgMap = {
-    success: "bg-emerald-50 border-emerald-200 text-emerald-800",
-    error: "bg-rose-50 border-rose-200 text-rose-800",
-    info: "bg-blue-50 border-blue-200 text-blue-800",
+    success: "bg-[#0f172a] border border-blue-900/50 text-white",
+    error: "bg-[#0f172a] border border-rose-900/50 text-white",
+    info: "bg-[#0f172a] border border-blue-900/50 text-white",
   };
 
   return (

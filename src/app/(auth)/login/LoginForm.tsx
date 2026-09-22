@@ -6,6 +6,7 @@ import Image from "next/image";
 import { signIn } from "next-auth/react";
 import { getSession } from "next-auth/react";
 import { Mail, Lock, Eye, EyeOff, ArrowLeft, Loader2, Info } from "lucide-react";
+import { useToast } from "@/components/ui/Toast";
 
 const REASON_MESSAGES: Record<string, string> = {
   session_changed:
@@ -21,16 +22,15 @@ export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
     const result = await signIn("credentials", { email, password, redirect: false });
     if (result?.error) {
-      setError("Invalid email or password.");
+      toast("Invalid email or password. Please try again.", "error");
       setLoading(false);
     } else {
       const session = await getSession();
@@ -79,13 +79,6 @@ export default function LoginForm() {
           <h1 className="text-xl font-bold text-text">Welcome Back</h1>
           <p className="text-sm text-muted mt-1">Sign in to continue your learning journey</p>
         </div>
-
-        {error && (
-          <div className="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm flex items-center gap-2.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-            <span>{error}</span>
-          </div>
-        )}
 
         {reason && REASON_MESSAGES[reason] && (
           <div className="mb-5 p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-sm flex items-center gap-2.5">
