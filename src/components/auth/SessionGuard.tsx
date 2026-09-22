@@ -14,11 +14,12 @@ export default function SessionGuard() {
   const [showBanner, setShowBanner] = useState(false);
   const [bannerMessage, setBannerMessage] = useState("");
   const initRef = useRef(false);
+  const userId = session?.user ? (session.user as { id?: string }).id : null;
 
   useEffect(() => {
     if (status === "loading") return;
 
-    const currentUserId = (session?.user as { id?: string })?.id || null;
+    const currentUserId = userId;
     const storedUserId = sessionStorage.getItem(STORAGE_KEY);
 
     if (status === "unauthenticated") {
@@ -56,7 +57,7 @@ export default function SessionGuard() {
         sessionStorage.setItem(STORAGE_KEY, currentUserId);
       }
     }
-  }, [session, status, router]);
+  }, [status, userId, router]);
 
   if (!showBanner) return null;
 
