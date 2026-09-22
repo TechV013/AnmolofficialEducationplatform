@@ -13,10 +13,15 @@ export default function CommunityPage() {
           <h1 className="text-2xl sm:text-4xl font-bold text-text mb-4">
             Learn together. Share ideas. Keep growing.
           </h1>
-          <button className="inline-flex w-full items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-full font-bold sm:w-auto">
+          <a 
+            href="https://wa.me/917073345025"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex w-full items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-full font-bold sm:w-auto transition-colors"
+          >
             <MessageCircle className="h-4 w-4" />
             Start a Discussion
-          </button>
+          </a>
         </header>
 
         <div className="flex flex-col lg:flex-row gap-6">
