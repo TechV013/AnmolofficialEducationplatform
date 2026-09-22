@@ -71,13 +71,13 @@ export async function requireInstructorOrRedirect(): Promise<AuthUser> {
 
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
-    select: { role: true, isActive: true }
+    select: { role: true, isActive: true, name: true, image: true }
   });
 
   if (!dbUser || !dbUser.isActive) redirect("/login?reason=account_inactive");
   if (dbUser.role !== "INSTRUCTOR") redirect("/login?reason=session_changed");
 
-  return { ...user, role: dbUser.role } as AuthUser;
+  return { ...user, role: dbUser.role, name: dbUser.name || user.name, image: dbUser.image || user.image } as AuthUser;
 }
 
 /**
@@ -90,13 +90,13 @@ export async function requireStudentOrRedirect(): Promise<AuthUser> {
 
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
-    select: { role: true, isActive: true }
+    select: { role: true, isActive: true, name: true, image: true }
   });
 
   if (!dbUser || !dbUser.isActive) redirect("/login?reason=account_inactive");
   if (dbUser.role !== "STUDENT") redirect("/login?reason=session_changed");
 
-  return { ...user, role: dbUser.role } as AuthUser;
+  return { ...user, role: dbUser.role, name: dbUser.name || user.name, image: dbUser.image || user.image } as AuthUser;
 }
 
 /**
@@ -109,11 +109,11 @@ export async function requireAdminOrRedirect(): Promise<AuthUser> {
 
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
-    select: { role: true, isActive: true }
+    select: { role: true, isActive: true, name: true, image: true }
   });
 
   if (!dbUser || !dbUser.isActive) redirect("/login?reason=account_inactive");
   if (dbUser.role !== "ADMIN") redirect("/login?reason=session_changed");
 
-  return { ...user, role: dbUser.role } as AuthUser;
+  return { ...user, role: dbUser.role, name: dbUser.name || user.name, image: dbUser.image || user.image } as AuthUser;
 }

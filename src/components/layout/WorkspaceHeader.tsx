@@ -7,7 +7,7 @@ import { LogOut, ChevronRight, Home } from "lucide-react";
 
 interface WorkspaceHeaderProps {
   title?: string;
-  user?: { name?: string; email?: string; role?: string } | null;
+  user?: { name?: string; email?: string; role?: string; image?: string | null } | null;
 }
 
 const SEGMENT_LABELS: Record<string, string> = {
@@ -95,8 +95,12 @@ export default function WorkspaceHeader({ title = "Anmolofficial", user }: Works
         {user ? (
           <>
             <div className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                {initials(user.name)}
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary overflow-hidden">
+                {user.image ? (
+                  <img src={user.image} alt={user.name || "User"} className="h-full w-full object-cover" />
+                ) : (
+                  initials(user.name)
+                )}
               </span>
               <div className="hidden flex-col leading-tight sm:flex">
                 <span className="text-sm font-semibold text-slate-800">{user.name || "User"}</span>

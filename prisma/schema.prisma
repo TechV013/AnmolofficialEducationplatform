@@ -16,6 +16,11 @@ model User {
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @updatedAt
   name                 String?
+  image                String?
+  bio                  String?
+  title                String?
+  phone                String?
+  website              String?
   isActive             Boolean                @default(true)
   assignmentsSubmitted AssignmentSubmission[]
   certificates         Certificate[]
