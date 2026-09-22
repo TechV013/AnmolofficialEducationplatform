@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 
-export default async function CertificateVerificationPage({ params }: { params: { certificateNumber: string } }) {
+export default async function CertificateVerificationPage({ params }: { params: Promise<{ certificateNumber: string }> }) {
+  const { certificateNumber } = await params;
   const cert = await prisma.certificate.findUnique({
-    where: { certificateNumber: params.certificateNumber },
+    where: { certificateNumber },
     include: { course: true, user: { select: { name: true } } }
   });
 

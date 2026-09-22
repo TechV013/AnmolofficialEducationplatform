@@ -6,10 +6,11 @@ import Link from "next/link";
 
 export const metadata: Metadata = { title: "Manage Course — Admin", robots: { index: false, follow: false } };
 
-export default async function AdminCourseManagePage({ params }: { params: { courseId: string } }) {
+export default async function AdminCourseManagePage({ params }: { params: Promise<{ courseId: string }> }) {
+  const { courseId } = await params;
   await authorizeRole("ADMIN");
   const course = await prisma.course.findUnique({
-    where: { id: params.courseId },
+    where: { id: courseId },
     include: {
       modules: { orderBy: { position: "asc" }, include: { lessons: { orderBy: { position: "asc" } } } },
       instructors: { include: { user: true } },

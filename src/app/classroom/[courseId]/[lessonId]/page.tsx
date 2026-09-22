@@ -10,17 +10,18 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function ClassroomPage({ params }: { params: { courseId: string; lessonId: string } }) {
+export default async function ClassroomPage({ params }: { params: Promise<{ courseId: string; lessonId: string }> }) {
+  const { courseId, lessonId } = await params;
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const course = await getCourseById(params.courseId);
+  const course = await getCourseById(courseId);
   if (!course) notFound();
 
   // Server-authoritative content access:
   // admin/instructor always; published free courses for any signed-in user;
   // published paid courses only with an active/completed enrollment (purchase).
-  const access = await evaluateCourseAccess({ userId: user.id, courseId: params.courseId });
+  const access = await evaluateCourseAccess({ userId: user.id, courseId: courseId });
   if (!access.allowed) notFound();
 
   // Get all lessons in the course, ordered by module position and lesson position
@@ -44,7 +45,7 @@ export default async function ClassroomPage({ params }: { params: { courseId: st
     progressMap[p.lessonId] = { completed: p.completed, watchedSeconds: p.watchedSeconds };
   });
 
-  const currentLessonId = params.lessonId;
+  const currentLessonId = lessonId;
   const currentLessonIndex = orderedLessons.findIndex(l => l.id === currentLessonId);
   if (currentLessonIndex === -1) notFound();
 
@@ -108,7 +109,7 @@ export default async function ClassroomPage({ params }: { params: { courseId: st
     course={course}
     lesson={lesson}
     initialProgress={initialProgress}
-    courseId={params.courseId}
+    courseId={courseId}
     progressMap={progressMap}
     prevLessonId={orderedLessons[currentLessonIndex - 1]?.id || null}
     nextLessonId={orderedLessons[currentLessonIndex + 1]?.id || null}

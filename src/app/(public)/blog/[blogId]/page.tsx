@@ -6,11 +6,12 @@ import { Calendar, Clock, User, ArrowLeft } from "lucide-react";
 import { BLOG_POSTS } from "@/data/blog";
 
 interface Props {
-  params: { blogId: string };
+  params: Promise<{ blogId: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const post = BLOG_POSTS.find((p) => p.id === params.blogId);
+  const { blogId } = await params;
+  const post = BLOG_POSTS.find((p) => p.id === blogId);
   if (!post) return { title: "Post Not Found", robots: { index: false, follow: false } };
   return {
     title: `${post.title} — Blog`,
@@ -29,7 +30,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function BlogDetailPage({ params }: Props) {
-  const post = BLOG_POSTS.find((p) => p.id === params.blogId);
+  const { blogId } = await params;
+  const post = BLOG_POSTS.find((p) => p.id === blogId);
   if (!post) notFound();
 
   const related = BLOG_POSTS.filter((p) => p.id !== post.id && p.category === post.category).slice(0, 2);

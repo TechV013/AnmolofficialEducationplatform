@@ -2,12 +2,13 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth/helpers";
 import { notFound, redirect } from "next/navigation";
 
-export default async function PrivateCertificatePage({ params }: { params: { certificateId: string } }) {
+export default async function PrivateCertificatePage({ params }: { params: Promise<{ certificateId: string }> }) {
+  const { certificateId } = await params;
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
   const cert = await prisma.certificate.findUnique({
-    where: { id: params.certificateId },
+    where: { id: certificateId },
     include: { course: true, user: { select: { name: true } } }
   });
 

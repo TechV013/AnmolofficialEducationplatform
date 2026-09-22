@@ -24,13 +24,21 @@ export default function SessionGuard() {
 
     if (status === "unauthenticated") {
       sessionStorage.removeItem(STORAGE_KEY);
+      // Only show banner if there was a previous session (to avoid showing on fresh guest visit)
       if (storedUserId) {
-        setBannerMessage("You have been signed out.");
+        setBannerMessage("Session expired. Please sign in again.");
         setShowBanner(true);
-        const timer = setTimeout(() => {
+        // Auto-hide banner after 3 seconds
+        const hideTimer = setTimeout(() => setShowBanner(false), 3000);
+        
+        const redirectTimer = setTimeout(() => {
           router.replace("/login?reason=session_changed");
         }, REDIRECT_DELAY_MS);
-        return () => clearTimeout(timer);
+        
+        return () => {
+          clearTimeout(hideTimer);
+          clearTimeout(redirectTimer);
+        };
       }
       return;
     }
@@ -44,13 +52,20 @@ export default function SessionGuard() {
 
       if (storedUserId && storedUserId !== currentUserId) {
         setBannerMessage(
-          "Your session has changed in another tab. Redirecting to sign in..."
+          "Your session has changed. Redirecting..."
         );
         setShowBanner(true);
-        const timer = setTimeout(() => {
+        // Auto-hide banner after 3 seconds
+        const hideTimer = setTimeout(() => setShowBanner(false), 3000);
+
+        const redirectTimer = setTimeout(() => {
           router.replace("/login?reason=session_changed");
         }, REDIRECT_DELAY_MS);
-        return () => clearTimeout(timer);
+        
+        return () => {
+          clearTimeout(hideTimer);
+          clearTimeout(redirectTimer);
+        };
       }
 
       if (!storedUserId) {
@@ -62,8 +77,8 @@ export default function SessionGuard() {
   if (!showBanner) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[9999] flex items-center justify-center gap-3 bg-amber-500 px-4 py-3 text-sm font-semibold text-white shadow-lg">
-      <AlertCircle className="h-4 w-4 shrink-0" />
+    <div className="fixed top-0 left-0 right-0 z-[9999] flex items-center justify-center gap-3 bg-[#0f172a] px-4 py-3 text-sm font-semibold text-white shadow-xl animate-in slide-in-from-top duration-300">
+      <AlertCircle className="h-4 w-4 shrink-0 text-blue-400" />
       <span>{bannerMessage}</span>
     </div>
   );
