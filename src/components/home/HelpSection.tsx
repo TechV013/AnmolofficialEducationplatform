@@ -77,11 +77,13 @@ export default function HelpSection() {
                         }}
                       />
                       </div>
-                      <div className="text-center mt-auto">
-                        <h4 className="font-bold text-sm text-[#111111] mb-1">{instructor.name}</h4>
-                        <div className="w-6 h-0.5 bg-[#0069E0] mx-auto my-2 rounded-full"></div>
-                        <p className="text-[#0069E0] text-[10px] font-bold uppercase tracking-wider mb-2">{instructor.role}</p>
-                        <p className="text-[11px] text-gray-500 leading-tight">{instructor.description}</p>
+                      <div className="text-center mt-auto flex flex-col justify-between flex-1">
+                        <div>
+                          <h4 className="font-bold text-sm text-[#111111] mb-1 min-h-[20px] flex items-center justify-center">{instructor.name}</h4>
+                          <div className="w-6 h-0.5 bg-[#0069E0] mx-auto my-2 rounded-full"></div>
+                          <p className="text-[#0069E0] text-[10px] font-bold uppercase tracking-wider mb-2 min-h-[28px] flex items-center justify-center">{instructor.role}</p>
+                        </div>
+                        <p className="text-[11px] text-gray-500 leading-tight min-h-[48px] flex items-center justify-center">{instructor.description}</p>
                       </div>
                     </div>
                   ))}
