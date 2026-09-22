@@ -263,7 +263,7 @@ model Order {
 model Payment {
   id                String        @id @default(uuid())
   orderId           String
-  provider          String        @default("RAZORPAY")
+  provider          String        @default("PAYU")
   providerPaymentId String        @unique
   amount            Decimal       @db.Decimal(10, 2)
   status            PaymentStatus @default(PENDING)

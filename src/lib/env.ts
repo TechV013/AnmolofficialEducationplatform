@@ -3,9 +3,9 @@ import { z } from "zod";
 const envSchema = z.object({
     DATABASE_URL: z.string().min(1),
     AUTH_SECRET: z.string().min(1),
-    RAZORPAY_KEY_ID: z.string().min(1),
-    RAZORPAY_KEY_SECRET: z.string().min(1),
-    RAZORPAY_WEBHOOK_SECRET: z.string().min(1),
+    PAYU_MERCHANT_KEY: z.string().min(1),
+    PAYU_MERCHANT_SECRET: z.string().min(1),
+    PAYU_ENV: z.enum(["TEST", "PRODUCTION"]),
 });
 
 const _env = envSchema.safeParse(process.env);

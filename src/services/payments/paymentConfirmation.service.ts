@@ -6,11 +6,13 @@ export const confirmPaidOrder = async ({
   providerPaymentId,
   amountPaise,
   currency,
+  provider = "PAYU",
 }: {
   orderId: string;
   providerPaymentId: string;
   amountPaise: number;
   currency: string;
+  provider?: string;
 }) => {
   return await prisma.$transaction(async (tx) => {
     // 1. Load internal Order
@@ -38,7 +40,7 @@ export const confirmPaidOrder = async ({
     await tx.payment.create({
       data: {
         orderId: order.id,
-        provider: "RAZORPAY",
+        provider,
         providerPaymentId,
         amount: order.amount,
         status: "PAID",

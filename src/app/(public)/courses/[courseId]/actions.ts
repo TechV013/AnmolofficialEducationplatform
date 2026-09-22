@@ -2,27 +2,9 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth/helpers";
 import crypto from "crypto";
+import { createPayUCheckout } from "@/services/payments/payu.service";
+import { confirmPaidOrder } from "@/services/payments/paymentConfirmation.service";
 import type { Order } from "@prisma/client";
-
-interface CheckoutOrder {
-  id: string;
-  amount: number;
-  currency: string;
-}
-
-interface CheckoutClient {
-  convertPriceToPaise: (price: Order["amount"]) => number;
-  createOrder: (params: { amount: number; currency: string; receipt: string }) => Promise<CheckoutOrder>;
-}
-
-async function getCheckoutClient(): Promise<CheckoutClient> {
-  const mod = await import("@/services/payments/razorpay.service");
-  return {
-    convertPriceToPaise: mod.convertPriceToPaise,
-    createOrder: (params) =>
-      (mod.razorpay.orders.create as unknown as (p: unknown) => Promise<CheckoutOrder>)(params)
-  };
-}
 
 export async function createPaymentOrder(courseId: string) {
   const user = await getCurrentUser();
@@ -43,7 +25,6 @@ export async function createPaymentOrder(courseId: string) {
       return { alreadyEnrolled: true as const };
     }
 
-    // If a PENDING order already exists for this user+course, reuse it
     const pendingOrder = await tx.order.findFirst({
       where: { userId: user.id, courseId, status: "PENDING" },
       orderBy: { createdAt: "desc" }
@@ -52,7 +33,6 @@ export async function createPaymentOrder(courseId: string) {
       return { existingOrder: pendingOrder };
     }
 
-    // No active enrollment, no pending order — safe to create
     return { createNew: true as const };
   });
 
@@ -61,21 +41,25 @@ export async function createPaymentOrder(courseId: string) {
   if ("existingOrder" in result && result.existingOrder) {
     const o = result.existingOrder;
     return {
-      key_id: process.env.RAZORPAY_KEY_ID,
-      amount: Math.round(Number(o.amount) * 100),
-      currency: o.currency,
-      order_id: o.providerOrderId,
+      checkoutUrl: o.providerOrderId,
       internalOrderId: o.id
     };
   }
 
-  const checkout = await getCheckoutClient();
-  const amount = checkout.convertPriceToPaise(course.price);
+  const amountPaise = Math.round(Number(course.price) * 100);
+  const txnid = `PAYU_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const currency = course.currency || "INR";
 
-  const order = await checkout.createOrder({
-    amount,
-    currency: course.currency || "INR",
-    receipt: `course_${courseId}_${user.id}`
+  const checkout = await createPayUCheckout({
+    txnid,
+    amount: amountPaise,
+    productinfo: course.title,
+    firstname: user.name || "Student",
+    email: user.email || "",
+    phone: "9999999999",
+    surl: `${process.env.NEXTAUTH_URL}/api/payu/callback`,
+    failureUrl: `${process.env.NEXTAUTH_URL}/courses/${courseId}?payment=fail`,
+    cancelUrl: `${process.env.NEXTAUTH_URL}/courses/${courseId}?payment=cancel`
   });
 
   const internalOrder = await prisma.order.create({
@@ -83,83 +67,17 @@ export async function createPaymentOrder(courseId: string) {
       userId: user.id,
       courseId,
       amount: course.price,
-      currency: course.currency || "INR",
+      currency,
       status: "PENDING",
-      providerOrderId: order.id
+      providerOrderId: txnid
     }
   });
 
   return {
-    key_id: process.env.RAZORPAY_KEY_ID,
-    amount: order.amount,
-    currency: order.currency,
-    order_id: order.id,
+    checkoutUrl: checkout.gatewayUrl,
+    params: checkout.params,
     internalOrderId: internalOrder.id
   };
-}
-
-export async function verifyPayment(data: FormData) {
-  const user = await getCurrentUser();
-  if (!user) throw new Error("Unauthorized");
-
-  const paymentId = String(data.get("razorpay_payment_id") || "");
-  const orderId = String(data.get("razorpay_order_id") || "");
-  const signature = String(data.get("razorpay_signature") || "");
-  const internalOrderId = String(data.get("internal_order_id") || "");
-
-  if (!paymentId || !orderId || !signature || !internalOrderId) {
-    throw new Error("Invalid payment payload");
-  }
-
-  const secret = process.env.RAZORPAY_KEY_SECRET;
-  if (!secret) throw new Error("Payment gateway not configured");
-
-  // Server-authoritative signature check (order_id | payment_id, HMAC-SHA256)
-  const expected = crypto
-    .createHmac("sha256", secret)
-    .update(`${orderId}|${paymentId}`)
-    .digest("hex");
-  if (expected !== signature) {
-    throw new Error("Payment signature verification failed");
-  }
-
-  const internalOrder = await prisma.order.findUnique({
-    where: { id: internalOrderId },
-    include: { course: true }
-  });
-  if (!internalOrder || internalOrder.userId !== user.id) {
-    throw new Error("Order not found");
-  }
-  if (internalOrder.providerOrderId !== orderId) {
-    throw new Error("Order mismatch");
-  }
-
-  // Idempotent grant of access: mark paid exactly once, ensure active enrollment
-  await prisma.$transaction([
-    prisma.order.updateMany({
-      where: { id: internalOrder.id, status: { not: "PAID" } },
-      data: { status: "PAID" }
-    }),
-    prisma.payment.upsert({
-      where: { providerPaymentId: paymentId },
-      update: {},
-      create: {
-        orderId: internalOrder.id,
-        provider: "RAZORPAY",
-        providerPaymentId: paymentId,
-        amount: internalOrder.amount,
-        status: "PAID",
-        paidAt: new Date()
-      }
-    }),
-    prisma.enrollment.upsert({
-      where: { userId_courseId: { userId: user.id, courseId: internalOrder.courseId } },
-      update: { status: "ACTIVE" },
-      create: { userId: user.id, courseId: internalOrder.courseId, status: "ACTIVE" }
-    })
-  ]);
-
-  return { success: true };
 }
 
 export async function submitReview(courseId: string, rating: number, comment: string | null) {
