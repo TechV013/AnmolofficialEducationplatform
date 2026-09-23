@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateCourseStatus, assignInstructor, unassignInstructor, deleteCourse } from "@/app/(admin)/admin/courses/actions";
 import type { CourseStatus, UserRole } from "@prisma/client";
+import { Pencil, Trash2, Eye, X, Save, Loader2 } from "lucide-react";
+import CourseEditForm from "./CourseEditForm";
 
 interface CourseInstructor {
   id: string;
@@ -24,6 +26,7 @@ export default function CourseActions({ courseId, status, instructors, assigned 
 }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const router = useRouter();
 
   const run = async (fn: () => Promise<unknown>) => {
@@ -52,6 +55,14 @@ export default function CourseActions({ courseId, status, instructors, assigned 
     <div className="flex flex-col items-end gap-2">
       {error && <p className="text-red-500 text-xs">{error}</p>}
       <div className="flex flex-wrap items-center gap-2 justify-end">
+        <button
+          onClick={() => setShowEditModal(true)}
+          disabled={busy}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-semibold hover:bg-blue-100 transition-colors disabled:opacity-50"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+          Edit
+        </button>
         <select
           value={status}
           onChange={handleStatus}
@@ -93,10 +104,25 @@ export default function CourseActions({ courseId, status, instructors, assigned 
       <button
         onClick={() => { if (confirm("Delete this course and all its content?")) run(() => deleteCourse(courseId)); }}
         disabled={busy}
-        className="text-xs text-red-500 hover:text-red-700 font-medium"
+        className="inline-flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 font-medium"
       >
+        <Trash2 className="h-3.5 w-3.5" />
         Delete course
       </button>
+
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-slate-200">
+              <h2 className="text-lg font-bold text-slate-800">Edit Course</h2>
+              <button onClick={() => setShowEditModal(false)} className="p-1.5 rounded-lg hover:bg-slate-100">
+                <X className="h-5 w-5 text-slate-500" />
+              </button>
+            </div>
+            <CourseEditForm courseId={courseId} onClose={() => setShowEditModal(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

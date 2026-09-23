@@ -57,6 +57,52 @@ export async function updateCourseStatus(courseId: string, status: CourseStatus)
   });
   revalidatePath("/admin/courses");
   revalidatePath("/courses");
+  revalidatePath(`/admin/courses/${courseId}`);
+}
+
+export async function updateCourse(courseId: string, data: {
+  title: string;
+  description: string;
+  category: string;
+  level: string;
+  price: number;
+  priceOld: number | null;
+  thumbnail: string;
+  slug: string;
+  promoVideoUrl?: string | null;
+}) {
+  await authorizeRole("ADMIN");
+
+  const title = data.title.trim();
+  const slug = data.slug.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
+  if (!title) throw new Error("Title is required");
+  if (!slug) throw new Error("Slug is required");
+
+  const existing = await prisma.course.findFirst({ where: { slug, id: { not: courseId } } });
+  if (existing) throw new Error("A course with this slug already exists");
+
+  const course = await prisma.course.update({
+    where: { id: courseId },
+    data: {
+      title,
+      slug,
+      description: data.description.trim(),
+      category: data.category.trim() || "General",
+      level: data.level.trim() || "Beginner",
+      price: Number(data.price) || 0,
+      priceOld: data.priceOld !== null && data.priceOld !== undefined ? Number(data.priceOld) || null : null,
+      thumbnail: data.thumbnail.trim(),
+      promoVideoUrl: data.promoVideoUrl?.trim() || null,
+    }
+  });
+
+  revalidatePath("/admin/courses");
+  revalidatePath("/courses");
+  revalidatePath(`/admin/courses/${courseId}`);
+  revalidatePath(`/courses/${course.slug}`);
+
+  return course;
 }
 
 export async function deleteCourse(courseId: string) {
