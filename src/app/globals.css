@@ -15,7 +15,7 @@
   --color-soft-blue: #CCE1F9;
   --color-border: #E5E7EB;
   --color-light-gray: #EBF5FF;
-  --font-sans: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
 body {

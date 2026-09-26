@@ -63,6 +63,7 @@ export default function GuidanceSection() {
               <select
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
+                aria-label="Select a topic"
                 className="w-full p-3 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-white"
               >
                 <option>Course Selection</option>

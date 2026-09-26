@@ -7,7 +7,6 @@ import AuthNotificationManager from "@/components/auth/AuthNotificationManager";
 import { ToastProvider } from "@/components/ui/Toast";
 
 const plusJakarta = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta",
   subsets: ["latin"],
 });
 
@@ -43,7 +42,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${plusJakarta.variable} h-full antialiased`}
+      className={`${plusJakarta.className} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <SessionProvider>

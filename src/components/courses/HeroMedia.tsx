@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Play, Box, X } from "lucide-react";
+import Image from "next/image";
 import { getEmbedUrl } from "@/lib/video/getEmbedUrl";
 import VideoPlayer from "@/components/video/VideoPlayer";
 
@@ -12,9 +13,7 @@ interface HeroMediaProps {
 }
 
 export default function HeroMedia({ thumbnail, title, category, promoVideoUrl }: HeroMediaProps) {
-  const [imgError, setImgError] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const showImage = Boolean(thumbnail) && !imgError;
   const hasVideo = Boolean(promoVideoUrl);
 
   if (isPlaying && promoVideoUrl) {
@@ -38,12 +37,12 @@ export default function HeroMedia({ thumbnail, title, category, promoVideoUrl }:
 
   return (
     <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-gradient-to-br from-[#172554] via-[#1E40AF] to-primary shadow-lg">
-      {showImage ? (
-        <img
+      {Boolean(thumbnail) ? (
+        <Image
           src={thumbnail as string}
           alt={title}
           className="h-full w-full object-cover"
-          onError={() => setImgError(true)}
+          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center">
