@@ -11,8 +11,6 @@ const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/courses", label: "Courses" },
   { href: "/community", label: "Community" },
-  { href: "/about", label: "About" },
-  { href: "/about-us", label: "Team" },
 ];
 
 export default function Navbar() {
