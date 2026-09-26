@@ -47,6 +47,7 @@ export default function Hero() {
               width={500}
               height={580}
               priority
+              fetchPriority="high"
               sizes="(max-width: 1024px) 60vw, 500px"
               className="relative z-10 h-72 w-auto object-contain object-bottom sm:h-96 lg:h-[580px] lg:translate-y-4"
             />

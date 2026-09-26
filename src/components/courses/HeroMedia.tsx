@@ -41,6 +41,7 @@ export default function HeroMedia({ thumbnail, title, category, promoVideoUrl }:
         <Image
           src={thumbnail as string}
           alt={title}
+          fill
           className="h-full w-full object-cover"
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />

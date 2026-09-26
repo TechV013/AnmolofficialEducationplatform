@@ -89,7 +89,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                   <>
                     <span className="text-sm text-muted line-through">{formatPrice(course.priceOld)}</span>
                     {discount != null && (
-                      <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
+                      <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded-full">
                         {discount}% off
                       </span>
                     )}
