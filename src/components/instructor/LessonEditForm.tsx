@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { updateLesson } from "@/app/(instructor)/instructor/courses/[courseId]/actions";
 import { useRouter } from "next/navigation";
-import { Upload, Loader2, CheckCircle2 } from "lucide-react";
+import { Upload, Loader2 } from "lucide-react";
+import VideoUrlField from "@/components/courses/VideoUrlField";
 
 interface Props {
   lessonId: string;
@@ -74,18 +75,20 @@ export default function LessonEditForm({ lessonId, courseId, initialTitle, initi
       <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" className="w-full px-3 py-2 rounded border text-sm" required />
       <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Description" className="w-full px-3 py-2 rounded border text-sm" />
       
-      <div className="space-y-2">
-        <label className="text-xs font-semibold text-slate-500">Lesson Video (URL or Local Upload up to 1GB)</label>
-        <div className="flex items-center gap-2">
-          <input value={videoUrl} onChange={e => setVideoUrl(e.target.value)} placeholder="Video URL or uploaded path" className="flex-1 px-3 py-2 rounded border text-sm" />
+      <VideoUrlField
+        label="Lesson Video (URL or Local Upload)"
+        value={videoUrl}
+        onChange={setVideoUrl}
+        placeholder="YouTube, Vimeo, or direct MP4 URL"
+        hint="Paste a YouTube/Vimeo link or a direct MP4 URL, or upload a file."
+        trailing={
           <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded bg-soft-blue text-primary font-semibold text-xs hover:bg-soft-blue/80 transition-colors shrink-0">
             {uploadingVideo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-            <span>{uploadingVideo ? `Uploading...` : "Upload Video"}</span>
+            <span>{uploadingVideo ? "Uploading..." : "Upload Video"}</span>
             <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" disabled={uploadingVideo} />
           </label>
-        </div>
-        {videoUrl && <p className="text-xs text-emerald-600 font-medium">✓ Video attached: {videoUrl}</p>}
-      </div>
+        }
+      />
 
       <button disabled={loading || uploadingVideo} className="w-full bg-primary text-white py-2 rounded font-medium text-sm transition-opacity hover:bg-primary-hover disabled:opacity-60">
         {loading ? "Saving..." : "Update Lesson"}

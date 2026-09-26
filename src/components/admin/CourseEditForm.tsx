@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { updateCourse } from "@/app/(admin)/admin/courses/actions";
 import { Save, Loader2 } from "lucide-react";
+import VideoUrlField from "@/components/courses/VideoUrlField";
 
 interface CourseData {
   title: string;
@@ -141,11 +142,11 @@ export default function CourseEditForm({ courseId, course, onClose }: {
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-slate-500 mb-1">Promo Video URL</label>
-          <input
+          <VideoUrlField
+            label="Promo Video URL (YouTube, Vimeo, or direct MP4)"
             value={formData.promoVideoUrl || ""}
-            onChange={(e) => updateField("promoVideoUrl", e.target.value || null)}
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+            onChange={(v) => updateField("promoVideoUrl", v || null)}
+            placeholder="https://..."
           />
         </div>
       </div>

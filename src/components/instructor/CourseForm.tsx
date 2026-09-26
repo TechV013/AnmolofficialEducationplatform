@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createCourse, updateCourse } from "@/app/(instructor)/instructor/courses/[courseId]/actions";
-import { Upload, Loader2, Play } from "lucide-react";
+import { Upload, Loader2 } from "lucide-react";
+import VideoUrlField from "@/components/courses/VideoUrlField";
 
 interface CourseSettings {
   id: string;
@@ -167,33 +168,20 @@ export default function CourseForm({ course }: { course?: CourseSettings }) {
         </div>
 
         <div className="md:col-span-2 space-y-3">
-          <label className="mb-1 block text-xs font-semibold text-slate-500">Course Promo/Preview Video (URL or Local Upload up to 1GB)</label>
-          <div className="flex items-center gap-3">
-            <input name="promoVideoUrl" value={promoVideoUrl} onChange={e => setPromoVideoUrl(e.target.value)} className="flex-1 rounded-lg border px-3 py-2 text-sm" placeholder="https://... or upload video file" />
-            <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-soft-blue text-primary font-semibold text-xs hover:bg-soft-blue/80 transition-colors">
-              {uploadingVideo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-              <span>{uploadingVideo ? "Uploading..." : "Upload Video"}</span>
-              <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" disabled={uploadingVideo} />
-            </label>
-          </div>
-
-          {/* Interactive Video Preview Player */}
-          {promoVideoUrl && (
-            <div className="mt-3 space-y-2">
-              <p className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                <Play className="h-3.5 w-3.5 text-primary fill-primary" />
-                <span>Video Preview Player (Test before publishing):</span>
-              </p>
-              <div className="aspect-video w-full max-w-xl overflow-hidden rounded-2xl bg-black border border-border shadow-md">
-                <video
-                  src={promoVideoUrl}
-                  controls
-                  playsInline
-                  className="h-full w-full object-contain"
-                />
-              </div>
-            </div>
-          )}
+          <VideoUrlField
+            label="Course Promo/Preview Video (URL or Local Upload)"
+            value={promoVideoUrl}
+            onChange={setPromoVideoUrl}
+            placeholder="https://... or upload video file"
+            hint="Shown in the course hero for students. YouTube, Vimeo, or any direct MP4 URL."
+            trailing={
+              <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-soft-blue text-primary font-semibold text-xs hover:bg-soft-blue/80 transition-colors shrink-0">
+                {uploadingVideo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                <span>{uploadingVideo ? "Uploading..." : "Upload Video"}</span>
+                <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" disabled={uploadingVideo} />
+              </label>
+            }
+          />
         </div>
       </div>
 

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { createLesson } from "@/app/(instructor)/instructor/courses/[courseId]/actions";
 import { useRouter } from "next/navigation";
 import { Upload, Loader2 } from "lucide-react";
+import VideoUrlField from "@/components/courses/VideoUrlField";
 
 interface Props {
   moduleId: string;
@@ -87,15 +88,21 @@ export default function LessonCreateForm({ moduleId, courseId }: Props) {
       <textarea name="description" placeholder="Lesson description" rows={2} className="w-full rounded-lg border px-3 py-2 text-sm" />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <input name="duration" placeholder="Duration (e.g. 12:30)" className="rounded-lg border px-3 py-2 text-sm" />
-        <div className="flex items-center gap-2">
-          <input name="videoUrl" value={videoUrl} onChange={e => setVideoUrl(e.target.value)} placeholder="Video URL or uploaded" className="flex-1 rounded-lg border px-3 py-2 text-sm" />
+      </div>
+      <VideoUrlField
+        label="Lesson Video"
+        value={videoUrl}
+        onChange={setVideoUrl}
+        placeholder="YouTube, Vimeo, or direct MP4 URL"
+        hint="Paste a YouTube/Vimeo link or a direct MP4 URL, or upload a file."
+        trailing={
           <label className="cursor-pointer inline-flex items-center gap-1 px-3 py-2 rounded bg-soft-blue text-primary font-semibold text-xs hover:bg-soft-blue/80 transition-colors shrink-0">
             {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
             <span>{uploading ? "Uploading..." : "Upload"}</span>
             <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" disabled={uploading} />
           </label>
-        </div>
-      </div>
+        }
+      />
       <div className="flex gap-2 pt-2">
         <button disabled={loading || uploading} className="rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-60">
           {loading ? "Saving..." : "Create Lesson"}
