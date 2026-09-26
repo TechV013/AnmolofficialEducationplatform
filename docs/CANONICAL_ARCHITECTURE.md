@@ -18,7 +18,7 @@ Verified from `lms/package.json` and source:
 - lucide-react, framer-motion, clsx, tailwind-merge
 - UI primitives (uncommitted): Button, Card, Input, Textarea, Select, Badge, EmptyState, Skeleton, Avatar, Breadcrumb, Progress, Modal, Tabs, Tooltip in `src/components/ui/`
 - Prisma 6.19.3 + Neon PostgreSQL (`DATABASE_URL`, `DIRECT_URL`)
-- NextAuth v4.24.15 JWT strategy, CredentialsProvider, bcryptjs; `secret: process.env.AUTH_SECRET`
+- NextAuth v4.24.15 JWT strategy, CredentialsProvider (bcryptjs) + optional GoogleProvider, account linking by email in `src/services/auth/googleAuth.service.ts`; `secret: process.env.AUTH_SECRET`
 - Razorpay 2.9.8 (`src/services/payments/razorpay.service.ts` + webhook route)
 - GSAP: NOT installed
 - Deployment: GitHub to Vercel; build script `prisma generate && next build`
@@ -138,7 +138,7 @@ Actual chain:
 
 1. `/login` client form (`signIn` from next-auth/react).
 2. `src/app/auth.ts` CredentialsProvider.authorize: looks up User by email, bcrypt.compare against `passwordHash`, returns `{ id, email, name, role }`.
-3. JWT strategy in `src/lib/auth/config.ts`. `secret: process.env.AUTH_SECRET`.
+3. JWT strategy in `src/lib/auth/config.ts`. `secret: process.env.AUTH_SECRET`. Google OAuth enabled when `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` are set; Google sign-ins upsert/link the user by email and are gated on `isActive`.
 4. jwt callback copies `id` and `role` onto token.
 5. session callback copies `id`, `role`, email, name onto `session.user` as AuthUser.
 6. `getServerSession(authConfig)` in helpers.
@@ -361,6 +361,7 @@ Environment variable categories (values never documented here):
 
 - Database: DATABASE_URL, DIRECT_URL
 - Auth: AUTH_SECRET, optional NEXTAUTH_SECRET, NEXTAUTH_URL
+- Google OAuth: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET (conditionally loaded; app boots without them)
 - Payments: RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET
 - Local demo only: DEMO_STUDENT_PASSWORD, DEMO_INSTRUCTOR_PASSWORD, DEMO_ADMIN_PASSWORD
 

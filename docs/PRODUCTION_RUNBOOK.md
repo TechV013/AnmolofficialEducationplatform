@@ -40,6 +40,15 @@ Operational procedures for https://www.anmolofficial.com
 - Check Vercel logs for /api/auth/*
 - Rotate if suspected; never post secrets
 
+## Google OAuth
+- Env on Vercel + `.env.local`: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET (app boots fine without them — provider is conditional)
+- Google Cloud Console: OAuth Web client for "anmolofficial"; redirect URIs
+  - https://www.anmolofficial.com/api/auth/callback/google
+  - http://localhost:3000/api/auth/callback/google
+- Consent screen: profile/email scopes only; "Testing" mode limits sign-in to added test users until published
+- Account linking is by verified email (`src/services/auth/googleAuth.service.ts`); existing password accounts keep role; deactivated accounts are blocked at the signIn callback
+- **Never commit the client secret; treat it like a credential on any alert/rotation**
+
 ## DB Outage
 - Check /api/health (503 = DB issue)
 - Check Neon status

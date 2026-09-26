@@ -7,6 +7,7 @@ import { signIn } from "next-auth/react";
 import { getSession } from "next-auth/react";
 import { Mail, Lock, Eye, EyeOff, ArrowLeft, Loader2, Info } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
 const REASON_MESSAGES: Record<string, string> = {
   session_changed:
@@ -86,6 +87,17 @@ export default function LoginForm() {
             <span>{REASON_MESSAGES[reason]}</span>
           </div>
         )}
+
+        <div className="mb-2">
+          <GoogleSignInButton />
+          <div className="flex items-center gap-3 my-5">
+            <div className="h-px flex-1 bg-border/60" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted whitespace-nowrap">
+              or continue with email
+            </span>
+            <div className="h-px flex-1 bg-border/60" />
+          </div>
+        </div>
 
         <form className="space-y-4" onSubmit={handleLogin}>
           <div>

@@ -3,10 +3,14 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { authConfig } from "@/lib/auth/config";
+import { getGoogleProvider } from "@/lib/auth/providers";
+
+const googleProvider = getGoogleProvider();
 
 const handler = NextAuth({
   ...authConfig,
   providers: [
+    ...(googleProvider ? [googleProvider] : []),
     CredentialsProvider({
       name: "credentials",
       credentials: {

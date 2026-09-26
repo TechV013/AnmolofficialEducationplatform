@@ -17,6 +17,8 @@ model User {
   updatedAt            DateTime               @updatedAt
   name                 String?
   image                String?
+  provider             String                 @default("credentials")
+  providerAccountId    String?                @unique
   bio                  String?
   title                String?
   phone                String?

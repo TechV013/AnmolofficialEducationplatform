@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { User, Mail, Lock, ArrowLeft, Loader2 } from "lucide-react";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -88,6 +89,20 @@ export default function RegisterPage() {
             <span>{error}</span>
           </div>
         )}
+
+        <div className="mb-5">
+          <GoogleSignInButton label="Sign up with Google" />
+          <p className="text-center text-xs text-muted mt-2">
+            Your email is verified by Google — no passwords required.
+          </p>
+          <div className="flex items-center gap-3 my-5">
+            <div className="h-px flex-1 bg-border/60" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted whitespace-nowrap">
+              or sign up with email
+            </span>
+            <div className="h-px flex-1 bg-border/60" />
+          </div>
+        </div>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
