@@ -74,8 +74,13 @@ import { UserRole as PrismaUserRole } from '@prisma/client';
 export type UserRole = PrismaUserRole;
 
 export interface Testimonial {
+  id?: string;
   name: string;
   role: string;
   rating: number;
   quote: string;
+  category?: string;
+  videoUrl?: string;
+  thumbnail?: string;
+  courseTaken?: string;
 }
