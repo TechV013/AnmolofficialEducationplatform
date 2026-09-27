@@ -19,7 +19,7 @@ export default function SuccessStories() {
                   {t.name[0]}
                 </div>
                 <div className="ml-3">
-                  <h4 className="font-bold text-sm text-text">{t.name}</h4>
+                  <h3 className="font-bold text-sm text-text">{t.name}</h3>
                   <p className="text-xs text-muted">{t.role}</p>
                 </div>
                 <div className="ml-auto flex">

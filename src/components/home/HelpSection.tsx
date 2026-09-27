@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { instructors } from "@/data/courses";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -67,19 +68,19 @@ export default function HelpSection() {
                       key={instructor.id} 
                       className="bg-white border border-gray-200 rounded-2xl p-3 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full"
                     >
-                      <div className="w-full aspect-[3/4] bg-gray-100 rounded-xl mb-4 overflow-hidden">
-                      <img
-                        src={`/images/instructor/instructor${instructor.id}.png`}
-                        alt={instructor.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/images/founder.png';
-                        }}
-                      />
+                      <div className="w-full aspect-[3/4] bg-gray-100 rounded-xl mb-4 overflow-hidden relative">
+                        <Image
+                          src={`/images/instructor/instructor${instructor.id}.png`}
+                          alt={instructor.name}
+                          width={200}
+                          height={267}
+                          sizes="(max-width: 640px) 100vw, 200px"
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                       <div className="text-center mt-auto flex flex-col justify-between flex-1">
                         <div>
-                          <h4 className="font-bold text-sm text-[#111111] mb-1 min-h-[20px] flex items-center justify-center">{instructor.name}</h4>
+                          <h3 className="font-bold text-sm text-[#111111] mb-1 min-h-[20px] flex items-center justify-center">{instructor.name}</h3>
                           <div className="w-6 h-0.5 bg-[#0069E0] mx-auto my-2 rounded-full"></div>
                           <p className="text-[#0069E0] text-[10px] font-bold uppercase tracking-wider mb-2 min-h-[28px] flex items-center justify-center">{instructor.role}</p>
                         </div>

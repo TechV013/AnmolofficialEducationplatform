@@ -43,7 +43,7 @@ export default function Footer() {
 
             <div className="grid grid-cols-3 gap-8">
               <div>
-                <h4 className="font-bold text-lg mb-4">Quick Links</h4>
+                <p className="font-bold text-lg mb-4">Quick Links</p>
                 <ul className="space-y-3 text-sm opacity-80">
                   <li><Link href="/about" className="hover:underline">About</Link></li>
                   <li><Link href="/about-us" className="hover:underline">Team</Link></li>
@@ -52,14 +52,14 @@ export default function Footer() {
                 </ul>
               </div>
               <div>
-                <h4 className="font-bold text-lg mb-4">Important Links</h4>
+                <p className="font-bold text-lg mb-4">Important Links</p>
                 <ul className="space-y-3 text-sm opacity-80">
                   <li><Link href="/faq" className="hover:underline">FAQ&apos;s</Link></li>
                   <li><Link href="/community" className="hover:underline">Community</Link></li>
                 </ul>
               </div>
               <div>
-                <h4 className="font-bold text-lg mb-4">Other Links</h4>
+                <p className="font-bold text-lg mb-4">Other Links</p>
                 <ul className="space-y-3 text-sm opacity-80">
                   <li><Link href="/blog" className="hover:underline">Blogs</Link></li>
                   <li>
