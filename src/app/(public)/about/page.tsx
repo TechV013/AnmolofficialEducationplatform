@@ -4,20 +4,20 @@ import { BookOpen, Target, Zap } from "lucide-react";
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="py-16 sm:py-20 bg-surface">
+{/* Hero Section */}
+      <section className="py-10 sm:py-14 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-primary font-bold tracking-widest uppercase text-sm mb-4">ABOUT ANMLOFFICIAL</p>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-text mb-6">रचनात्मकता को अवसर में बदलने की एक कोशिश</h1>
-          <p className="text-muted max-w-2xl mx-auto text-base sm:text-lg mb-10">एक ऑनलाइन लर्निंग प्लेटफ़ॉर्म है, जहाँ रचनात्मक क्षेत्रों से जुड़े कौशल को आसान, व्यवस्थित और practical तरीके से सीखने का अवसर मिलता है। हमारा उद्देश्य ऐसी शिक्षा देना है</p>
-          <Link href="/courses" className="bg-primary text-white px-8 py-4 rounded-full font-bold hover:bg-primary-hover transition-all">Explore Courses</Link>
-<p className="mt-6 text-muted max-w-2xl mx-auto text-base sm:text-lg">हमारा मानना है कि Creative Education महंगी, मुश्किल या सिर्फ classroom तक सीमित नहीं होनी चाहिए। हमारा मिशन बिल्कुल सरल है — बेहतरीन creative और design education को हर किसी के लिए affordable, accessible और practical बनाना।</p>
+          <p className="text-primary font-bold tracking-widest uppercase text-sm mb-3">ABOUT ANMLOFFICIAL</p>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-text mb-4">रचनात्मकता को अवसर में बदलने की एक कोशिश</h1>
+          <p className="text-muted max-w-2xl mx-auto text-base sm:text-lg mb-6">एक ऑनलाइन लर्निंग प्लेटफ़ॉर्म है, जहाँ रचनात्मक क्षेत्रों से जुड़े कौशल को आसान, व्यवस्थित और practical तरीके से सीखने का अवसर मिलता है। हमारा उद्देश्य ऐसी शिक्षा देना है</p>
+          <Link href="/courses" className="bg-primary text-white px-8 py-3.5 rounded-full font-bold hover:bg-primary-hover transition-all text-sm">Explore Courses</Link>
+          <p className="mt-4 text-muted max-w-2xl mx-auto text-base sm:text-lg">हमारा मानना है कि Creative Education महंगी, मुश्किल या सिर्फ classroom तक सीमित नहीं होनी चाहिए। हमारा मिशन बिल्कुल सरल है — बेहतरीन creative और design education को हर किसी के लिए affordable, accessible और practical बनाना।</p>
         </div>
       </section>
 
-      {/* Our Story */}
-      <section className="py-16 sm:py-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div className="space-y-6 text-muted text-lg leading-relaxed text-left">
+{/* Our Story */}
+      <section className="py-10 sm:py-14 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="space-y-4 text-muted text-lg leading-relaxed text-left">
           <p>
             हमारा platform उन लोगों के लिए एक ऐसी जगह है जहाँ वे अपनी creativity को explore कर सकें, नए skills सीख सकें और अपने career में आगे बढ़ सकें। चाहे आप design की दुनिया में अपना career शुरू करना चाहते हों, अपनी existing skills को बेहतर बनाना चाहते हों या बस कुछ नया सीखने की इच्छा रखते हों — हम आपके learning journey को थोड़ा आसान और ज्यादा meaningful बनाने के लिए यहाँ हैं।
           </p>
@@ -44,8 +44,8 @@ export default function AboutPage() {
       </section>
 
       {/* Values */}
-      <section className="py-16 sm:py-20 bg-soft-blue/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-3 gap-10">
+      <section className="py-10 sm:py-14 bg-soft-blue/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-3 gap-8">
             <div className="bg-surface p-8 rounded-3xl border border-border">
                 <BookOpen className="w-10 h-10 text-primary mb-4" />
                 <h3 className="text-xl font-bold text-text mb-2">Structured Learning</h3>
@@ -65,7 +65,7 @@ export default function AboutPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-16 sm:py-20 text-center">
+      <section className="py-10 sm:py-14 text-center">
         <h2 className="text-2xl sm:text-3xl font-bold text-text mb-6">Ready to start learning?</h2>
         <Link href="/courses" className="inline-block bg-primary text-white px-8 py-4 rounded-full font-bold hover:bg-primary-hover transition-all">Explore Courses</Link>
       </section>
