@@ -34,7 +34,7 @@ export default function AboutUsPage() {
         </div>
       </section>
 
-      {/* Team Grid */}
+      {/* Team + How We Work */}
       <section className="py-10 sm:py-14 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-2xl sm:text-3xl font-bold text-center mb-10">Our Team</h2>
@@ -47,27 +47,26 @@ export default function AboutUsPage() {
                     </div>
                 ))}
             </div>
-        </div>
-      </section>
 
-      {/* Trust Section */}
-      <section className="py-10 sm:py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-12">How We Work Together</h2>
-        <div className="grid md:grid-cols-3 gap-8 text-center">
-            <div className="p-6">
-                <Users className="w-12 h-12 mx-auto text-primary mb-4" />
-                <h3 className="font-bold mb-2">Collaboration</h3>
-                <p className="text-muted text-sm">Our founder, instructors, and content creators work together to ensure curriculum quality.</p>
-            </div>
-            <div className="p-6">
-                <BookOpen className="w-12 h-12 mx-auto text-primary mb-4" />
-                <h3 className="font-bold mb-2">Curriculum Driven</h3>
-                <p className="text-muted text-sm">Content is meticulously designed to bridge the gap between passion and professional skill.</p>
-            </div>
-            <div className="p-6">
-                <Target className="w-12 h-12 mx-auto text-primary mb-4" />
-                <h3 className="font-bold mb-2">Learner Focused</h3>
-                <p className="text-muted text-sm">Every resource, quiz, and assignment is created to facilitate your growth.</p>
+            <div className="border-t border-border mt-12 pt-12 text-center">
+                <h2 className="text-2xl sm:text-3xl font-bold mb-10">How We Work Together</h2>
+                <div className="grid md:grid-cols-3 gap-8 text-center">
+                    <div className="p-6">
+                        <Users className="w-12 h-12 mx-auto text-primary mb-4" />
+                        <h3 className="font-bold mb-2">Collaboration</h3>
+                        <p className="text-muted text-sm">Our founder, instructors, and content creators work together to ensure curriculum quality.</p>
+                    </div>
+                    <div className="p-6">
+                        <BookOpen className="w-12 h-12 mx-auto text-primary mb-4" />
+                        <h3 className="font-bold mb-2">Curriculum Driven</h3>
+                        <p className="text-muted text-sm">Content is meticulously designed to bridge the gap between passion and professional skill.</p>
+                    </div>
+                    <div className="p-6">
+                        <Target className="w-12 h-12 mx-auto text-primary mb-4" />
+                        <h3 className="font-bold mb-2">Learner Focused</h3>
+                        <p className="text-muted text-sm">Every resource, quiz, and assignment is created to facilitate your growth.</p>
+                    </div>
+                </div>
             </div>
         </div>
       </section>

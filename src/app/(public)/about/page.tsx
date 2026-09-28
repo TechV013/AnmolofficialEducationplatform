@@ -4,19 +4,24 @@ import { BookOpen, Target, Zap } from "lucide-react";
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-background">
-{/* Hero Section */}
-      <section className="py-10 sm:py-14 bg-surface">
+      {/* Hero */}
+      <section className="py-12 sm:py-16 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-primary font-bold tracking-widest uppercase text-sm mb-3">ABOUT ANMLOFFICIAL</p>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-text mb-4">रचनात्मकता को अवसर में बदलने की एक कोशिश</h1>
-          <p className="text-muted max-w-2xl mx-auto text-base sm:text-lg mb-6">एक ऑनलाइन लर्निंग प्लेटफ़ॉर्म है, जहाँ रचनात्मक क्षेत्रों से जुड़े कौशल को आसान, व्यवस्थित और practical तरीके से सीखने का अवसर मिलता है। हमारा उद्देश्य ऐसी शिक्षा देना है</p>
-          <Link href="/courses" className="bg-primary text-white px-8 py-3.5 rounded-full font-bold hover:bg-primary-hover transition-all text-sm">Explore Courses</Link>
-          <p className="mt-4 text-muted max-w-2xl mx-auto text-base sm:text-lg">हमारा मानना है कि Creative Education महंगी, मुश्किल या सिर्फ classroom तक सीमित नहीं होनी चाहिए। हमारा मिशन बिल्कुल सरल है — बेहतरीन creative और design education को हर किसी के लिए affordable, accessible और practical बनाना।</p>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-text mb-5">
+            रचनात्मकता को अवसर में बदलने की एक कोशिश
+          </h1>
+          <p className="text-muted max-w-2xl mx-auto text-base sm:text-lg">
+            एक ऑनलाइन लर्निंग प्लेटफ़ॉर्म है, जहाँ रचनात्मक क्षेत्रों से जुड़े कौशल को आसान, व्यवस्थित और practical तरीके से सीखने का अवसर मिलता है।
+          </p>
         </div>
       </section>
 
-{/* Our Story */}
-      <section className="py-10 sm:py-14 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      {/* Mission + Story */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+        <p className="text-center text-lg sm:text-xl font-semibold text-text mb-8">
+          हमारा मानना है कि Creative Education महंगी, मुश्किल या सिर्फ classroom तक सीमित नहीं होनी चाहिए। हमारा मिशन बिल्कुल सरल है — बेहतरीन creative और design education को हर किसी के लिए affordable, accessible और practical बनाना।
+        </p>
         <div className="space-y-4 text-muted text-lg leading-relaxed text-left">
           <p>
             हमारा platform उन लोगों के लिए एक ऐसी जगह है जहाँ वे अपनी creativity को explore कर सकें, नए skills सीख सकें और अपने career में आगे बढ़ सकें। चाहे आप design की दुनिया में अपना career शुरू करना चाहते हों, अपनी existing skills को बेहतर बनाना चाहते हों या बस कुछ नया सीखने की इच्छा रखते हों — हम आपके learning journey को थोड़ा आसान और ज्यादा meaningful बनाने के लिए यहाँ हैं।
@@ -24,7 +29,7 @@ export default function AboutPage() {
           <p>
             हम industry experts के साथ मिलकर creative design और उससे जुड़े क्षेत्रों के practical, expert-led online courses लेकर आते हैं। इन courses को इस तरह तैयार किया गया है कि आप सिर्फ सीखें ही नहीं, बल्कि उस knowledge को अपने काम और career में भी इस्तेमाल कर सकें।
           </p>
-          <p className="text-2xl font-bold text-text text-center">सीखिए। बनाइए। आगे बढ़िए।</p>
+          <p className="text-2xl font-bold text-text text-center py-2">सीखिए। बनाइए। आगे बढ़िए।</p>
           <p>
             हम एक ऐसी growing learning community बना रहे हैं जो मानती है कि learning की कोई expiry date नहीं होती।
           </p>
@@ -64,7 +69,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Final CTA */}
+      {/* CTA */}
       <section className="py-10 sm:py-14 text-center">
         <h2 className="text-2xl sm:text-3xl font-bold text-text mb-6">Ready to start learning?</h2>
         <Link href="/courses" className="inline-block bg-primary text-white px-8 py-4 rounded-full font-bold hover:bg-primary-hover transition-all">Explore Courses</Link>
