@@ -5,7 +5,7 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-background">
 {/* Hero Section */}
-      <section className="py-10 sm:py-14 bg-surface">
+      <section className="pt-10 sm:pt-14 pb-4 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-primary font-bold tracking-widest uppercase text-sm mb-3">ABOUT ANMLOFFICIAL</p>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-text mb-4">रचनात्मकता को अवसर में बदलने की एक कोशिश</h1>
@@ -16,7 +16,7 @@ export default function AboutPage() {
       </section>
 
 {/* Our Story */}
-      <section className="py-10 sm:py-14 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="pt-0 pb-10 sm:pb-14 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="space-y-4 text-muted text-lg leading-relaxed text-left">
           <p>
             हमारा platform उन लोगों के लिए एक ऐसी जगह है जहाँ वे अपनी creativity को explore कर सकें, नए skills सीख सकें और अपने career में आगे बढ़ सकें। चाहे आप design की दुनिया में अपना career शुरू करना चाहते हों, अपनी existing skills को बेहतर बनाना चाहते हों या बस कुछ नया सीखने की इच्छा रखते हों — हम आपके learning journey को थोड़ा आसान और ज्यादा meaningful बनाने के लिए यहाँ हैं।
