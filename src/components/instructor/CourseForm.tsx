@@ -173,7 +173,7 @@ export default function CourseForm({ course }: { course?: CourseSettings }) {
             value={promoVideoUrl}
             onChange={setPromoVideoUrl}
             placeholder="https://... or upload video file"
-            hint="Shown in the course hero for students. YouTube, Vimeo, or any direct MP4 URL."
+            hint="Shown in the course hero for students. YouTube, Vimeo, Google Drive, or any direct MP4 URL."
             trailing={
               <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-soft-blue text-primary font-semibold text-xs hover:bg-soft-blue/80 transition-colors shrink-0">
                 {uploadingVideo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}

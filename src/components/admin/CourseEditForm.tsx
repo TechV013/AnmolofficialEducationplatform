@@ -143,7 +143,7 @@ export default function CourseEditForm({ courseId, course, onClose }: {
         </div>
         <div>
           <VideoUrlField
-            label="Promo Video URL (YouTube, Vimeo, or direct MP4)"
+            label="Promo Video URL (YouTube, Vimeo, Google Drive, or direct MP4)"
             value={formData.promoVideoUrl || ""}
             onChange={(v) => updateField("promoVideoUrl", v || null)}
             placeholder="https://..."

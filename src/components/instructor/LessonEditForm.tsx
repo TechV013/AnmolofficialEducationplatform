@@ -79,7 +79,7 @@ export default function LessonEditForm({ lessonId, courseId, initialTitle, initi
         label="Lesson Video (URL or Local Upload)"
         value={videoUrl}
         onChange={setVideoUrl}
-        placeholder="YouTube, Vimeo, or direct MP4 URL"
+        placeholder="YouTube, Vimeo, Google Drive, or direct MP4 URL"
         hint="Paste a YouTube/Vimeo link or a direct MP4 URL, or upload a file."
         trailing={
           <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded bg-soft-blue text-primary font-semibold text-xs hover:bg-soft-blue/80 transition-colors shrink-0">

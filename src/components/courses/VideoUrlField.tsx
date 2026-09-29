@@ -15,7 +15,7 @@ interface VideoUrlFieldProps {
 
 const DEBOUNCE_MS = 400;
 
-export default function VideoUrlField({ value, onChange, label = "Video URL", placeholder = "YouTube, Vimeo, or direct MP4 URL", hint, trailing }: VideoUrlFieldProps) {
+export default function VideoUrlField({ value, onChange, label = "Video URL", placeholder = "YouTube, Vimeo, Google Drive, or direct MP4 URL", hint, trailing }: VideoUrlFieldProps) {
   const trimmed = value.trim();
   const invalid = trimmed.length > 0 && !isValidVideoUrl(trimmed);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -45,7 +45,7 @@ export default function VideoUrlField({ value, onChange, label = "Video URL", pl
       {invalid && (
         <p className="flex items-center gap-1.5 text-xs font-medium text-amber-600">
           <AlertCircle className="h-3.5 w-3.5" />
-          This doesn't look like a playable video URL — use a YouTube/Vimeo link or a direct MP4 URL.
+          This doesn't look like a playable video URL — use a YouTube, Vimeo, or Google Drive link, or a direct MP4 URL.
         </p>
       )}
       {hint && <p className="text-xs text-slate-400">{hint}</p>}

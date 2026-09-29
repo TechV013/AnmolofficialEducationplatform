@@ -93,7 +93,7 @@ export default function LessonCreateForm({ moduleId, courseId }: Props) {
         label="Lesson Video"
         value={videoUrl}
         onChange={setVideoUrl}
-        placeholder="YouTube, Vimeo, or direct MP4 URL"
+        placeholder="YouTube, Vimeo, Google Drive, or direct MP4 URL"
         hint="Paste a YouTube/Vimeo link or a direct MP4 URL, or upload a file."
         trailing={
           <label className="cursor-pointer inline-flex items-center gap-1 px-3 py-2 rounded bg-soft-blue text-primary font-semibold text-xs hover:bg-soft-blue/80 transition-colors shrink-0">

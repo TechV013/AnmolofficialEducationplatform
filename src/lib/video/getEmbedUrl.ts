@@ -1,12 +1,40 @@
-export type MediaType = "youtube" | "vimeo" | "html5";
+export type MediaType = "youtube" | "vimeo" | "gdrive" | "html5";
 
 export interface MediaInfo {
   type: MediaType;
   embedUrl: string;
 }
 
+function getDriveFileId(url: string): string | null {
+  let host = "";
+  try {
+    host = new URL(url).hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+  const isDrive =
+    host === "drive.google.com" ||
+    host.endsWith(".drive.google.com") ||
+    host === "docs.google.com" ||
+    host.endsWith(".docs.google.com") ||
+    host === "drive.usercontent.google.com";
+  if (!isDrive) return null;
+  const match =
+    url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) ||
+    url.match(/[?&#]id=([a-zA-Z0-9_-]+)/);
+  return match ? match[1] : null;
+}
+
 export function getEmbedUrl(url: string): MediaInfo {
   if (!url) return { type: "html5", embedUrl: "" };
+
+  const driveId = getDriveFileId(url);
+  if (driveId) {
+    return {
+      type: "gdrive",
+      embedUrl: `https://drive.google.com/file/d/${driveId}/preview`,
+    };
+  }
 
   let videoId = "";
   if (url.includes("youtu.be/")) {
@@ -56,6 +84,7 @@ export function getMediaTypeLabel(type: MediaType): string {
   switch (type) {
     case "youtube": return "YouTube";
     case "vimeo": return "Vimeo";
+    case "gdrive": return "Google Drive";
     case "html5": return "Video";
   }
 }
