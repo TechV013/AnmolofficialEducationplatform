@@ -11,11 +11,12 @@ interface VideoUrlFieldProps {
   placeholder?: string;
   hint?: string;
   trailing?: ReactNode;
+  previewClassName?: string;
 }
 
 const DEBOUNCE_MS = 400;
 
-export default function VideoUrlField({ value, onChange, label = "Video URL", placeholder = "YouTube, Vimeo, Google Drive, or direct MP4 URL", hint, trailing }: VideoUrlFieldProps) {
+export default function VideoUrlField({ value, onChange, label = "Video URL", placeholder = "YouTube, Vimeo, Google Drive, or direct MP4 URL", hint, trailing, previewClassName }: VideoUrlFieldProps) {
   const trimmed = value.trim();
   const invalid = trimmed.length > 0 && !isValidVideoUrl(trimmed);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -50,7 +51,7 @@ export default function VideoUrlField({ value, onChange, label = "Video URL", pl
       )}
       {hint && <p className="text-xs text-slate-400">{hint}</p>}
       {previewUrl && (
-        <div className="mt-1 overflow-hidden rounded-2xl border border-slate-200 shadow-md">
+        <div className={previewClassName ?? "mt-1 overflow-hidden rounded-2xl border border-slate-200 shadow-md"}>
           <VideoPlayer key={previewUrl} url={previewUrl} title={label} mode="preview" />
         </div>
       )}
