@@ -211,6 +211,18 @@ export async function createCourse(formData: FormData) {
     return course.id;
 }
 
+// Course Intro Video (course-level preview, separate from curriculum lessons)
+export async function updateCourseIntroVideo(courseId: string, promoVideoUrl: string | null) {
+    await checkAuth(courseId);
+
+    const updated = await prisma.course.update({
+        where: { id: courseId },
+        data: { promoVideoUrl: promoVideoUrl?.trim() || null }
+    });
+    revalidateCourse(updated);
+    return updated.id;
+}
+
 // Edit course settings
 export async function updateCourse(courseId: string, data: {
     title: string; description: string; category: string; level: string; thumbnail: string; slug: string; promoVideoUrl?: string | null;

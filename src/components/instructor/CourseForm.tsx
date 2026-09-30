@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createCourse, updateCourse } from "@/app/(instructor)/instructor/courses/[courseId]/actions";
 import { Upload, Loader2 } from "lucide-react";
-import VideoUrlField from "@/components/courses/VideoUrlField";
 
 interface CourseSettings {
   id: string;
@@ -14,7 +13,6 @@ interface CourseSettings {
   thumbnail: string;
   slug: string;
   price?: string;
-  promoVideoUrl?: string | null;
 }
 
 export default function CourseForm({ course }: { course?: CourseSettings }) {
@@ -22,9 +20,7 @@ export default function CourseForm({ course }: { course?: CourseSettings }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [thumbnail, setThumbnail] = useState(course?.thumbnail || "");
-  const [promoVideoUrl, setPromoVideoUrl] = useState(course?.promoVideoUrl || "");
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [uploadingVideo, setUploadingVideo] = useState(false);
   const isEdit = Boolean(course);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,36 +48,6 @@ export default function CourseForm({ course }: { course?: CourseSettings }) {
     }
   };
 
-  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 1024 * 1024 * 1024) {
-      setError("Promo video file exceeds 1GB limit");
-      return;
-    }
-
-    setUploadingVideo(true);
-    setError(null);
-    try {
-      const formData = new FormData();
-      formData.append("video", file);
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Video upload failed");
-
-      setPromoVideoUrl(data.videoUrl);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Video upload failed");
-    } finally {
-      setUploadingVideo(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
@@ -96,13 +62,11 @@ export default function CourseForm({ course }: { course?: CourseSettings }) {
           level: String(form.get("level") || ""),
           thumbnail: thumbnail || String(form.get("thumbnail") || ""),
           slug: String(form.get("slug") || ""),
-          promoVideoUrl: promoVideoUrl || null
         });
         router.refresh();
         alert("Course settings saved successfully!");
       } else {
         form.set("thumbnail", thumbnail);
-        form.set("promoVideoUrl", promoVideoUrl);
         const id = await createCourse(form);
         router.push(`/instructor/courses/${id}`);
       }
@@ -165,23 +129,6 @@ export default function CourseForm({ course }: { course?: CourseSettings }) {
               <img src={thumbnail} alt="Thumbnail preview" className="h-full w-full object-cover" />
             </div>
           )}
-        </div>
-
-        <div className="md:col-span-2 space-y-3">
-          <VideoUrlField
-            label="Course Promo/Preview Video (URL or Local Upload)"
-            value={promoVideoUrl}
-            onChange={setPromoVideoUrl}
-            placeholder="https://... or upload video file"
-            hint="Shown in the course hero for students. YouTube, Vimeo, Google Drive, or any direct MP4 URL."
-            trailing={
-              <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-soft-blue text-primary font-semibold text-xs hover:bg-soft-blue/80 transition-colors shrink-0">
-                {uploadingVideo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                <span>{uploadingVideo ? "Uploading..." : "Upload Video"}</span>
-                <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" disabled={uploadingVideo} />
-              </label>
-            }
-          />
         </div>
       </div>
 

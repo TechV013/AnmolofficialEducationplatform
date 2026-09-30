@@ -6,6 +6,7 @@ import { ArrowLeft, Eye, Trash2, Plus, Film } from "lucide-react";
 import VideoUploader from "@/components/courses/VideoUploader";
 import { createModule, createLesson, deleteModule, deleteLesson } from "./actions";
 import CourseForm from "@/components/instructor/CourseForm";
+import IntroVideoForm from "@/components/instructor/IntroVideoForm";
 import PublishButton from "@/components/instructor/PublishButton";
 
 export default async function EditCoursePage({ params }: { params: Promise<{ courseId: string }> }) {
@@ -66,7 +67,7 @@ export default async function EditCoursePage({ params }: { params: Promise<{ cou
 
       {/* Edit Course Settings Form */}
       <div className="rounded-2xl border border-border bg-white p-6 sm:p-8 shadow-sm">
-        <h2 className="text-lg font-bold text-text mb-4">Course Settings & Promo Video</h2>
+        <h2 className="text-lg font-bold text-text mb-4">Course Information</h2>
         <CourseForm course={{
           id: course.id,
           title: course.title,
@@ -75,15 +76,26 @@ export default async function EditCoursePage({ params }: { params: Promise<{ cou
           level: course.level,
           thumbnail: course.thumbnail,
           slug: course.slug,
-          price: course.price.toString(),
-          promoVideoUrl: course.promoVideoUrl
+          price: course.price.toString()
         }} />
       </div>
 
-      {/* Curriculum Builder: Modules & Lessons */}
+      {/* Course Intro Video (course-level preview, NOT part of curriculum) */}
+      <section className="rounded-2xl border border-border bg-background p-4 sm:p-6 shadow-sm">
+        <div className="mb-4">
+          <h2 className="text-lg font-bold text-text">Course Intro Video</h2>
+          <p className="text-xs text-muted mt-1">
+            Shown as a preview on the course page.
+          </p>
+        </div>
+        <IntroVideoForm courseId={course.id} initialVideoUrl={course.promoVideoUrl} />
+      </section>
+
+      {/* Curriculum Builder: Modules & Lessons (student learning sessions) */}
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-text">Curriculum (Modules & Lessons)</h2>
+        <div>
+          <h2 className="text-xl font-bold text-text">Curriculum & Sessions</h2>
+          <p className="text-xs text-muted mt-1">Learning sessions students access after enrollment.</p>
         </div>
 
         {/* Add Module Form */}
