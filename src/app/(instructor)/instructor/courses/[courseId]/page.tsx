@@ -2,11 +2,10 @@ import { requireInstructor } from "@/lib/auth/helpers";
 import { getCourseForInstructor, deleteCourse } from "@/services/courses/instructor.service";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Eye, Trash2, Plus, Film } from "lucide-react";
-import VideoUploader from "@/components/courses/VideoUploader";
-import { createModule, createLesson, deleteModule, deleteLesson } from "./actions";
+import { ArrowLeft, Eye, Trash2 } from "lucide-react";
 import CourseForm from "@/components/instructor/CourseForm";
 import IntroVideoForm from "@/components/instructor/IntroVideoForm";
+import CourseCurriculumBuilder, { type StudioModule } from "@/components/instructor/CourseCurriculumBuilder";
 import PublishButton from "@/components/instructor/PublishButton";
 
 export default async function EditCoursePage({ params }: { params: Promise<{ courseId: string }> }) {
@@ -14,6 +13,36 @@ export default async function EditCoursePage({ params }: { params: Promise<{ cou
   const user = await requireInstructor();
   const course = await getCourseForInstructor(courseId, user.id);
   if (!course) notFound();
+
+  const studioModules: StudioModule[] = course.modules.map((m: any) => ({
+    id: m.id,
+    title: m.title,
+    position: m.position,
+    lessons: (m.lessons as any[]).map((l: any) => ({
+      id: l.id,
+      title: l.title,
+      description: l.description,
+      duration: l.duration,
+      position: l.position,
+      videoUrl: l.videoUrl ?? null,
+      quizId: l.quiz?.id ?? null,
+      quiz: l.quiz
+        ? {
+            id: l.quiz.id,
+            questions: (l.quiz.questions ?? []).map((q: any) => ({
+              id: q.id,
+              text: q.text,
+              options: (q.options ?? []).map((o: any) => ({ id: o.id, text: o.text, isCorrect: o.isCorrect }))
+            }))
+          }
+        : null,
+      assignmentId: l.assignment?.id ?? null,
+      assignment: l.assignment
+        ? { id: l.assignment.id, instructions: l.assignment.instructions, dueDate: l.assignment.dueDate }
+        : null,
+      hasResources: (l.resources?.length ?? 0) > 0
+    }))
+  }));
 
   return (
     <div className="space-y-8 pb-16">
@@ -98,107 +127,7 @@ export default async function EditCoursePage({ params }: { params: Promise<{ cou
           <p className="text-xs text-muted mt-1">Learning sessions students access after enrollment.</p>
         </div>
 
-        {/* Add Module Form */}
-        <form action={async (formData: FormData) => {
-          "use server";
-          const title = String(formData.get("moduleTitle") || "");
-          if (!title.trim()) return;
-          await createModule(course.id, title);
-        }} className="flex gap-3 rounded-2xl border border-border bg-white p-4 shadow-sm">
-          <input name="moduleTitle" required placeholder="New Module Title (e.g. 1. Introduction to Maya)" className="flex-1 rounded-xl border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-          <button type="submit" className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary-hover transition-all shrink-0">
-            <Plus className="h-4 w-4" />
-            <span>Add Module</span>
-          </button>
-        </form>
-
-        {/* Modules List */}
-        {course.modules.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-white p-12 text-center text-muted">
-            <Film className="h-10 w-10 text-muted/40 mx-auto mb-3" />
-            <p className="font-semibold text-text">No modules created yet</p>
-            <p className="text-xs text-muted mt-1">Add your first module above to start building curriculum and uploading lesson videos.</p>
-          </div>
-        ) : (
-          course.modules.map((m: any) => (
-            <div key={m.id} className="rounded-2xl border border-border bg-white overflow-hidden shadow-sm">
-              <div className="bg-slate-50 border-b border-border px-6 py-4 flex items-center justify-between">
-                <div>
-                  <h3 className="font-bold text-text">Module {m.position + 1}: {m.title}</h3>
-                  <p className="text-xs text-muted">{m.lessons.length} lessons</p>
-                </div>
-                <form action={async () => {
-                  "use server";
-                  await deleteModule(m.id, course.id);
-                }}>
-                  <button type="submit" className="p-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors" title="Delete Module">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </form>
-              </div>
-
-              <div className="p-6 space-y-4">
-                {m.lessons.length === 0 ? (
-                  <p className="text-xs text-muted py-2">No lessons in this module yet. Add a lesson below.</p>
-                ) : (
-                  m.lessons.map((l: any) => (
-                    <div key={l.id} className="rounded-xl border border-border p-4 bg-slate-50/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-soft-blue text-xs font-bold text-primary">{l.position + 1}</span>
-                          <h4 className="font-bold text-text text-sm truncate">{l.title}</h4>
-                        </div>
-                        <p className="text-xs text-muted mt-1">{l.description || "No description"}</p>
-                        <div className="flex items-center gap-3 mt-2 text-xs">
-                          {l.duration && <span className="text-muted">Duration: {l.duration}</span>}
-                          {l.videoUrl ? (
-                            <span className="text-emerald-600 font-medium">✓ Video attached ({l.videoUrl})</span>
-                          ) : (
-                            <span className="text-amber-600 font-medium">⚠️ No video uploaded</span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="w-full md:w-auto flex flex-col sm:flex-row items-center gap-3">
-                        <div className="w-full sm:w-64">
-                          <VideoUploader lessonId={l.id} />
-                        </div>
-                        <form action={async () => {
-                          "use server";
-                          await deleteLesson(l.id, course.id);
-                        }}>
-                          <button type="submit" className="p-2.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors" title="Delete Lesson">
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </form>
-                      </div>
-                    </div>
-                  ))
-                )}
-
-                {/* Add Lesson Form */}
-                <div className="pt-4 border-t border-border">
-                  <form action={async (formData: FormData) => {
-                    "use server";
-                    const title = String(formData.get("lessonTitle") || "");
-                    const description = String(formData.get("lessonDesc") || "");
-                    const duration = String(formData.get("lessonDuration") || "10:00");
-                    if (!title.trim()) return;
-                    await createLesson(m.id, title, description, duration, null, course.id);
-                  }} className="grid grid-cols-1 sm:grid-cols-[1fr_1.5fr_120px_auto] gap-2">
-                    <input name="lessonTitle" required placeholder="Lesson title *" className="rounded-xl border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-                    <input name="lessonDesc" placeholder="Description (optional)" className="rounded-xl border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-                    <input name="lessonDuration" placeholder="Duration (e.g. 15:00)" className="rounded-xl border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
-                    <button type="submit" className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-soft-blue text-primary font-bold text-xs hover:bg-soft-blue/80 transition-colors">
-                      <Plus className="h-4 w-4" />
-                      <span>Add Lesson</span>
-                    </button>
-                  </form>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
+        <CourseCurriculumBuilder courseId={course.id} modules={studioModules} />
       </div>
     </div>
   );

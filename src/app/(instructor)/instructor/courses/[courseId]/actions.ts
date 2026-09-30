@@ -66,12 +66,13 @@ export async function deleteModule(id: string, courseId: string) {
 export async function createLesson(moduleId: string, title: string, description: string, duration: string, videoUrl: string | null, courseId: string) {
     await checkAuth(courseId);
     const count = await prisma.lesson.count({ where: { moduleId } });
-    await prisma.lesson.create({ data: { moduleId, title, description, duration, videoUrl: videoUrl || null, position: count } });
+    const lesson = await prisma.lesson.create({ data: { moduleId, title, description, duration, videoUrl: videoUrl || null, position: count } });
     revalidatePath(`/instructor/courses/${courseId}`);
+    return lesson.id;
 }
-export async function updateLesson(id: string, title: string, description: string, videoUrl: string | null, courseId: string) {
+export async function updateLesson(id: string, title: string, description: string, videoUrl: string | null, courseId: string, duration?: string) {
     await checkAuth(courseId);
-    await prisma.lesson.update({ where: { id }, data: { title, description, videoUrl: videoUrl || null } });
+    await prisma.lesson.update({ where: { id }, data: { title, description, videoUrl: videoUrl || null, ...(duration !== undefined ? { duration } : {}) } });
     revalidatePath(`/instructor/courses/${courseId}`);
 }
 export async function deleteLesson(id: string, courseId: string) {
@@ -120,8 +121,55 @@ export async function createAssignment(lessonId: string, instructions: string, d
     });
     revalidatePath(`/instructor/courses/${courseId}`);
 }
+
+// Create a lesson and its 1:1 assignment atomically (no orphan lesson/assignment records)
+export async function createAssignmentLesson(moduleId: string, title: string, description: string, instructions: string, dueDate: string | null, courseId: string) {
+    await checkAuth(courseId);
+
+    const module = await prisma.module.findFirst({ where: { id: moduleId, courseId } });
+    if (!module) throw new Error("Forbidden: Module ownership validation failed");
+    if (!instructions.trim()) throw new Error("Instructions are required");
+
+    await prisma.$transaction(async (tx) => {
+        const count = await tx.lesson.count({ where: { moduleId } });
+        await tx.lesson.create({
+            data: {
+                moduleId,
+                title: title.trim(),
+                description,
+                duration: "",
+                videoUrl: null,
+                position: count,
+                assignment: { create: { instructions: instructions.trim(), dueDate: dueDate ? new Date(dueDate) : null } }
+            }
+        });
+    });
+    revalidatePath(`/instructor/courses/${courseId}`);
+}
+
+export async function updateAssignment(assignmentId: string, instructions: string, dueDate: string | null, courseId: string) {
+    await checkAuth(courseId);
+
+    const assignment = await prisma.assignment.findFirst({
+        where: { id: assignmentId, lesson: { module: { courseId } } }
+    });
+    if (!assignment) throw new Error("Forbidden: Assignment ownership validation failed");
+
+    await prisma.assignment.update({
+        where: { id: assignmentId },
+        data: { instructions: instructions.trim(), dueDate: dueDate ? new Date(dueDate) : null }
+    });
+    revalidatePath(`/instructor/courses/${courseId}`);
+}
+
 export async function deleteAssignment(id: string, courseId: string) {
     await checkAuth(courseId);
+
+    const assignment = await prisma.assignment.findFirst({
+        where: { id, lesson: { module: { courseId } } }
+    });
+    if (!assignment) throw new Error("Forbidden: Assignment ownership validation failed");
+
     await prisma.assignment.delete({ where: { id } });
     revalidatePath(`/instructor/courses/${courseId}`);
 }

@@ -34,7 +34,7 @@ export async function getCourseForInstructor(courseId: string, userId: string) {
     include: {
       modules: {
         include: {
-          lessons: { include: { resources: true, assignment: true } }
+          lessons: { include: { resources: true, assignment: true, quiz: { include: { questions: { include: { options: true } } } } } }
         }
       },
       instructors: { include: { user: { select: { name: true } } } },

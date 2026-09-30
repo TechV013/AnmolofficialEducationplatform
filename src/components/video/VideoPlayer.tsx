@@ -13,6 +13,7 @@ interface VideoPlayerProps {
   mode: "preview" | "classroom";
   savedPosition?: number;
   onTimeUpdate?: (seconds: number) => void;
+  onDuration?: (seconds: number) => void;
   onEnded?: () => void;
   onError?: (message: string) => void;
 }
@@ -32,6 +33,7 @@ export default function VideoPlayer({
   mode,
   savedPosition = 0,
   onTimeUpdate,
+  onDuration,
   onEnded,
   onError,
 }: VideoPlayerProps) {
@@ -79,7 +81,11 @@ export default function VideoPlayer({
         onTimeUpdate(video.currentTime);
       }
     };
-    const onLoadedMetadata = () => setDuration(video.duration);
+    const onLoadedMetadata = () => {
+      const dur = video.duration;
+      setDuration(dur);
+      onDuration?.(dur);
+    };
     const onPlayHandler = () => setIsPlaying(true);
     const onPauseHandler = () => { setIsPlaying(false); setShowControls(true); };
     const onEndedHandler = () => { setIsPlaying(false); setShowControls(true); onEnded?.(); };
@@ -100,7 +106,7 @@ export default function VideoPlayer({
       video.removeEventListener("ended", onEndedHandler);
       video.removeEventListener("error", onErrorHandler);
     };
-  }, [isHtml5, mode, onTimeUpdate, onEnded]);
+  }, [isHtml5, mode, onTimeUpdate, onDuration, onEnded]);
 
   useEffect(() => {
     const video = videoRef.current;
