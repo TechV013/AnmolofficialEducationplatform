@@ -38,12 +38,14 @@ export default function HelpSection() {
             <p className="text-[#111111] font-semibold mb-8">
               Your First Conversation Is On Us! completely <span className="font-bold">FREE</span>
             </p>
-            <Link 
-              href="/login" 
+            <a 
+              href="https://wa.me/917073345025?text=Hi%2C%20I%20have%20questions%20and%20would%20like%20to%20connect%20with%20an%20expert." 
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center bg-[#111111] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#333333] transition-colors shadow-lg"
             >
               Register Now
-            </Link>
+            </a>
           </div>
 
           <div className="lg:w-1/2 overflow-hidden relative h-[450px]">
