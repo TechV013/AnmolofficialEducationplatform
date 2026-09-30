@@ -12,10 +12,12 @@ export const metadata: Metadata = {
   },
 };
 
-import { BLOG_POSTS } from "@/data/blog";
+import { getBlogPosts } from "@/services/blog/blogger";
 import BlogCard from "@/components/blog/BlogCard";
 
-export default function BlogsPage() {
+export default async function BlogsPage() {
+  const posts = await getBlogPosts();
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -27,13 +29,13 @@ export default function BlogsPage() {
           </p>
         </div>
 
-        {BLOG_POSTS.length === 0 ? (
+        {posts.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted">No posts yet.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {BLOG_POSTS.map((post) => (
+            {posts.map((post) => (
               <BlogCard key={post.id} post={post} />
             ))}
           </div>

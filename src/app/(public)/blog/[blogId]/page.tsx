@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Calendar, Clock, User, ArrowLeft } from "lucide-react";
 
-import { BLOG_POSTS } from "@/data/blog";
+import { getBlogPostById, getBlogPosts } from "@/services/blog/blogger";
 
 interface Props {
   params: Promise<{ blogId: string }>;
@@ -11,7 +12,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { blogId } = await params;
-  const post = BLOG_POSTS.find((p) => p.id === blogId);
+  const post = await getBlogPostById(blogId);
   if (!post) return { title: "Post Not Found", robots: { index: false, follow: false } };
   return {
     title: `${post.title} — Blog`,
@@ -25,16 +26,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       publishedTime: post.publishedAt,
       authors: [post.author],
       tags: [post.category],
+      images: post.thumbnail ? [{ url: post.thumbnail }] : undefined,
     },
   };
 }
 
 export default async function BlogDetailPage({ params }: Props) {
   const { blogId } = await params;
-  const post = BLOG_POSTS.find((p) => p.id === blogId);
+  const post = await getBlogPostById(blogId);
   if (!post) notFound();
 
-  const related = BLOG_POSTS.filter((p) => p.id !== post.id && p.category === post.category).slice(0, 2);
+  const allPosts = await getBlogPosts();
+  const related = allPosts.filter((p) => p.id !== post.id && p.category === post.category).slice(0, 2);
 
   return (
     <div className="min-h-screen bg-background">
@@ -46,7 +49,7 @@ export default async function BlogDetailPage({ params }: Props) {
           <ArrowLeft className="h-4 w-4" /> Back to blog
         </Link>
 
-        <article className="bg-white rounded-2xl border border-border shadow-sm p-6 sm:p-10">
+        <article className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden p-6 sm:p-10">
           <span className="inline-block text-xs font-bold uppercase tracking-wider text-primary bg-soft-blue px-2.5 py-1 rounded-full">
             {post.category}
           </span>
@@ -64,9 +67,29 @@ export default async function BlogDetailPage({ params }: Props) {
             </span>
           </div>
 
-          <div className="mt-8 prose prose-slate max-w-none text-text leading-relaxed whitespace-pre-wrap text-sm sm:text-base">
-            {post.content}
-          </div>
+          {post.thumbnail && (
+            <div className="relative w-full aspect-[16/9] mt-6 rounded-xl overflow-hidden bg-gray-100">
+              <Image
+                src={post.thumbnail}
+                alt={post.title}
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 768px"
+                className="object-cover"
+              />
+            </div>
+          )}
+
+          {post.isHtml ? (
+            <div
+              className="mt-8 prose prose-slate max-w-none text-text leading-relaxed text-sm sm:text-base [&_img]:rounded-xl [&_img]:max-w-full [&_iframe]:rounded-xl [&_iframe]:w-full [&_iframe]:aspect-video"
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
+          ) : (
+            <div className="mt-8 prose prose-slate max-w-none text-text leading-relaxed whitespace-pre-wrap text-sm sm:text-base">
+              {post.content}
+            </div>
+          )}
         </article>
 
         {related.length > 0 && (

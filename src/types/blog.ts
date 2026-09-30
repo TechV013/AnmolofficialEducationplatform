@@ -8,4 +8,6 @@ export interface BlogPost {
   author: string;
   publishedAt: string;
   readTime: string;
+  thumbnail?: string;
+  isHtml?: boolean;
 }
