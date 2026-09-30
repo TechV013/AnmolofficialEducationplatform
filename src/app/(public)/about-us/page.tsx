@@ -71,10 +71,23 @@ export default function AboutUsPage() {
                     </div>
                 ))}
             </div>
+            <div className="mt-12 text-center">
+              <p className="text-muted text-sm sm:text-base mb-4">
+                Have questions or need guidance choosing the right path? Connect with any of our expert instructors.
+              </p>
+              <Link 
+                href="https://forms.gle/demo-booking-placeholder" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-full font-bold hover:bg-primary-hover transition-all shadow-lg"
+              >
+                Book a Consultation
+              </Link>
+            </div>
         </div>
       </section>
 
-      {/* Trust Section */}
+      {/* Trust & Final CTA Section */}
       <section className="py-10 sm:py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 className="text-2xl sm:text-3xl font-bold mb-12">How We Work Together</h2>
         <div className="grid md:grid-cols-3 gap-8 text-center">
