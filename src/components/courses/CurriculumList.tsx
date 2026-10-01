@@ -36,7 +36,7 @@ export default function CurriculumList({ modules }: { modules: Module[] }) {
               >
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-text">
-                    Module {mod.position}: {mod.title}
+                    Module {mod.position + 1}: {mod.title}
                   </p>
                   <p className="mt-0.5 text-xs text-muted">
                     {lessons.length} {lessons.length === 1 ? "lesson" : "lessons"}

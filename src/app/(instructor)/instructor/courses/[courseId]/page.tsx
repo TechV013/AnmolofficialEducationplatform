@@ -40,7 +40,14 @@ export default async function EditCoursePage({ params }: { params: Promise<{ cou
       assignment: l.assignment
         ? { id: l.assignment.id, instructions: l.assignment.instructions, dueDate: l.assignment.dueDate }
         : null,
-      hasResources: (l.resources?.length ?? 0) > 0
+      resources: (
+        (l.resources ?? []) as {
+          id: string;
+          title: string;
+          type: "PDF" | "DOCUMENT" | "PROJECT_FILE" | "EXTERNAL_LINK";
+          url: string;
+        }[]
+      ).map((r) => ({ id: r.id, title: r.title, type: r.type, url: r.url }))
     }))
   }));
 

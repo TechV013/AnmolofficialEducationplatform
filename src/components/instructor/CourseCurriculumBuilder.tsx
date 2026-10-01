@@ -12,11 +12,14 @@ import {
   Brain,
   FileText,
   X,
-  Clock
+  Clock,
+  ChevronUp,
+  ChevronDown
 } from "lucide-react";
 import VideoLessonForm from "@/components/instructor/VideoLessonForm";
 import AssignmentLessonForm from "@/components/instructor/AssignmentLessonForm";
 import { QuizEditor } from "@/components/instructor/QuizEditor";
+import ResourceManager from "@/components/instructor/ResourceManager";
 import {
   createModule,
   updateModule,
@@ -24,9 +27,14 @@ import {
   createLesson,
   updateLesson,
   deleteLesson,
-  createQuiz
+  createQuiz,
+  moveModuleUp,
+  moveModuleDown,
+  moveLessonUp,
+  moveLessonDown
 } from "@/app/(instructor)/instructor/courses/[courseId]/actions";
 import { deriveLessonKind, LESSON_KIND_META, padNumber, sumDurations } from "@/lib/course-studio";
+import { useToast } from "@/components/ui/Toast";
 
 export interface StudioLesson {
   id: string;
@@ -42,7 +50,7 @@ export interface StudioLesson {
   } | null;
   assignmentId: string | null;
   assignment: { id: string; instructions: string; dueDate: string | null } | null;
-  hasResources: boolean;
+  resources: { id: string; title: string; type: "PDF" | "DOCUMENT" | "PROJECT_FILE" | "EXTERNAL_LINK"; url: string }[];
 }
 
 export interface StudioModule {
@@ -82,7 +90,14 @@ export default function CourseCurriculumBuilder({ courseId, modules }: Curriculu
         </div>
       ) : (
         sortedModules.map((module, index) => (
-          <ModuleCard key={module.id} courseId={courseId} module={module} index={index} />
+          <ModuleCard
+            key={module.id}
+            courseId={courseId}
+            module={module}
+            index={index}
+            isFirst={index === 0}
+            isLast={index === sortedModules.length - 1}
+          />
         ))
       )}
 
@@ -91,12 +106,13 @@ export default function CourseCurriculumBuilder({ courseId, modules }: Curriculu
   );
 }
 
-function ModuleCard({ courseId, module, index }: { courseId: string; module: StudioModule; index: number }) {
+function ModuleCard({ courseId, module, index, isFirst, isLast }: { courseId: string; module: StudioModule; index: number; isFirst: boolean; isLast: boolean }) {
   const router = useRouter();
   const [editingTitle, setEditingTitle] = useState(false);
   const [title, setTitle] = useState(module.title);
   const [savingTitle, setSavingTitle] = useState(false);
   const [autoEditLessonId, setAutoEditLessonId] = useState<string | null>(null);
+  const [autoEditKind, setAutoEditKind] = useState<AddLessonType | undefined>(undefined);
 
   const lessons = useMemo(
     () => [...module.lessons].sort((a, b) => a.position - b.position),
@@ -175,6 +191,13 @@ function ModuleCard({ courseId, module, index }: { courseId: string; module: Stu
           )}
 
           <div className="flex shrink-0 items-center gap-1.5">
+            <MoveButtons
+              label={module.title}
+              disabledUp={isFirst}
+              disabledDown={isLast}
+              onMoveUp={() => moveModuleUp(courseId, module.id)}
+              onMoveDown={() => moveModuleDown(courseId, module.id)}
+            />
             <button
               onClick={() => setEditingTitle(true)}
               className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-1.5 text-xs font-bold text-text transition-colors hover:bg-soft-blue/40"
@@ -199,29 +222,44 @@ function ModuleCard({ courseId, module, index }: { courseId: string; module: Stu
         {lessons.length === 0 ? (
           <p className="py-3 text-center text-xs text-muted">No lessons in this module yet.</p>
         ) : (
-          lessons.map((lesson) => (
-            <LessonRow key={lesson.id} lesson={lesson} courseId={courseId} initialEditing={autoEditLessonId === lesson.id} />
+          lessons.map((lesson, lessonIndex) => (
+            <LessonRow
+              key={lesson.id}
+              lesson={lesson}
+              courseId={courseId}
+              moduleId={module.id}
+              initialEditing={autoEditLessonId === lesson.id}
+              initialKind={autoEditLessonId === lesson.id ? autoEditKind : undefined}
+              isFirst={lessonIndex === 0}
+              isLast={lessonIndex === lessons.length - 1}
+            />
           ))
         )}
 
         <AddLessonFlow
           moduleId={module.id}
           courseId={courseId}
-          onLessonCreated={(lessonId) => setAutoEditLessonId(lessonId)}
+          onLessonCreated={(lessonId, kind) => {
+            setAutoEditLessonId(lessonId);
+            setAutoEditKind(kind);
+          }}
         />
       </div>
     </div>
   );
 }
 
-function LessonRow({ lesson, courseId, initialEditing = false }: { lesson: StudioLesson; courseId: string; initialEditing?: boolean }) {
+function LessonRow({ lesson, courseId, moduleId, initialEditing = false, initialKind, isFirst, isLast }: { lesson: StudioLesson; courseId: string; moduleId: string; initialEditing?: boolean; initialKind?: AddLessonType; isFirst: boolean; isLast: boolean }) {
   const router = useRouter();
-  const kind = deriveLessonKind({
-    videoUrl: lesson.videoUrl,
-    quiz: lesson.quizId ? { id: lesson.quizId } : null,
-    assignment: lesson.assignmentId ? { id: lesson.assignmentId } : null,
-    resources: lesson.hasResources ? [{}] : []
-  });
+  const kind =
+    initialKind === "resource"
+      ? ("resource" as const)
+      : deriveLessonKind({
+          videoUrl: lesson.videoUrl,
+          quiz: lesson.quizId ? { id: lesson.quizId } : null,
+          assignment: lesson.assignmentId ? { id: lesson.assignmentId } : null,
+          resources: lesson.resources
+        });
   const kindMeta = LESSON_KIND_META[kind];
   const [editing, setEditing] = useState(initialEditing);
   const [title, setTitle] = useState(lesson.title);
@@ -257,37 +295,56 @@ function LessonRow({ lesson, courseId, initialEditing = false }: { lesson: Studi
   };
 
   if (editing) {
+    const moveBar = (
+      <div className="flex justify-end">
+        <MoveButtons
+          label={lesson.title}
+          disabledUp={isFirst}
+          disabledDown={isLast}
+          onMoveUp={() => moveLessonUp(courseId, moduleId, lesson.id)}
+          onMoveDown={() => moveLessonDown(courseId, moduleId, lesson.id)}
+        />
+      </div>
+    );
+
     if (kind === "video") {
       return (
-        <VideoLessonForm
-          mode="edit"
-          courseId={courseId}
-          lesson={{ id: lesson.id, title: lesson.title, description: lesson.description, duration: lesson.duration, videoUrl: lesson.videoUrl }}
-          onDone={() => {
-            setEditing(false);
-            router.refresh();
-          }}
-        />
+        <div className="space-y-2">
+          {moveBar}
+          <VideoLessonForm
+            mode="edit"
+            courseId={courseId}
+            lesson={{ id: lesson.id, title: lesson.title, description: lesson.description, duration: lesson.duration, videoUrl: lesson.videoUrl }}
+            onDone={() => {
+              setEditing(false);
+              router.refresh();
+            }}
+          />
+        </div>
       );
     }
 
     if (kind === "assignment") {
       return (
-        <AssignmentLessonForm
-          mode="edit"
-          courseId={courseId}
-          lesson={{ id: lesson.id, title: lesson.title, description: lesson.description, videoUrl: lesson.videoUrl, assignment: lesson.assignment }}
-          onDone={() => {
-            setEditing(false);
-            router.refresh();
-          }}
-        />
+        <div className="space-y-2">
+          {moveBar}
+          <AssignmentLessonForm
+            mode="edit"
+            courseId={courseId}
+            lesson={{ id: lesson.id, title: lesson.title, description: lesson.description, videoUrl: lesson.videoUrl, assignment: lesson.assignment }}
+            onDone={() => {
+              setEditing(false);
+              router.refresh();
+            }}
+          />
+        </div>
       );
     }
 
     if (kind === "quiz" && lesson.quiz) {
       return (
         <div className="space-y-4 rounded-xl border border-border bg-white p-4 shadow-sm">
+          {moveBar}
           <div className="flex items-center gap-2">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-soft-blue text-xs font-bold text-primary">
               {padNumber(lesson.position + 1)}
@@ -333,8 +390,72 @@ function LessonRow({ lesson, courseId, initialEditing = false }: { lesson: Studi
       );
     }
 
+    if (kind === "resource") {
+      return (
+        <div className="space-y-4 rounded-xl border border-border bg-white p-4 shadow-sm">
+          {moveBar}
+          <div className="flex items-center gap-2">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-soft-blue text-xs font-bold text-primary">
+              {padNumber(lesson.position + 1)}
+            </span>
+            <p className="text-sm font-bold text-text">Edit Resource Lesson</p>
+            <span className={`ml-auto rounded-full px-2.5 py-0.5 text-[10px] font-bold ${kindMeta.badge}`}>
+              {kindMeta.icon} {kindMeta.label}
+            </span>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Lesson title *"
+              className="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <input
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Description (optional)"
+              className="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+          <button
+            onClick={handleSave}
+            disabled={saving || !title.trim()}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-primary-hover disabled:opacity-60"
+          >
+            {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+            {saving ? "Saving..." : "Save Lesson Details"}
+          </button>
+
+          <div className="border-t border-border pt-4">
+            <p className="mb-3 text-xs font-bold uppercase tracking-wider text-muted">Resources</p>
+            <ResourceManager lessonId={lesson.id} courseId={courseId} resources={lesson.resources} />
+          </div>
+
+          <button
+            onClick={() => {
+              setEditing(false);
+              router.refresh();
+            }}
+            className="rounded-full border border-border px-4 py-2 text-xs font-bold text-muted transition-colors hover:bg-slate-50"
+          >
+            Close Editor
+          </button>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-3 rounded-xl border border-border bg-slate-50/50 p-4">
+        <div className="flex justify-end">
+          <MoveButtons
+            label={lesson.title}
+            disabledUp={isFirst}
+            disabledDown={isLast}
+            onMoveUp={() => moveLessonUp(courseId, moduleId, lesson.id)}
+            onMoveDown={() => moveLessonDown(courseId, moduleId, lesson.id)}
+          />
+        </div>
         <div className="flex items-center gap-2">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-soft-blue text-xs font-bold text-primary">
             {padNumber(lesson.position + 1)}
@@ -397,12 +518,20 @@ function LessonRow({ lesson, courseId, initialEditing = false }: { lesson: Studi
               {lesson.quiz.questions.length} {lesson.quiz.questions.length === 1 ? "question" : "questions"}
             </span>
           )}
+          {kind === "resource" && (
+            <span className="text-[10px] font-semibold text-muted">
+              {lesson.resources.length} {lesson.resources.length === 1 ? "resource" : "resources"}
+            </span>
+          )}
         </div>
         {lesson.description && (
           <p className="mt-0.5 truncate text-xs text-muted">{lesson.description}</p>
         )}
         {!hasVideo && kind === "text" && (
           <p className="mt-0.5 text-[10px] font-semibold text-amber-600">No content added yet</p>
+        )}
+        {kind === "resource" && lesson.resources.length === 0 && (
+          <p className="mt-0.5 text-[10px] font-semibold text-amber-600">No resource added yet</p>
         )}
       </div>
 
@@ -411,6 +540,13 @@ function LessonRow({ lesson, courseId, initialEditing = false }: { lesson: Studi
       )}
 
       <div className="flex shrink-0 items-center gap-1">
+        <MoveButtons
+          label={lesson.title}
+          disabledUp={isFirst}
+          disabledDown={isLast}
+          onMoveUp={() => moveLessonUp(courseId, moduleId, lesson.id)}
+          onMoveDown={() => moveLessonDown(courseId, moduleId, lesson.id)}
+        />
         <button
           onClick={() => setEditing(true)}
           className="rounded-lg p-2 text-muted transition-colors hover:bg-white hover:text-text"
@@ -431,7 +567,66 @@ function LessonRow({ lesson, courseId, initialEditing = false }: { lesson: Studi
   );
 }
 
-function AddLessonFlow({ moduleId, courseId, onLessonCreated }: { moduleId: string; courseId: string; onLessonCreated?: (lessonId: string) => void }) {
+function MoveButtons({
+  label,
+  disabledUp,
+  disabledDown,
+  onMoveUp,
+  onMoveDown
+}: {
+  label: string;
+  disabledUp: boolean;
+  disabledDown: boolean;
+  onMoveUp: () => Promise<unknown>;
+  onMoveDown: () => Promise<unknown>;
+}) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [pending, setPending] = useState<"up" | "down" | null>(null);
+
+  const run = async (direction: "up" | "down", action: () => Promise<unknown>) => {
+    if (pending) return;
+    setPending(direction);
+    try {
+      await action();
+      router.refresh();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Could not change the order", "error");
+    } finally {
+      setPending(null);
+    }
+  };
+
+  const buttonClass =
+    "rounded-lg p-2 text-muted transition-colors hover:bg-white hover:text-text disabled:cursor-not-allowed disabled:text-muted/30 disabled:hover:bg-transparent";
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => run("up", onMoveUp)}
+        disabled={disabledUp || pending !== null}
+        className={buttonClass}
+        title={disabledUp ? `Cannot move "${label}" up` : `Move "${label}" up`}
+        aria-label={`Move ${label} up`}
+      >
+        {pending === "up" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ChevronUp className="h-4 w-4" />}
+      </button>
+      <button
+        type="button"
+        onClick={() => run("down", onMoveDown)}
+        disabled={disabledDown || pending !== null}
+        className={buttonClass}
+        title={disabledDown ? `Cannot move "${label}" down` : `Move "${label}" down`}
+        aria-label={`Move ${label} down`}
+      >
+        {pending === "down" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ChevronDown className="h-4 w-4" />}
+      </button>
+    </>
+  );
+}
+
+function AddLessonFlow({ moduleId, courseId, onLessonCreated }: { moduleId: string; courseId: string; onLessonCreated?: (lessonId: string, kind: AddLessonType) => void }) {
   const router = useRouter();
   const [step, setStep] = useState<"idle" | "choose" | "form">("idle");
   const [type, setType] = useState<AddLessonType>("video");
@@ -459,7 +654,7 @@ function AddLessonFlow({ moduleId, courseId, onLessonCreated }: { moduleId: stri
         await createQuiz(lessonId, courseId);
       }
       reset();
-      onLessonCreated?.(lessonId);
+      onLessonCreated?.(lessonId, type);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create lesson");

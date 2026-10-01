@@ -32,6 +32,37 @@ export function padNumber(n: number): string {
   return String(n).padStart(2, "0");
 }
 
+export interface Orderable {
+  id: string;
+  position: number;
+}
+
+export interface SwapPlan {
+  current: Orderable;
+  target: Orderable;
+  /** A position guaranteed to be free (above every existing row). */
+  sentinel: number;
+}
+
+/**
+ * Deterministic neighbour swap planning for persisted `position` fields.
+ * `items` must already be sorted ascending by position.
+ * Returns null at boundaries (first item up, last item down) and when the id
+ * is not part of the list, so callers must verify membership separately.
+ */
+export function findSwapTarget(items: Orderable[], id: string, direction: -1 | 1): SwapPlan | null {
+  if (items.length < 2) return null;
+  const index = items.findIndex((item) => item.id === id);
+  if (index === -1) return null;
+  const targetIndex = index + direction;
+  if (targetIndex < 0 || targetIndex >= items.length) return null;
+  return {
+    current: items[index],
+    target: items[targetIndex],
+    sentinel: items.reduce((max, item) => Math.max(max, item.position), -1) + 1
+  };
+}
+
 export function parseDurationToSeconds(duration: string): number | null {
   const trimmed = duration.trim();
   if (!trimmed) return null;

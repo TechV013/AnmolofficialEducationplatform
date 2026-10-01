@@ -166,12 +166,6 @@ export async function deleteModule(moduleId: string) {
   return { deleted: true };
 }
 
-export async function reorderModules(courseId: string, moduleIds: string[]) {
-  const updates = moduleIds.map((id: string, i: number) => prisma.module.update({ where: { id }, data: { position: i } }));
-  await Promise.all(updates);
-  return { reordered: true };
-}
-
 export async function getCourseEngagement(courseId: string) {
   const totalEnrollments = await prisma.enrollment.count({ where: { courseId, status: "ACTIVE" } });
   const totalReviews = await prisma.review.count({ where: { courseId } });

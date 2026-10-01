@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     module: { findFirst: vi.fn() },
-    lesson: { findFirst: vi.fn(), count: vi.fn(), create: vi.fn() },
+    lesson: { findFirst: vi.fn(), count: vi.fn(), aggregate: vi.fn(), create: vi.fn() },
     assignment: { findUnique: vi.fn(), findFirst: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
     $transaction: vi.fn(),
   },
@@ -42,7 +42,7 @@ describe("Assignment authoring (Slice 3)", () => {
 
   it("authorized instructor creates an assignment lesson bound to the right module/course", async () => {
     vi.mocked(prisma.module.findFirst).mockResolvedValue({ id: "m1", courseId: "c1" } as any);
-    vi.mocked(prisma.lesson.count).mockResolvedValue(3 as any);
+    vi.mocked(prisma.lesson.aggregate).mockResolvedValue({ _max: { position: 2 } } as any);
     vi.mocked(prisma.lesson.create).mockResolvedValue({ id: "l1" } as any);
 
     await createAssignmentLesson("m1", "Practical Assignment", "desc", "Build a capstone", "2026-12-31", "c1");
@@ -83,7 +83,7 @@ describe("Assignment authoring (Slice 3)", () => {
 
   it("duplicate assignment is protected (nested create throws)", async () => {
     vi.mocked(prisma.module.findFirst).mockResolvedValue({ id: "m1" } as any);
-    vi.mocked(prisma.lesson.count).mockResolvedValue(0 as any);
+    vi.mocked(prisma.lesson.aggregate).mockResolvedValue({ _max: { position: -1 } } as any);
     vi.mocked(prisma.lesson.create).mockRejectedValue(new Error("Unique constraint failed on lessonId") as any);
 
     await expect(createAssignmentLesson("m1", "T", "d", "i", null, "c1")).rejects.toThrow("Unique constraint");

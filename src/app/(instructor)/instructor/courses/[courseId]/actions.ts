@@ -5,6 +5,12 @@ import { getCurrentUser } from "@/lib/auth/helpers";
 import { Decimal } from "@prisma/client/runtime/library";
 import { CourseStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import {
+    isAllowedResourceExtension,
+    isValidResourceUrl,
+    type StudioResourceType
+} from "@/lib/resource/validateResourceUrl";
+import { findSwapTarget } from "@/lib/course-studio";
 
 function revalidateCourse(course: { id: string; slug?: string }) {
   revalidatePath(`/instructor/courses/${course.id}`);
@@ -47,8 +53,8 @@ async function validateQuizOwnership(courseId: string, quizId: string) {
 // Module CRUD
 export async function createModule(courseId: string, title: string) {
     await checkAuth(courseId);
-    const count = await prisma.module.count({ where: { courseId } });
-    await prisma.module.create({ data: { courseId, title, position: count } });
+    const max = await prisma.module.aggregate({ where: { courseId }, _max: { position: true } });
+    await prisma.module.create({ data: { courseId, title, position: (max._max.position ?? -1) + 1 } });
     revalidatePath(`/instructor/courses/${courseId}`);
 }
 export async function updateModule(id: string, title: string, courseId: string) {
@@ -65,8 +71,8 @@ export async function deleteModule(id: string, courseId: string) {
 // Lesson CRUD
 export async function createLesson(moduleId: string, title: string, description: string, duration: string, videoUrl: string | null, courseId: string) {
     await checkAuth(courseId);
-    const count = await prisma.lesson.count({ where: { moduleId } });
-    const lesson = await prisma.lesson.create({ data: { moduleId, title, description, duration, videoUrl: videoUrl || null, position: count } });
+    const max = await prisma.lesson.aggregate({ where: { moduleId }, _max: { position: true } });
+    const lesson = await prisma.lesson.create({ data: { moduleId, title, description, duration, videoUrl: videoUrl || null, position: (max._max.position ?? -1) + 1 } });
     revalidatePath(`/instructor/courses/${courseId}`);
     return lesson.id;
 }
@@ -82,22 +88,127 @@ export async function deleteLesson(id: string, courseId: string) {
 }
 
 // Resource Actions
-export async function createResource(lessonId: string, title: string, type: 'PDF' | 'DOCUMENT' | 'PROJECT_FILE' | 'EXTERNAL_LINK', url: string, courseId: string) {
+async function validateResourceOwnership(courseId: string, resourceId: string) {
+    const resource = await prisma.resource.findFirst({
+        where: { id: resourceId, lesson: { module: { courseId } } }
+    });
+    if (!resource) throw new Error("Forbidden: Resource ownership validation failed");
+}
+
+function validateResourceInput(title: string, type: StudioResourceType, url: string) {
+    if (!title || !title.trim()) throw new Error("Invalid resource: a title is required");
+    if (!isValidResourceUrl(url)) {
+        throw new Error("Invalid resource URL: use a full http(s) link or upload a file");
+    }
+    if (!isAllowedResourceExtension(type, url)) {
+        throw new Error(`Invalid ${type} resource: the uploaded file type does not match`);
+    }
+}
+
+export async function createResource(lessonId: string, title: string, type: StudioResourceType, url: string, courseId: string) {
     await checkAuth(courseId);
-    await prisma.resource.create({ data: { lessonId, title, type, url } });
+    const lesson = await prisma.lesson.findFirst({
+        where: { id: lessonId, module: { courseId } }
+    });
+    if (!lesson) throw new Error("Forbidden: Lesson ownership validation failed");
+    validateResourceInput(title, type, url);
+    await prisma.resource.create({ data: { lessonId, title: title.trim(), type, url: url.trim() } });
     revalidatePath(`/instructor/courses/${courseId}`);
 }
 
-export async function updateResource(id: string, title: string, type: 'PDF' | 'DOCUMENT' | 'PROJECT_FILE' | 'EXTERNAL_LINK', url: string, courseId: string) {
+export async function updateResource(id: string, title: string, type: StudioResourceType, url: string, courseId: string) {
     await checkAuth(courseId);
-    await prisma.resource.update({ where: { id }, data: { title, type, url } });
+    await validateResourceOwnership(courseId, id);
+    validateResourceInput(title, type, url);
+    await prisma.resource.update({ where: { id }, data: { title: title.trim(), type, url: url.trim() } });
     revalidatePath(`/instructor/courses/${courseId}`);
 }
 
 export async function deleteResource(id: string, courseId: string) {
     await checkAuth(courseId);
+    await validateResourceOwnership(courseId, id);
     await prisma.resource.delete({ where: { id } });
     revalidatePath(`/instructor/courses/${courseId}`);
+}
+
+// Curriculum Ordering
+// Modules and Lessons both persist an ascending `position` protected by a unique
+// index (Module.courseId+position, Lesson.moduleId+position). A naive two-way
+// swap violates that index because it is validated per statement, even inside a
+// transaction, so the target is parked on a guaranteed-free sentinel slot first.
+async function moveModule(courseId: string, moduleId: string, direction: -1 | 1) {
+    await checkAuth(courseId);
+
+    const owned = await prisma.module.findFirst({
+        where: { id: moduleId, courseId },
+        select: { id: true }
+    });
+    if (!owned) throw new Error("Forbidden: Module ownership validation failed");
+
+    const ordered = await prisma.module.findMany({
+        where: { courseId },
+        orderBy: { position: "asc" },
+        select: { id: true, position: true }
+    });
+
+    const plan = findSwapTarget(ordered, moduleId, direction);
+    if (!plan) return { moved: false };
+
+    await prisma.$transaction(async (tx) => {
+        await tx.module.update({ where: { id: plan.target.id }, data: { position: plan.sentinel } });
+        await tx.module.update({ where: { id: plan.current.id }, data: { position: plan.target.position } });
+        await tx.module.update({ where: { id: plan.target.id }, data: { position: plan.current.position } });
+    });
+
+    revalidatePath(`/instructor/courses/${courseId}`);
+    return { moved: true };
+}
+
+export async function moveModuleUp(courseId: string, moduleId: string) {
+    return moveModule(courseId, moduleId, -1);
+}
+
+export async function moveModuleDown(courseId: string, moduleId: string) {
+    return moveModule(courseId, moduleId, 1);
+}
+
+async function moveLesson(courseId: string, moduleId: string, lessonId: string, direction: -1 | 1) {
+    await checkAuth(courseId);
+
+    const ownedModule = await prisma.module.findFirst({
+        where: { id: moduleId, courseId },
+        select: { id: true }
+    });
+    if (!ownedModule) throw new Error("Forbidden: Module ownership validation failed");
+
+    const ordered = await prisma.lesson.findMany({
+        where: { moduleId },
+        orderBy: { position: "asc" },
+        select: { id: true, position: true }
+    });
+    if (!ordered.some((lesson) => lesson.id === lessonId)) {
+        throw new Error("Forbidden: Lesson ownership validation failed");
+    }
+
+    const plan = findSwapTarget(ordered, lessonId, direction);
+    if (!plan) return { moved: false };
+
+    await prisma.$transaction(async (tx) => {
+        await tx.lesson.update({ where: { id: plan.target.id }, data: { position: plan.sentinel } });
+        await tx.lesson.update({ where: { id: plan.current.id }, data: { position: plan.target.position } });
+        await tx.lesson.update({ where: { id: plan.target.id }, data: { position: plan.current.position } });
+    });
+
+    revalidatePath(`/instructor/courses/${courseId}`);
+    return { moved: true };
+}
+
+export async function moveLessonUp(courseId: string, moduleId: string, lessonId: string) {
+    return moveLesson(courseId, moduleId, lessonId, -1);
+}
+
+export async function moveLessonDown(courseId: string, moduleId: string, lessonId: string) {
+    return moveLesson(courseId, moduleId, lessonId, 1);
 }
 
 // Assignment Actions
@@ -126,12 +237,12 @@ export async function createAssignment(lessonId: string, instructions: string, d
 export async function createAssignmentLesson(moduleId: string, title: string, description: string, instructions: string, dueDate: string | null, courseId: string) {
     await checkAuth(courseId);
 
-    const module = await prisma.module.findFirst({ where: { id: moduleId, courseId } });
-    if (!module) throw new Error("Forbidden: Module ownership validation failed");
+    const courseModule = await prisma.module.findFirst({ where: { id: moduleId, courseId } });
+    if (!courseModule) throw new Error("Forbidden: Module ownership validation failed");
     if (!instructions.trim()) throw new Error("Instructions are required");
 
     await prisma.$transaction(async (tx) => {
-        const count = await tx.lesson.count({ where: { moduleId } });
+        const max = await tx.lesson.aggregate({ where: { moduleId }, _max: { position: true } });
         await tx.lesson.create({
             data: {
                 moduleId,
@@ -139,7 +250,7 @@ export async function createAssignmentLesson(moduleId: string, title: string, de
                 description,
                 duration: "",
                 videoUrl: null,
-                position: count,
+                position: (max._max.position ?? -1) + 1,
                 assignment: { create: { instructions: instructions.trim(), dueDate: dueDate ? new Date(dueDate) : null } }
             }
         });
