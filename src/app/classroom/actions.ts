@@ -23,7 +23,19 @@ export async function saveNote(lessonId: string, content: string) {
     });
 }
 
-export async function submitAssignment(assignmentId: string, content: string) {
+/**
+ * `AssignmentSubmission.fileUrl` is the only payload column, so a typed response
+ * is persisted as a data URI and an uploaded file as its stored URL. A model
+ * migration would let us store both in dedicated columns.
+ */
+function encodeSubmissionPayload(content: string, fileUrl: string | null): string | null {
+    if (fileUrl) return fileUrl;
+    const trimmed = content.trim();
+    if (!trimmed) return null;
+    return `data:text/plain;charset=utf-8,${encodeURIComponent(trimmed)}`;
+}
+
+export async function submitAssignment(assignmentId: string, content: string, fileUrl: string | null = null) {
     const user = await getCurrentUser();
     if (!user) throw new Error("Unauthorized");
 
@@ -34,8 +46,27 @@ export async function submitAssignment(assignmentId: string, content: string) {
     if (!assignment) throw new Error("Assignment not found");
     await assertCourseContentAccess(user.id, assignment.lesson.module.courseId);
 
+    const fileUrlValue = encodeSubmissionPayload(content, fileUrl);
+    if (!fileUrlValue) throw new Error("Nothing to submit");
+
+    // No composite unique key exists, so resolve the existing row by query.
+    const existing = await prisma.assignmentSubmission.findFirst({
+        where: { assignmentId, userId: user.id }
+    });
+
+    // A re-submission after grading keeps the grade intact so instructor work is
+    // never silently wiped.
+    const status = existing?.status === "REVIEWED" ? "REVIEWED" : "SUBMITTED";
+
+    if (existing) {
+        return await prisma.assignmentSubmission.update({
+            where: { id: existing.id },
+            data: { fileUrl: fileUrlValue, status, submittedAt: new Date() }
+        });
+    }
+
     return await prisma.assignmentSubmission.create({
-        data: { assignmentId, userId: user.id, fileUrl: content } // Treating content as text/url submission
+        data: { assignmentId, userId: user.id, fileUrl: fileUrlValue, status }
     });
 }
 

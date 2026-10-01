@@ -1,48 +1,69 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireInstructor } from "@/lib/auth/helpers";
-import { mkdir, writeFile } from "fs/promises";
-import { join } from "path";
-
-const MAX_SIZE = 1024 * 1024 * 1024; // 1GB
-const UPLOAD_DIR = join(process.cwd(), "public/uploads");
+import { getCurrentUser } from "@/lib/auth/helpers";
+import { detectKind, putFile, removeStoredFile, UploadError } from "@/lib/storage/uploadFile";
 
 export async function POST(req: NextRequest) {
+  let storedKey = "";
   try {
-    await requireInstructor();
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const formData = await req.formData();
     const file = (formData.get("file") || formData.get("video")) as File | null;
     const lessonId = formData.get("lessonId") as string | null;
 
     if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
-    if (file.size > MAX_SIZE) return NextResponse.json({ error: "File exceeds 1GB limit" }, { status: 400 });
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const fileName = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
-    let fileUrl = `/uploads/${fileName}`;
-
-    try {
-      await mkdir(UPLOAD_DIR, { recursive: true });
-      await writeFile(join(UPLOAD_DIR, fileName), buffer);
-    } catch (fsErr) {
-      // Vercel serverless read-only filesystem fallback: convert to base64 Data URI
-      console.warn("Filesystem write failed (likely serverless read-only environment), falling back to data URI:", fsErr);
-      const base64 = buffer.toString("base64");
-      fileUrl = `data:${file.type || "application/octet-stream"};base64,${base64}`;
-    }
-
+    // Verify lesson ownership from the lesson itself; never trust a client id.
+    let ownedLesson: { id: string } | null = null;
     if (lessonId) {
-      await prisma.lesson.update({
-        where: { id: lessonId },
-        data: { videoUrl: fileUrl }
+      ownedLesson = await prisma.lesson.findFirst({
+        where: { id: lessonId, module: { course: { instructors: { some: { userId: user.id } } } } },
+        select: { id: true }
       });
+      if (!ownedLesson) {
+        return NextResponse.json({ error: "Forbidden: lesson ownership validation failed" }, { status: 403 });
+      }
     }
 
-    return NextResponse.json({ url: fileUrl, videoUrl: fileUrl, fileName });
+    const kind = detectKind(file.name);
+    if (!kind) {
+      return NextResponse.json({ error: `Unsupported file type: "${file.name}".` }, { status: 415 });
+    }
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const stored = await putFile({ filename: file.name, body: buffer, contentType: file.type, kind });
+    storedKey = stored.storageKey;
+
+    if (ownedLesson) {
+      try {
+        await prisma.lesson.update({
+          where: { id: ownedLesson.id },
+          data: { videoUrl: stored.url }
+        });
+      } catch (dbErr) {
+        // Do not leave an orphaned file behind when the lesson write fails.
+        await removeStoredFile(stored.storageKey);
+        storedKey = "";
+        throw dbErr;
+      }
+    }
+
+    return NextResponse.json({
+      url: stored.url,
+      videoUrl: stored.url,
+      fileName: file.name,
+      size: stored.size
+    });
   } catch (e) {
+    if (storedKey) await removeStoredFile(storedKey);
+    if (e instanceof UploadError) {
+      return NextResponse.json({ error: e.message }, { status: e.status });
+    }
     const msg = e instanceof Error ? e.message : "Upload failed";
     if (msg.includes("Forbidden")) return NextResponse.json({ error: msg }, { status: 403 });
+    if (msg.includes("Unauthorized")) return NextResponse.json({ error: msg }, { status: 401 });
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

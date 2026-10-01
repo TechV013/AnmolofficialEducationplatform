@@ -19,6 +19,22 @@ const TYPE_OPTIONS: { value: ResourceType; label: string }[] = [
   { value: "EXTERNAL_LINK", label: "External Link" }
 ];
 
+/**
+ * The stored enum is coarse, so infer the closest bucket from the file extension
+ * instead of making the instructor pick. Callers still choose explicitly for
+ * link-only resources.
+ */
+function inferResourceType(filename: string): ResourceType | null {
+  const base = filename.split(/[\\/]/).pop() || "";
+  const dot = base.lastIndexOf(".");
+  if (dot <= 0) return null;
+  const ext = base.slice(dot + 1).toLowerCase();
+  if (ext === "pdf") return "PDF";
+  if (["doc", "docx", "txt", "md", "rtf"].includes(ext)) return "DOCUMENT";
+  if (["ppt", "pptx", "xls", "xlsx", "csv", "zip"].includes(ext)) return "PROJECT_FILE";
+  return null;
+}
+
 const TYPE_ICON: Record<ResourceType, typeof FileText> = {
   PDF: FileText,
   DOCUMENT: FileText,
@@ -65,6 +81,8 @@ export default function ResourceForm({ lessonId, courseId, initialData, onSucces
       setUrl(data.url);
       setFileName(data.fileName || file.name);
       setFileSize(file.size);
+      const inferred = inferResourceType(file.name);
+      if (inferred) setType(inferred);
       if (!title.trim()) {
         setTitle(file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " "));
       }

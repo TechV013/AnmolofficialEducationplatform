@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth/helpers";
 import { notFound, redirect } from "next/navigation";
 import ClassroomClient from "./ClassroomClient";
 import { prisma } from "@/lib/prisma";
+import { serverNowMs } from "@/lib/server-clock";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -90,6 +91,7 @@ export default async function ClassroomPage({ params }: { params: Promise<{ cour
     ? {
         id: assignmentDetail.id,
         instructions: assignmentDetail.instructions,
+        dueDate: assignmentDetail.dueDate?.toISOString() ?? null,
         submission: await prisma.assignmentSubmission.findFirst({
           where: { assignmentId: assignmentDetail.id, userId: user.id },
           orderBy: { submittedAt: "desc" },
@@ -118,5 +120,6 @@ export default async function ClassroomPage({ params }: { params: Promise<{ cour
     assignment={assignment}
     lessonResources={lessonResources}
     noteContent={note?.content}
+    now={serverNowMs()}
   />;
 }

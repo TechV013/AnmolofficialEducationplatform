@@ -2,7 +2,7 @@ import { requireInstructor } from "@/lib/auth/helpers";
 import { getCourseForInstructor, deleteCourse } from "@/services/courses/instructor.service";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Eye, Trash2 } from "lucide-react";
+import { ArrowLeft, Eye, Trash2, ClipboardList } from "lucide-react";
 import CourseForm from "@/components/instructor/CourseForm";
 import IntroVideoForm from "@/components/instructor/IntroVideoForm";
 import CourseCurriculumBuilder, { type StudioModule } from "@/components/instructor/CourseCurriculumBuilder";
@@ -60,6 +60,10 @@ export default async function EditCoursePage({ params }: { params: Promise<{ cou
           <span>Back to Dashboard</span>
         </Link>
         <div className="flex flex-wrap items-center gap-3">
+          <Link href={`/instructor/courses/${course.id}/submissions`} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-white text-sm font-bold text-text hover:bg-slate-50">
+            <ClipboardList className="h-4 w-4" />
+            <span>Submissions</span>
+          </Link>
           <Link href={`/courses/${course.id}`} target="_blank" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-white text-sm font-bold text-text hover:bg-slate-50">
             <Eye className="h-4 w-4" />
             <span>Preview</span>

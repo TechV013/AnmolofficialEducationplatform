@@ -331,7 +331,7 @@ function LessonRow({ lesson, courseId, moduleId, initialEditing = false, initial
           <AssignmentLessonForm
             mode="edit"
             courseId={courseId}
-            lesson={{ id: lesson.id, title: lesson.title, description: lesson.description, videoUrl: lesson.videoUrl, assignment: lesson.assignment }}
+            lesson={{ id: lesson.id, title: lesson.title, description: lesson.description, videoUrl: lesson.videoUrl, assignment: lesson.assignment, resources: lesson.resources }}
             onDone={() => {
               setEditing(false);
               router.refresh();

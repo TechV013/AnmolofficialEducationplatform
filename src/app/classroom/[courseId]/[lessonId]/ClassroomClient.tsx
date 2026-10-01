@@ -11,12 +11,26 @@ import AssignmentBox from "./AssignmentBox";
 import VideoPlayer from "@/components/video/VideoPlayer";
 import Tabs from "@/components/ui/Tabs";
 import NotesEditor from "./NotesEditor";
-import { ArrowLeft, ArrowRight, Download, FileText } from "lucide-react";
+import { ArrowLeft, ArrowRight, Download, FileText, ExternalLink, Paperclip, Presentation } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
+import { deriveLessonKind } from "@/lib/course-studio";
 
 interface QuizView {
   id: string;
   questions: { id: string; text: string; options: { id: string; text: string }[] }[];
+}
+
+interface AssignmentView {
+  id: string;
+  instructions: string;
+  dueDate: string | null;
+  submission?: {
+    id: string;
+    fileUrl: string | null;
+    status: string;
+    score: number | null;
+    feedback: string | null;
+  } | null;
 }
 
 interface AttemptView {
@@ -36,19 +50,65 @@ interface Props {
   progressMap: Record<string, { completed: boolean; watchedSeconds: number }>;
   quiz?: QuizView | null;
   previousAttempts?: AttemptView[];
-  assignment?: any;
-  lessonResources: { id: string; title: string; type: string; url: string }[];
+  assignment?: AssignmentView | null;
+  lessonResources: ResourceItemView[];
   noteContent?: string;
+  now: number;
+}
+
+interface ResourceItemView {
+  id: string;
+  title: string;
+  type: string;
+  url: string;
+}
+
+const EXT_ICON: Record<string, typeof FileText> = {
+  pdf: FileText,
+  doc: FileText, docx: FileText, txt: FileText, md: FileText, rtf: FileText,
+  ppt: Presentation, pptx: Presentation,
+  xls: Presentation, xlsx: Presentation, csv: Presentation,
+  zip: Paperclip,
+};
+
+/** Uploaded files sit on our own origin; external resources open in a new tab. */
+function isHostedFile(url: string): boolean {
+  return url.startsWith("/uploads/") || url.startsWith("data:") || url.startsWith("http://localhost");
+}
+
+function resourceKindLabel(resource: ResourceItemView): string {
+  if (resource.type === "EXTERNAL_LINK") return "Link";
+  const ext = extensionOf(resource.url);
+  return ext ? ext.toUpperCase().slice(0, 5) : resource.type;
+}
+
+function extensionOf(url: string): string {
+  const base = (url.split("?")[0].split("#")[0].split("/").pop()) || "";
+  const dot = base.lastIndexOf(".");
+  return dot > 0 ? base.slice(dot + 1).toLowerCase() : "";
 }
 
 export default function ClassroomClient({
   course, lesson, initialProgress, courseId, prevLessonId, nextLessonId,
-  progressMap, quiz, previousAttempts, assignment, lessonResources, noteContent,
+  progressMap, quiz, previousAttempts, assignment, lessonResources, noteContent, now,
 }: Props) {
   const [completed, setCompleted] = useState(progressMap[lesson.id]?.completed || initialProgress.completed || false);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
   const router = useRouter();
   const { toast } = useToast();
+
+  // Non-video lessons must not render the player, which would otherwise show a
+  // "Video unavailable" error box because they have no videoUrl.
+  const lessonKind = deriveLessonKind({
+    videoUrl: lesson.videoUrl,
+    quiz: quiz ? { id: quiz.id } : null,
+    assignment,
+    resources: lessonResources
+  });
+  const hasVideo = lessonKind === "video" && Boolean(lesson.videoUrl);
+
+  // VideoPlayer owns its own element ref, so track the last reported position
+  // here instead of reading a ref that is never attached.
+  const lastPositionRef = useRef(initialProgress.position);
 
   const saveProgress = async (seconds: number, isComplete: boolean) => {
     try {
@@ -60,18 +120,19 @@ export default function ClassroomClient({
   };
 
   const handleTimeUpdate = (seconds: number) => {
+    lastPositionRef.current = seconds;
     saveProgress(seconds, completed);
   };
 
   const handleVideoEnded = () => {
     setCompleted(true);
-    saveProgress(0, true);
+    saveProgress(lastPositionRef.current, true);
     router.refresh();
   };
 
   const handleMarkComplete = () => {
     setCompleted(true);
-    saveProgress(videoRef.current?.currentTime || 0, true);
+    saveProgress(lastPositionRef.current, true);
     router.refresh();
   };
 
@@ -108,7 +169,7 @@ export default function ClassroomClient({
             {completed ? "✓ Lesson Completed" : "Mark as Complete"}
           </button>
           {assignment && (
-            <AssignmentBox assignment={assignment} />
+            <AssignmentBox assignment={assignment} now={now} />
           )}
         </div>
       ),
@@ -128,24 +189,48 @@ export default function ClassroomClient({
         <div>
           {lessonResources.length > 0 ? (
             <div className="space-y-2">
-              {lessonResources.map(r => (
-                <a
-                  key={r.id}
-                  href={r.url || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-between p-4 bg-white rounded-xl border border-border hover:border-primary transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-5 w-5 text-muted shrink-0" />
-                    <span className="font-medium text-text text-sm">{r.title}</span>
+              {lessonResources.map((r) => {
+                const Icon = r.type === "EXTERNAL_LINK" ? ExternalLink : (EXT_ICON[extensionOf(r.url)] ?? FileText);
+                const hosted = isHostedFile(r.url);
+                return (
+                  <div
+                    key={r.id}
+                    className="flex items-center justify-between gap-3 p-4 bg-white rounded-xl border border-border hover:border-primary transition-colors"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <Icon className="h-5 w-5 text-muted shrink-0" />
+                      <span className="font-medium text-text text-sm truncate">{r.title}</span>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span className="text-xs font-bold text-primary uppercase bg-soft-blue px-2.5 py-1 rounded-md">
+                        {resourceKindLabel(r)}
+                      </span>
+                      {hosted ? (
+                        <a
+                          href={r.url || "#"}
+                          download
+                          title={`Download ${r.title}`}
+                          aria-label={`Download ${r.title}`}
+                          className="text-muted hover:text-primary transition-colors"
+                        >
+                          <Download className="h-4 w-4" />
+                        </a>
+                      ) : (
+                        <a
+                          href={r.url || "#"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title={`Open ${r.title}`}
+                          aria-label={`Open ${r.title}`}
+                          className="text-muted hover:text-primary transition-colors"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-primary uppercase bg-soft-blue px-2.5 py-1 rounded-md">{r.type}</span>
-                    <Download className="h-4 w-4 text-muted" />
-                  </div>
-                </a>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="p-6 bg-surface rounded-2xl border border-border text-muted text-sm">
@@ -183,6 +268,7 @@ export default function ClassroomClient({
         </div>
 
         <div className="p-6 md:p-8 max-w-4xl mx-auto w-full">
+          {hasVideo && (
           <VideoPlayer
             url={lesson.videoUrl || ""}
             title={lesson.title}
@@ -191,6 +277,7 @@ export default function ClassroomClient({
             onTimeUpdate={handleTimeUpdate}
             onEnded={handleVideoEnded}
           />
+        )}
 
           <div className="mt-6">
             <Tabs items={tabItems} />

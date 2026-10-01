@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ResourceForm from "./ResourceForm";
 import { deleteResource } from "@/app/(instructor)/instructor/courses/[courseId]/actions";
-import { FileText, Paperclip, Trash2, Pencil, ExternalLink } from "lucide-react";
+import { FileText, Paperclip, Trash2, Pencil, ExternalLink, Download } from "lucide-react";
 
 interface ResourceItem {
   id: string;
@@ -19,10 +19,40 @@ const TYPE_ICON: Record<string, typeof FileText> = {
   EXTERNAL_LINK: ExternalLink,
 };
 
-export default function ResourceManager({ lessonId, courseId, resources }: {
+const EXT_LABEL: Record<string, string> = {
+  pdf: "PDF",
+  doc: "DOC", docx: "DOCX",
+  ppt: "PPT", pptx: "PPTX",
+  xls: "XLS", xlsx: "XLSX",
+  csv: "CSV", txt: "TXT", md: "MD", rtf: "RTF",
+  zip: "ZIP",
+  png: "PNG", jpg: "JPG", jpeg: "JPG", webp: "WEBP", gif: "GIF", svg: "SVG",
+  mp4: "MP4", webm: "WEBM", mov: "MOV",
+};
+
+/** Uploaded files live on our own origin, so they get a real download. */
+function isHostedFile(url: string): boolean {
+  return url.startsWith("/uploads/") || url.startsWith("data:");
+}
+
+/**
+ * Shows the real file kind when we can infer it from the extension, so PPTX and
+ * ZIP read correctly instead of always falling back to the coarse enum label.
+ */
+function typeLabel(resource: ResourceItem): string {
+  if (resource.type === "EXTERNAL_LINK") return "Link";
+  const path = resource.url.split("?")[0].split("#")[0];
+  const base = path.split("/").pop() || "";
+  const dot = base.lastIndexOf(".");
+  if (dot <= 0) return resource.type;
+  return EXT_LABEL[base.slice(dot + 1).toLowerCase()] ?? resource.type;
+}
+
+export default function ResourceManager({ lessonId, courseId, resources, emptyHint }: {
   lessonId: string;
   courseId: string;
   resources: ResourceItem[];
+  emptyHint?: string;
 }) {
   const router = useRouter();
   const [adding, setAdding] = useState(false);
@@ -36,25 +66,65 @@ export default function ResourceManager({ lessonId, courseId, resources }: {
         <ul className="space-y-1.5">
           {resources.map((r) => {
             const Icon = TYPE_ICON[r.type] || FileText;
+            const hosted = isHostedFile(r.url);
+            const label = typeLabel(r);
             return (
               <li key={r.id} className="flex items-center justify-between gap-2 rounded-lg border border-border/60 bg-white px-3 py-2 text-sm">
-                <a href={r.url || "#"} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-2 text-slate-700 hover:text-primary">
+                <a
+                  href={r.url || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex min-w-0 items-center gap-2 text-slate-700 hover:text-primary"
+                >
                   <Icon className="h-4 w-4 shrink-0 text-primary" />
                   <span className="truncate font-medium">{r.title}</span>
-                  <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500">{r.type}</span>
+                  <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-500">{label}</span>
                 </a>
                 <div className="flex shrink-0 items-center gap-2">
-                  <button onClick={() => setEditing(editing === r.id ? null : r.id)} className="text-xs text-slate-500 hover:text-primary">
+                  {hosted ? (
+                    <a
+                      href={r.url || "#"}
+                      download
+                      title={`Download ${r.title}`}
+                      aria-label={`Download ${r.title}`}
+                      className="text-slate-500 hover:text-primary"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                    </a>
+                  ) : (
+                    <a
+                      href={r.url || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={`Open ${r.title}`}
+                      aria-label={`Open ${r.title}`}
+                      className="text-slate-500 hover:text-primary"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  )}
+                  <button
+                    onClick={() => setEditing(editing === r.id ? null : r.id)}
+                    title="Edit"
+                    aria-label={`Edit ${r.title}`}
+                    className="text-xs text-slate-500 hover:text-primary"
+                  >
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
                   <form action={async () => { await deleteResource(r.id, courseId); router.refresh(); }}>
-                    <button className="text-xs text-red-500 hover:text-red-700"><Trash2 className="h-3.5 w-3.5" /></button>
+                    <button title="Remove" aria-label={`Remove ${r.title}`} className="text-xs text-red-500 hover:text-red-700">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
                   </form>
                 </div>
               </li>
             );
           })}
         </ul>
+      )}
+
+      {resources.length === 0 && emptyHint && !adding && (
+        <p className="text-xs text-muted">{emptyHint}</p>
       )}
 
       {editing && editResource ? (

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { ClipboardList, Loader2, Trash2, X } from "lucide-react";
+import ResourceManager from "./ResourceManager";
 import {
   createAssignmentLesson,
   updateAssignment,
@@ -14,6 +15,7 @@ export interface AssignmentLessonDraft {
   description: string;
   videoUrl: string | null;
   assignment: { id: string; instructions: string; dueDate: string | null } | null;
+  resources: { id: string; title: string; type: string; url: string }[];
 }
 
 interface AssignmentLessonFormProps {
@@ -105,13 +107,16 @@ export default function AssignmentLessonForm({ mode, courseId, moduleId, lesson,
         className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
       />
 
-      <textarea
-        value={instructions}
-        onChange={(e) => setInstructions(e.target.value)}
-        placeholder="Assignment instructions for students *"
-        rows={4}
-        className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-      />
+      <div>
+        <label className="mb-1 block text-xs font-semibold text-slate-500">Assignment instructions *</label>
+        <textarea
+          value={instructions}
+          onChange={(e) => setInstructions(e.target.value)}
+          placeholder="Describe what the student must submit, how it will be assessed, and any constraints."
+          rows={8}
+          className="w-full rounded-lg border border-border px-3 py-2 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </div>
 
       <div>
         <label className="mb-1 block text-xs font-semibold text-slate-500">Due date (optional)</label>
@@ -122,6 +127,18 @@ export default function AssignmentLessonForm({ mode, courseId, moduleId, lesson,
           className="rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
+
+      {mode === "edit" && lesson && (
+        <div>
+          <p className="mb-1 text-xs font-semibold text-slate-500">Attachments</p>
+          <ResourceManager
+            lessonId={lesson.id}
+            courseId={courseId}
+            resources={lesson.resources}
+            emptyHint="Upload the assignment brief or supporting files. Students see these alongside the instructions."
+          />
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-2">
         <button
