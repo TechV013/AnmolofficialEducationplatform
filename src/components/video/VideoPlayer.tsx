@@ -134,6 +134,35 @@ export default function VideoPlayer({
     return () => { if (saveTimerRef.current) clearInterval(saveTimerRef.current); };
   }, [isHtml5, mode, onTimeUpdate]);
 
+  const togglePlay = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+    showControlsNow();
+  }, [showControlsNow]);
+
+  const toggleMute = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = !video.muted;
+    setIsMuted(video.muted);
+    showControlsNow();
+  }, [showControlsNow]);
+
+  const toggleFullscreen = useCallback(async () => {
+    const container = containerRef.current;
+    if (!container) return;
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else {
+      await container.requestFullscreen();
+    }
+  }, []);
+
   useEffect(() => {
     if (mode === "preview" || !isHtml5) return;
     const handler = (e: KeyboardEvent) => {
@@ -143,8 +172,7 @@ export default function VideoPlayer({
         case " ":
         case "k":
           e.preventDefault();
-          video.paused ? video.play() : video.pause();
-          showControlsNow();
+          togglePlay();
           break;
         case "ArrowLeft":
           e.preventDefault();
@@ -191,7 +219,7 @@ export default function VideoPlayer({
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [mode, isHtml5, showControlsNow]);
+  }, [mode, isHtml5, showControlsNow, togglePlay, toggleMute, toggleFullscreen]);
 
   useEffect(() => {
     const onFsChange = () => setIsFullscreen(Boolean(document.fullscreenElement));
@@ -200,31 +228,6 @@ export default function VideoPlayer({
   }, []);
 
   useEffect(() => { hideControls(); }, [isPlaying, hideControls]);
-
-  const togglePlay = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    video.paused ? video.play() : video.pause();
-    showControlsNow();
-  };
-
-  const toggleMute = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    video.muted = !video.muted;
-    setIsMuted(video.muted);
-    showControlsNow();
-  };
-
-  const toggleFullscreen = async () => {
-    const container = containerRef.current;
-    if (!container) return;
-    if (document.fullscreenElement) {
-      await document.exitFullscreen();
-    } else {
-      await container.requestFullscreen();
-    }
-  };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const video = videoRef.current;
