@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ResourceForm from "./ResourceForm";
 import { deleteResource } from "@/app/(instructor)/instructor/courses/[courseId]/actions";
+import { isDownloadableResourceUrl } from "@/lib/resource/resourceLink";
 import { FileText, Paperclip, Trash2, Pencil, ExternalLink, Download } from "lucide-react";
 
 interface ResourceItem {
@@ -31,9 +32,6 @@ const EXT_LABEL: Record<string, string> = {
 };
 
 /** Uploaded files live on our own origin, so they get a real download. */
-function isHostedFile(url: string): boolean {
-  return url.startsWith("/uploads/") || url.startsWith("data:");
-}
 
 /**
  * Shows the real file kind when we can infer it from the extension, so PPTX and
@@ -57,16 +55,27 @@ export default function ResourceManager({ lessonId, courseId, resources, emptyHi
   const router = useRouter();
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
+  // Tracks the rendered list so a resource added to a lesson created moments ago
+  // appears at once; the server render does not include that lesson yet.
+  const [added, setAdded] = useState<ResourceItem[]>([]);
 
-  const editResource = resources.find((r) => r.id === editing);
+  const items = [...resources, ...added.filter((a) => !resources.some((r) => r.id === a.id))];
+  const editResource = items.find((r) => r.id === editing);
+
+  const onFormSuccess = (created?: ResourceItem) => {
+    if (created) setAdded((prev) => [...prev, created]);
+    setAdding(false);
+    setEditing(null);
+    router.refresh();
+  };
 
   return (
     <div className="space-y-2">
-      {resources.length > 0 && (
+      {items.length > 0 && (
         <ul className="space-y-1.5">
-          {resources.map((r) => {
+          {items.map((r) => {
             const Icon = TYPE_ICON[r.type] || FileText;
-            const hosted = isHostedFile(r.url);
+            const hosted = isDownloadableResourceUrl(r.url);
             const label = typeLabel(r);
             return (
               <li key={r.id} className="flex items-center justify-between gap-2 rounded-lg border border-border/60 bg-white px-3 py-2 text-sm">
@@ -111,7 +120,13 @@ export default function ResourceManager({ lessonId, courseId, resources, emptyHi
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
-                  <form action={async () => { await deleteResource(r.id, courseId); router.refresh(); }}>
+                  <form action={async () => {
+                    await deleteResource(r.id, courseId);
+                    // Drop the local copy too, otherwise a just-added resource
+                    // would reappear after its row is gone from the database.
+                    setAdded((prev) => prev.filter((a) => a.id !== r.id));
+                    router.refresh();
+                  }}>
                     <button title="Remove" aria-label={`Remove ${r.title}`} className="text-xs text-red-500 hover:text-red-700">
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -123,7 +138,7 @@ export default function ResourceManager({ lessonId, courseId, resources, emptyHi
         </ul>
       )}
 
-      {resources.length === 0 && emptyHint && !adding && (
+      {items.length === 0 && emptyHint && !adding && (
         <p className="text-xs text-muted">{emptyHint}</p>
       )}
 
@@ -138,7 +153,7 @@ export default function ResourceManager({ lessonId, courseId, resources, emptyHi
         <ResourceForm
           lessonId={lessonId}
           courseId={courseId}
-          onSuccess={() => { setAdding(false); router.refresh(); }}
+          onSuccess={onFormSuccess}
         />
       ) : (
         <button

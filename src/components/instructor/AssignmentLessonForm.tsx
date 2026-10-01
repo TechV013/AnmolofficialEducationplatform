@@ -41,6 +41,13 @@ export default function AssignmentLessonForm({ mode, courseId, moduleId, lesson,
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Set once a create succeeds, so the form can keep its place and reveal the
+  // attachment manager for the lesson it just made instead of closing.
+  const [created, setCreated] = useState<{ lessonId: string; assignmentId: string } | null>(null);
+
+  const lessonId = lesson?.id ?? created?.lessonId ?? null;
+  const assignmentId = lesson?.assignment?.id ?? created?.assignmentId ?? null;
+  const isNew = mode === "create" && !created;
 
   const canSave = title.trim().length > 0 && instructions.trim().length > 0;
 
@@ -49,11 +56,20 @@ export default function AssignmentLessonForm({ mode, courseId, moduleId, lesson,
     setSaving(true);
     setError(null);
     try {
-      if (mode === "create") {
-        await createAssignmentLesson(moduleId!, title.trim(), description, instructions.trim(), dueDate || null, courseId);
+      if (assignmentId && lessonId) {
+        // Editing an existing assignment, or saving a second time after the
+        // lesson was created and its attachments are being added.
+        await updateLesson(lessonId, title.trim(), description, lesson?.videoUrl ?? null, courseId);
+        await updateAssignment(assignmentId, instructions.trim(), dueDate || null, courseId);
       } else {
-        await updateLesson(lesson!.id, title.trim(), description, lesson!.videoUrl, courseId);
-        await updateAssignment(lesson!.assignment!.id, instructions.trim(), dueDate || null, courseId);
+        const result = await createAssignmentLesson(moduleId!, title.trim(), description, instructions.trim(), dueDate || null, courseId);
+        if (result.lessonId && result.assignmentId) {
+          setCreated({ lessonId: result.lessonId, assignmentId: result.assignmentId });
+        }
+      }
+      if (isNew) {
+        // Stay open so attachments can be added to the new lesson.
+        return;
       }
       onDone();
     } catch (err) {
@@ -84,7 +100,7 @@ export default function AssignmentLessonForm({ mode, courseId, moduleId, lesson,
         <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-soft-blue text-primary">
           <ClipboardList className="h-4 w-4" />
         </span>
-        <p className="text-sm font-bold text-text">{mode === "create" ? "New Assignment Lesson" : "Edit Assignment Lesson"}</p>
+        <p className="text-sm font-bold text-text">{isNew ? "New Assignment Lesson" : "Edit Assignment Lesson"}</p>
         <button onClick={onDone} className="ml-auto rounded-lg p-1.5 text-muted transition-colors hover:bg-slate-50" title="Close">
           <X className="h-4 w-4" />
         </button>
@@ -128,15 +144,20 @@ export default function AssignmentLessonForm({ mode, courseId, moduleId, lesson,
         />
       </div>
 
-      {mode === "edit" && lesson && (
+      {lessonId && (
         <div>
           <p className="mb-1 text-xs font-semibold text-slate-500">Attachments</p>
           <ResourceManager
-            lessonId={lesson.id}
+            lessonId={lessonId}
             courseId={courseId}
-            resources={lesson.resources}
+            resources={lesson?.resources ?? []}
             emptyHint="Upload the assignment brief or supporting files. Students see these alongside the instructions."
           />
+          {isNew && (
+            <p className="mt-2 text-[11px] font-semibold text-emerald-700">
+              Assignment created. Add any files below, then choose Done.
+            </p>
+          )}
         </div>
       )}
 
@@ -148,8 +169,17 @@ export default function AssignmentLessonForm({ mode, courseId, moduleId, lesson,
           className="inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2 text-xs font-bold text-white transition-colors hover:bg-primary-hover disabled:opacity-60"
         >
           {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-          {saving ? "Saving..." : "Save Assignment"}
+          {saving ? "Saving..." : isNew ? "Save Assignment" : "Save Changes"}
         </button>
+        {!isNew && (
+          <button
+            type="button"
+            onClick={onDone}
+            className="inline-flex items-center gap-1.5 rounded-full border-2 border-primary/40 px-5 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/5"
+          >
+            Done
+          </button>
+        )}
         {mode === "edit" && lesson?.assignment && (
           <button
             type="button"
@@ -161,13 +191,15 @@ export default function AssignmentLessonForm({ mode, courseId, moduleId, lesson,
             {deleting ? "Deleting..." : "Delete Assignment"}
           </button>
         )}
-        <button
-          type="button"
-          onClick={onDone}
-          className="rounded-full border border-border px-4 py-2 text-xs font-bold text-muted transition-colors hover:bg-slate-50"
-        >
-          Cancel
-        </button>
+        {isNew && (
+          <button
+            type="button"
+            onClick={onDone}
+            className="rounded-full border border-border px-4 py-2 text-xs font-bold text-muted transition-colors hover:bg-slate-50"
+          >
+            Cancel
+          </button>
+        )}
       </div>
     </div>
   );

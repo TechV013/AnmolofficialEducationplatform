@@ -112,8 +112,15 @@ export async function createResource(lessonId: string, title: string, type: Stud
     });
     if (!lesson) throw new Error("Forbidden: Lesson ownership validation failed");
     validateResourceInput(title, type, url);
-    await prisma.resource.create({ data: { lessonId, title: title.trim(), type, url: url.trim() } });
+    const created = await prisma.resource.create({
+        data: { lessonId, title: title.trim(), type, url: url.trim() },
+        select: { id: true, title: true, type: true, url: true }
+    });
     revalidatePath(`/instructor/courses/${courseId}`);
+    // Returned so the caller can show the new row immediately. A lesson created
+    // moments ago is not part of the current server render, so a refresh alone
+    // would leave the list looking empty.
+    return created;
 }
 
 export async function updateResource(id: string, title: string, type: StudioResourceType, url: string, courseId: string) {
@@ -241,9 +248,9 @@ export async function createAssignmentLesson(moduleId: string, title: string, de
     if (!courseModule) throw new Error("Forbidden: Module ownership validation failed");
     if (!instructions.trim()) throw new Error("Instructions are required");
 
-    await prisma.$transaction(async (tx) => {
+    const created = await prisma.$transaction(async (tx) => {
         const max = await tx.lesson.aggregate({ where: { moduleId }, _max: { position: true } });
-        await tx.lesson.create({
+        return tx.lesson.create({
             data: {
                 moduleId,
                 title: title.trim(),
@@ -252,10 +259,15 @@ export async function createAssignmentLesson(moduleId: string, title: string, de
                 videoUrl: null,
                 position: (max._max.position ?? -1) + 1,
                 assignment: { create: { instructions: instructions.trim(), dueDate: dueDate ? new Date(dueDate) : null } }
-            }
+            },
+            include: { assignment: { select: { id: true } } }
         });
     });
     revalidatePath(`/instructor/courses/${courseId}`);
+
+    // The caller needs the ids to attach files to the brand-new lesson without
+    // closing the form and reopening it from the curriculum list.
+    return { lessonId: created.id, assignmentId: created.assignment?.id ?? null };
 }
 
 export async function updateAssignment(assignmentId: string, instructions: string, dueDate: string | null, courseId: string) {

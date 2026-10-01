@@ -2,12 +2,13 @@
 import { useRef, useState } from "react";
 import { createResource, updateResource } from "@/app/(instructor)/instructor/courses/[courseId]/actions";
 import { FileText, Loader2, Paperclip, ExternalLink, Upload, X } from "lucide-react";
+import { isDownloadableResourceUrl } from "@/lib/resource/resourceLink";
 
 interface Props {
   lessonId: string;
   courseId: string;
   initialData?: { id: string; title: string; type: ResourceType; url: string };
-  onSuccess: () => void;
+  onSuccess: (created?: { id: string; title: string; type: string; url: string }) => void;
 }
 
 type ResourceType = "PDF" | "DOCUMENT" | "PROJECT_FILE" | "EXTERNAL_LINK";
@@ -111,10 +112,11 @@ export default function ResourceForm({ lessonId, courseId, initialData, onSucces
     try {
       if (initialData) {
         await updateResource(initialData.id, title, type, url, courseId);
+        onSuccess();
       } else {
-        await createResource(lessonId, title, type, url, courseId);
+        const created = await createResource(lessonId, title, type, url, courseId);
+        onSuccess(created);
       }
-      onSuccess();
       if (!initialData) {
         setTitle("");
         setUrl("");
@@ -204,8 +206,11 @@ export default function ResourceForm({ lessonId, courseId, initialData, onSucces
       )}
 
       <div className="flex items-center gap-2">
+        {/* A stored file reference (object-store URL or inline data URI) is not
+            something the instructor typed, and an inline one can be megabytes
+            long, so it never populates the paste-link field. */}
         <input
-          value={url.startsWith("/uploads/") ? "" : url}
+          value={isDownloadableResourceUrl(url) ? "" : url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder={isUploadable ? "or paste a public file link" : "Paste URL *"}
           className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"

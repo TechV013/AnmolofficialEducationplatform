@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import { submitAssignment } from "../../actions";
-import { CheckCircle2, Award, CalendarClock, Paperclip, X, Loader2, Download } from "lucide-react";
+import { CheckCircle2, Award, CalendarClock, Paperclip, X, Loader2, Download, ExternalLink } from "lucide-react";
+import { isDownloadableResourceUrl } from "@/lib/resource/resourceLink";
 
 interface Submission {
   id: string;
@@ -9,10 +10,6 @@ interface Submission {
   status: string;
   score: number | null;
   feedback: string | null;
-}
-
-function isHostedFile(url: string): boolean {
-  return url.startsWith("/uploads/") || url.startsWith("data:") || url.startsWith("http://localhost");
 }
 
 function formatDueDate(value: string): string {
@@ -43,8 +40,9 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-export default function AssignmentBox({ assignment, now }: {
+export default function AssignmentBox({ assignment, resources = [], now }: {
   assignment: { id: string; instructions: string; dueDate: string | null; submission?: Submission | null };
+  resources?: { id: string; title: string; type: string; url: string }[];
   now: number;
 }) {
   const [content, setContent] = useState("");
@@ -120,6 +118,52 @@ export default function AssignmentBox({ assignment, now }: {
 
       <div className="whitespace-pre-line text-sm leading-relaxed text-slate-600">{assignment.instructions}</div>
 
+      {/* Shown here as well as in the Resources tab: an instructor attaching a
+          brief expects it beside the instructions it belongs to. */}
+      {resources.length > 0 && (
+        <ul className="space-y-1.5 rounded-xl border border-border bg-white p-3">
+          <li className="text-[10px] font-bold uppercase tracking-wider text-muted">Attachments</li>
+          {resources.map((r) => {
+            const downloadable = isDownloadableResourceUrl(r.url);
+            return (
+              <li key={r.id} className="flex items-center justify-between gap-2 text-sm">
+                <a
+                  href={r.url || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex min-w-0 items-center gap-2 text-slate-700 hover:text-primary"
+                >
+                  <Paperclip className="h-4 w-4 shrink-0 text-primary" />
+                  <span className="truncate font-medium">{r.title}</span>
+                </a>
+                {downloadable ? (
+                  <a
+                    href={r.url || "#"}
+                    download
+                    title={`Download ${r.title}`}
+                    aria-label={`Download ${r.title}`}
+                    className="shrink-0 text-muted hover:text-primary"
+                  >
+                    <Download className="h-4 w-4" />
+                  </a>
+                ) : (
+                  <a
+                    href={r.url || "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={`Open ${r.title}`}
+                    aria-label={`Open ${r.title}`}
+                    className="shrink-0 text-muted hover:text-primary"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
       {submission?.status === "REVIEWED" && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
           <p className="flex items-center gap-1.5 text-sm font-bold text-emerald-700">
@@ -134,7 +178,7 @@ export default function AssignmentBox({ assignment, now }: {
         <div className="flex items-center gap-3 rounded-xl border border-border bg-white px-3 py-2.5">
           <Paperclip className="h-4 w-4 shrink-0 text-primary" />
           <span className="min-w-0 flex-1 truncate text-xs font-semibold text-text">Submitted file</span>
-          {isHostedFile(submission.fileUrl) ? (
+          {isDownloadableResourceUrl(submission.fileUrl) ? (
             <a href={submission.fileUrl} download aria-label="Download your submission" className="text-muted hover:text-primary">
               <Download className="h-4 w-4" />
             </a>

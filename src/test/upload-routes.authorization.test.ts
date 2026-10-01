@@ -52,9 +52,10 @@ describe("POST /api/upload authorization", () => {
     vi.mocked(getCurrentUser).mockResolvedValue({ id: USER_ID } as any);
     vi.mocked(putFile).mockResolvedValue({
       url: "/uploads/1-clip.mp4",
-      storageKey: "1-clip.mp4",
+      storageKey: "disk:1-clip.mp4",
       size: 64,
-      inlined: false
+      inlined: false,
+      driver: "disk"
     });
     vi.mocked(prisma.lesson.update).mockResolvedValue({} as any);
     vi.mocked(prisma.lesson.findFirst).mockResolvedValue({ id: "lesson-1" } as any);
@@ -117,9 +118,10 @@ describe("POST /api/assignment-submission authorization", () => {
     vi.mocked(assertCourseContentAccess).mockResolvedValue({ allowed: true } as any);
     vi.mocked(putFile).mockResolvedValue({
       url: "/uploads/1-work.pdf",
-      storageKey: "1-work.pdf",
+      storageKey: "disk:1-work.pdf",
       size: 64,
-      inlined: false
+      inlined: false,
+      driver: "disk"
     });
     vi.mocked(prisma.assignment.findUnique).mockResolvedValue({
       id: "a1",

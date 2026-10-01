@@ -12,6 +12,7 @@ import VideoPlayer from "@/components/video/VideoPlayer";
 import Tabs from "@/components/ui/Tabs";
 import NotesEditor from "./NotesEditor";
 import { ArrowLeft, ArrowRight, Download, FileText, ExternalLink, Paperclip, Presentation } from "lucide-react";
+import { isDownloadableResourceUrl } from "@/lib/resource/resourceLink";
 import { useToast } from "@/components/ui/Toast";
 import { deriveLessonKind } from "@/lib/course-studio";
 
@@ -72,9 +73,6 @@ const EXT_ICON: Record<string, typeof FileText> = {
 };
 
 /** Uploaded files sit on our own origin; external resources open in a new tab. */
-function isHostedFile(url: string): boolean {
-  return url.startsWith("/uploads/") || url.startsWith("data:") || url.startsWith("http://localhost");
-}
 
 function resourceKindLabel(resource: ResourceItemView): string {
   if (resource.type === "EXTERNAL_LINK") return "Link";
@@ -169,7 +167,7 @@ export default function ClassroomClient({
             {completed ? "✓ Lesson Completed" : "Mark as Complete"}
           </button>
           {assignment && (
-            <AssignmentBox assignment={assignment} now={now} />
+            <AssignmentBox assignment={assignment} resources={lessonResources} now={now} />
           )}
         </div>
       ),
@@ -191,7 +189,7 @@ export default function ClassroomClient({
             <div className="space-y-2">
               {lessonResources.map((r) => {
                 const Icon = r.type === "EXTERNAL_LINK" ? ExternalLink : (EXT_ICON[extensionOf(r.url)] ?? FileText);
-                const hosted = isHostedFile(r.url);
+                const hosted = isDownloadableResourceUrl(r.url);
                 return (
                   <div
                     key={r.id}

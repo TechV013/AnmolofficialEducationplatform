@@ -69,7 +69,28 @@ describe("Resource lesson authoring (Course Studio — existing canonical Resour
       where: { id: "lesson-1", module: { courseId: COURSE_ID } }
     });
     expect(prisma.resource.create).toHaveBeenCalledWith({
-      data: { lessonId: "lesson-1", title: "Java Cheat Sheet", type: "PDF", url: "/uploads/1-cheatsheet.pdf" }
+      data: { lessonId: "lesson-1", title: "Java Cheat Sheet", type: "PDF", url: "/uploads/1-cheatsheet.pdf" },
+      select: { id: true, title: true, type: true, url: true }
+    });
+  });
+
+  it("returns the created resource so the studio can list it immediately", async () => {
+    signInAsCourseEditor();
+    lessonInCourse();
+    vi.mocked(prisma.resource.create).mockResolvedValue({
+      id: "r1",
+      title: "Java Cheat Sheet",
+      type: "PDF",
+      url: "/uploads/1-cheatsheet.pdf"
+    } as any);
+
+    const created = await createResource("lesson-1", "Java Cheat Sheet", "PDF", "/uploads/1-cheatsheet.pdf", COURSE_ID);
+
+    expect(created).toEqual({
+      id: "r1",
+      title: "Java Cheat Sheet",
+      type: "PDF",
+      url: "/uploads/1-cheatsheet.pdf"
     });
   });
 
@@ -80,7 +101,8 @@ describe("Resource lesson authoring (Course Studio — existing canonical Resour
     await createResource("lesson-1", "  Notes  ", "DOCUMENT", "  /uploads/notes.docx  ", COURSE_ID);
 
     expect(prisma.resource.create).toHaveBeenCalledWith({
-      data: { lessonId: "lesson-1", title: "Notes", type: "DOCUMENT", url: "/uploads/notes.docx" }
+      data: { lessonId: "lesson-1", title: "Notes", type: "DOCUMENT", url: "/uploads/notes.docx" },
+      select: { id: true, title: true, type: true, url: true }
     });
   });
 

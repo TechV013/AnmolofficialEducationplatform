@@ -43,9 +43,9 @@ describe("Assignment authoring (Slice 3)", () => {
   it("authorized instructor creates an assignment lesson bound to the right module/course", async () => {
     vi.mocked(prisma.module.findFirst).mockResolvedValue({ id: "m1", courseId: "c1" } as any);
     vi.mocked(prisma.lesson.aggregate).mockResolvedValue({ _max: { position: 2 } } as any);
-    vi.mocked(prisma.lesson.create).mockResolvedValue({ id: "l1" } as any);
+    vi.mocked(prisma.lesson.create).mockResolvedValue({ id: "l1", assignment: { id: "a1" } } as any);
 
-    await createAssignmentLesson("m1", "Practical Assignment", "desc", "Build a capstone", "2026-12-31", "c1");
+    const result = await createAssignmentLesson("m1", "Practical Assignment", "desc", "Build a capstone", "2026-12-31", "c1");
 
     expect(prisma.module.findFirst).toHaveBeenCalledWith({ where: { id: "m1", courseId: "c1" } });
     expect(prisma.lesson.create).toHaveBeenCalledWith({
@@ -57,7 +57,11 @@ describe("Assignment authoring (Slice 3)", () => {
           create: { instructions: "Build a capstone", dueDate: expect.any(Date) as Date },
         },
       }),
+      include: { assignment: { select: { id: true } } },
     });
+    // The ids let the studio reveal the attachment manager for the new lesson
+    // without closing the form and reopening it from the curriculum list.
+    expect(result).toEqual({ lessonId: "l1", assignmentId: "a1" });
   });
 
   it("cannot create an assignment lesson in a module outside the course", async () => {
