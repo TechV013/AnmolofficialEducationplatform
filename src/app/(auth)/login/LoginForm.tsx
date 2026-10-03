@@ -29,10 +29,22 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   Configuration: "Sign-in is not configured correctly. Please contact support.",
 };
 
+/**
+ * Only same-site absolute paths are honoured so `?next=` cannot bounce users
+ * to another origin (`//evil.com`, `https://evil.com`).
+ */
+function safeInternalPath(raw: string | null): string | null {
+  if (!raw) return null;
+  if (!raw.startsWith("/") || raw.startsWith("//")) return null;
+  if (raw.startsWith("/\\")) return null;
+  return raw;
+}
+
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const reason = searchParams.get("reason") || "";
+  const nextPath = safeInternalPath(searchParams.get("next"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -71,7 +83,10 @@ export default function LoginForm() {
       }
 
       const role = (session.user as { role?: string }).role;
-      router.push(role === "ADMIN" ? "/admin" : role === "INSTRUCTOR" ? "/instructor" : "/dashboard");
+      router.push(
+        nextPath ??
+          (role === "ADMIN" ? "/admin" : role === "INSTRUCTOR" ? "/instructor" : "/dashboard")
+      );
       router.refresh();
     } catch (err) {
       // A 429 from the edge limiter arrives here. Never leave the button stuck
