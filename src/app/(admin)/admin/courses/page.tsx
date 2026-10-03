@@ -5,7 +5,7 @@ import { authorizeRole } from "@/lib/auth/guard";
 import Link from "next/link";
 import CourseActions from "@/components/admin/CourseActions";
 import Badge from "@/components/ui/Badge";
-import { Search, Filter, Download } from "lucide-react";
+import { Search } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Courses — Admin",
@@ -119,8 +119,8 @@ export default async function AdminCoursesPage() {
                   <CourseActions
                     courseId={course.id}
                     status={course.status}
-                    instructors={instructors}
-                    assigned={course.instructors}
+                    price={Number(course.price)}
+                    priceOld={course.priceOld ? Number(course.priceOld) : null}
                   />
                 </td>
               </tr>

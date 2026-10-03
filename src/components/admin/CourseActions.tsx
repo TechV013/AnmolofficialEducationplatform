@@ -1,32 +1,21 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { updateCourseStatus, assignInstructor, unassignInstructor, deleteCourse } from "@/app/(admin)/admin/courses/actions";
-import type { CourseStatus, UserRole } from "@prisma/client";
-import { Pencil, Trash2, Eye, X, Save, Loader2 } from "lucide-react";
-import CourseEditForm from "./CourseEditForm";
+import { updateCourseStatus, deleteCourse, updateCoursePrice } from "@/app/(admin)/admin/courses/actions";
+import type { CourseStatus } from "@prisma/client";
+import { Pencil, Trash2, Save, Loader2 } from "lucide-react";
 
-interface CourseInstructor {
-  id: string;
-  name: string | null;
-  email: string | null;
-  role: UserRole;
-}
-
-interface AssignedInstructor {
-  userId: string;
-  user: CourseInstructor;
-}
-
-export default function CourseActions({ courseId, status, instructors, assigned }: {
+export default function CourseActions({ courseId, status, price, priceOld }: {
   courseId: string;
   status: CourseStatus;
-  instructors: CourseInstructor[];
-  assigned: AssignedInstructor[];
+  price: number;
+  priceOld: number | null;
 }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [priceVal, setPriceVal] = useState(String(price));
+  const [priceOldVal, setPriceOldVal] = useState(priceOld !== null ? String(priceOld) : "");
   const router = useRouter();
 
   const run = async (fn: () => Promise<unknown>) => {
@@ -45,62 +34,91 @@ export default function CourseActions({ courseId, status, instructors, assigned 
   const handleStatus = (e: React.ChangeEvent<HTMLSelectElement>) =>
     run(() => updateCourseStatus(courseId, e.target.value as CourseStatus));
 
-  const handleAssign = (e: React.ChangeEvent<HTMLSelectElement>) =>
-    run(() => assignInstructor(courseId, e.target.value));
+  const startEdit = () => {
+    setError(null);
+    setPriceVal(String(price));
+    setPriceOldVal(priceOld !== null ? String(priceOld) : "");
+    setEditing(true);
+  };
 
-  const assignedIds = assigned.map(a => a.userId);
-  const unassignedInstructors = instructors.filter(i => i.role === "INSTRUCTOR" && !assignedIds.includes(i.id));
+  const savePrice = () =>
+    run(async () => {
+      const parsed = priceOldVal.trim() === "" ? null : Number(priceOldVal);
+      await updateCoursePrice(courseId, Number(priceVal), parsed);
+      setEditing(false);
+    });
 
   return (
     <div className="flex flex-col items-end gap-2">
-      {error && <p className="text-red-500 text-xs">{error}</p>}
-      <div className="flex flex-wrap items-center gap-2 justify-end">
-        <button
-          onClick={() => setShowEditModal(true)}
-          disabled={busy}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-semibold hover:bg-blue-100 transition-colors disabled:opacity-50"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-          Edit
-        </button>
-        <select
-          value={status}
-          onChange={handleStatus}
-          disabled={busy}
-          className={`border rounded px-2 py-1 text-xs font-semibold ${
-            status === "PUBLISHED" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
-            status === "ARCHIVED" ? "bg-slate-100 text-slate-600 border-slate-200" :
-            "bg-amber-50 text-amber-700 border-amber-200"
-          }`}
-        >
-          <option value="DRAFT">Draft</option>
-          <option value="PUBLISHED">Published</option>
-          <option value="ARCHIVED">Archived</option>
-        </select>
-        {unassignedInstructors.length > 0 && (
-          <select
-            defaultValue=""
-            onChange={handleAssign}
+      {error && <p className="text-red-500 text-xs text-right">{error}</p>}
+      {editing ? (
+        <div className="flex flex-wrap items-end gap-2 justify-end">
+          <div>
+            <label className="block text-[10px] font-semibold uppercase text-slate-400 mb-0.5">Price (₹)</label>
+            <input
+              type="number"
+              min={0}
+              step="0.01"
+              value={priceVal}
+              onChange={(e) => setPriceVal(e.target.value)}
+              autoFocus
+              className="w-24 border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+          <div>
+            <label className="block text-[10px] font-semibold uppercase text-slate-400 mb-0.5">Old (₹)</label>
+            <input
+              type="number"
+              min={0}
+              step="0.01"
+              value={priceOldVal}
+              onChange={(e) => setPriceOldVal(e.target.value)}
+              placeholder="—"
+              className="w-24 border border-slate-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+          <button
+            onClick={() => { if (!busy) savePrice(); }}
             disabled={busy}
-            className="border rounded px-2 py-1 text-xs text-slate-700"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary-hover disabled:opacity-50"
           >
-            <option value="" disabled>Assign instructor...</option>
-            {unassignedInstructors.map(i => (
-              <option key={i.id} value={i.id}>{i.name || i.email}</option>
-            ))}
+            {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+            Save
+          </button>
+          <button
+            onClick={() => { setEditing(false); setError(null); }}
+            disabled={busy}
+            className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2 justify-end">
+          <button
+            onClick={startEdit}
+            disabled={busy}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-semibold hover:bg-blue-100 transition-colors disabled:opacity-50"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            Edit price
+          </button>
+          <select
+            value={status}
+            onChange={handleStatus}
+            disabled={busy}
+            className={`border rounded px-2 py-1 text-xs font-semibold ${
+              status === "PUBLISHED" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+              status === "ARCHIVED" ? "bg-slate-100 text-slate-600 border-slate-200" :
+              "bg-amber-50 text-amber-700 border-amber-200"
+            }`}
+          >
+            <option value="DRAFT">Draft</option>
+            <option value="PUBLISHED">Published</option>
+            <option value="ARCHIVED">Archived</option>
           </select>
-        )}
-      </div>
-      {assigned.map(a => (
-        <button
-          key={a.userId}
-          onClick={() => run(() => unassignInstructor(courseId, a.userId))}
-          disabled={busy}
-          className="text-xs text-slate-500 hover:text-red-600 underline"
-        >
-          {a.user.name || a.user.email} · remove
-        </button>
-      ))}
+        </div>
+      )}
       <button
         onClick={() => { if (confirm("Delete this course and all its content?")) run(() => deleteCourse(courseId)); }}
         disabled={busy}
@@ -109,20 +127,6 @@ export default function CourseActions({ courseId, status, instructors, assigned 
         <Trash2 className="h-3.5 w-3.5" />
         Delete course
       </button>
-
-      {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-slate-200">
-              <h2 className="text-lg font-bold text-slate-800">Edit Course</h2>
-              <button onClick={() => setShowEditModal(false)} className="p-1.5 rounded-lg hover:bg-slate-100">
-                <X className="h-5 w-5 text-slate-500" />
-              </button>
-            </div>
-            <CourseEditForm courseId={courseId} onClose={() => setShowEditModal(false)} />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

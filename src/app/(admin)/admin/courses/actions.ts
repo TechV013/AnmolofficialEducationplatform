@@ -112,6 +112,31 @@ export async function deleteCourse(courseId: string) {
   revalidatePath("/courses");
 }
 
+export async function updateCoursePrice(courseId: string, price: number, priceOld: number | null) {
+  await authorizeRole("ADMIN");
+
+  if (!Number.isFinite(price) || price < 0) throw new Error("Price must be a non-negative number");
+  if (priceOld !== null && (!Number.isFinite(priceOld) || priceOld < 0)) {
+    throw new Error("Old price must be a non-negative number");
+  }
+  if (priceOld !== null && priceOld <= price) {
+    throw new Error("Old price must be greater than the current price");
+  }
+
+  const course = await prisma.course.update({
+    where: { id: courseId },
+    data: {
+      price: Number(price.toFixed(2)),
+      priceOld: priceOld === null ? null : Number(priceOld.toFixed(2)),
+    },
+    select: { slug: true }
+  });
+
+  revalidatePath("/admin/courses");
+  revalidatePath("/courses");
+  revalidatePath(`/courses/${course.slug}`);
+}
+
 export async function assignInstructor(courseId: string, userId: string) {
   await authorizeRole("ADMIN");
 
