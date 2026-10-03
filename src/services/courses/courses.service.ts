@@ -46,6 +46,7 @@ export const getPublishedCourses = async (): Promise<Course[]> => {
   try {
     const courses = (await prisma.course.findMany({
       where: { status: "PUBLISHED" },
+      orderBy: { createdAt: "desc" },
       include: { ...COURSE_INCLUDE }
     })) as unknown as CourseWithModules[];
     const stats = await getCoursesStats(courses.map((c) => c.id));

@@ -1,15 +1,36 @@
 "use client";
 import Link from "next/link";
-import { BookOpen, Users, Star, Edit, Trash2, Eye, BarChart2 } from "lucide-react";
+import { BookOpen, Users, Edit, Trash2, Eye, BarChart2 } from "lucide-react";
+import SafeThumb from "@/components/ui/SafeThumb";
 
-export default function InstructorCourseCard({ course, onDelete }: { course: any; onDelete: (id: string) => void }) {
+interface InstructorCourseCardCourse {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  status: string;
+  thumbnail: string;
+  studentCount?: number;
+  modulesCount?: number;
+}
+
+export default function InstructorCourseCard({ course, onDelete }: { course: InstructorCourseCardCourse; onDelete: (id: string) => void }) {
   const isPublished = course.status === "PUBLISHED";
 
   return (
     <div className="rounded-2xl border border-border bg-white overflow-hidden shadow-sm flex flex-col justify-between">
       <div>
         <div className="relative h-48 w-full bg-slate-100">
-          <img src={course.thumbnail} alt={course.title} className="h-full w-full object-cover" />
+          <SafeThumb
+            src={course.thumbnail}
+            alt={course.title}
+            className="h-full w-full object-cover"
+            fallback={
+              <div className="flex h-full w-full items-center justify-center bg-soft-blue">
+                <BookOpen className="h-10 w-10 text-primary/50" />
+              </div>
+            }
+          />
           <div className="absolute top-3 right-3 flex gap-2">
             <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${isPublished ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
               {course.status}

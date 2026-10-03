@@ -1,4 +1,6 @@
+"use client";
 import Link from "next/link";
+import { useState } from "react";
 import { Course } from "@/types/lms";
 import { Star, Clock, BookOpen, Box, Bone, Clapperboard, GraduationCap } from "lucide-react";
 import { formatPrice, discountPercent } from "@/lib/course-stats";
@@ -29,9 +31,11 @@ const levelBadge: Record<string, string> = {
 };
 
 export default function CourseCard({ course }: CourseCardProps) {
+  const [imageFailed, setImageFailed] = useState(false);
   const cover = coverStyles[course.category] ?? fallbackCover;
   const CoverIcon = cover.icon;
   const discount = discountPercent(course.price, course.priceOld);
+  const showImage = Boolean(course.thumbnail) && !imageFailed;
 
   return (
     <div className="bg-white rounded-2xl overflow-hidden border border-border shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full">
@@ -39,15 +43,27 @@ export default function CourseCard({ course }: CourseCardProps) {
         href={`/courses/${course.id}`}
         className={`relative h-40 flex items-center justify-center bg-gradient-to-br ${cover.gradient} overflow-hidden`}
       >
-        <CoverIcon className="absolute -right-4 -bottom-4 w-28 h-28 text-white/10 group-hover:scale-110 group-hover:text-white/15 transition-all duration-500" />
+        {showImage ? (
+          <>
+            <img
+              src={course.thumbnail}
+              alt={course.title}
+              className="absolute inset-0 h-full w-full object-cover"
+              onError={() => setImageFailed(true)}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/20" />
+          </>
+        ) : (
+          <CoverIcon className="absolute -right-4 -bottom-4 w-28 h-28 text-white/10 group-hover:scale-110 group-hover:text-white/15 transition-all duration-500" />
+        )}
         <span className="relative z-10 text-white font-bold text-lg px-6 text-center drop-shadow-sm line-clamp-2">
           {course.title}
         </span>
-        <span className={`absolute top-3 left-3 backdrop-blur-sm text-white text-[11px] font-bold px-3 py-1 rounded-full border border-white/30 ${levelBadge[course.level] ?? "bg-white/20"}`}>
+        <span className={`absolute top-3 left-3 z-10 backdrop-blur-sm text-white text-[11px] font-bold px-3 py-1 rounded-full border border-white/30 ${levelBadge[course.level] ?? "bg-white/20"}`}>
           {course.level}
         </span>
         <span
-          className={`absolute top-3 right-3 backdrop-blur-sm text-white text-[11px] font-bold px-3 py-1 rounded-full border border-white/20 ${
+          className={`absolute top-3 right-3 z-10 backdrop-blur-sm text-white text-[11px] font-bold px-3 py-1 rounded-full border border-white/20 ${
             course.isFree ? "bg-emerald-500/80" : "bg-black/40"
           }`}
         >

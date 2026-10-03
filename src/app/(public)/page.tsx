@@ -4,6 +4,8 @@ import GuidanceSection from "@/components/home/GuidanceSection";
 import SuccessStories from "@/components/home/SuccessStories";
 import dynamic from "next/dynamic";
 
+export const revalidate = 300;
+
 const HelpSection = dynamic(() => import("@/components/home/HelpSection"), {
   loading: () => <div className="py-20" />,
 });

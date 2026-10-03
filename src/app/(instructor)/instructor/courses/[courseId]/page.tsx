@@ -7,6 +7,29 @@ import CourseForm from "@/components/instructor/CourseForm";
 import IntroVideoForm from "@/components/instructor/IntroVideoForm";
 import CourseCurriculumBuilder, { type StudioModule } from "@/components/instructor/CourseCurriculumBuilder";
 import PublishButton from "@/components/instructor/PublishButton";
+import SafeThumb from "@/components/ui/SafeThumb";
+
+type RawModule = {
+  id: string;
+  title: string;
+  position: number;
+  lessons: RawLesson[];
+};
+
+type RawLesson = {
+  id: string;
+  title: string;
+  description: string;
+  duration: string;
+  position: number;
+  videoUrl: string | null;
+  quiz: {
+    id: string;
+    questions: { id: string; text: string; options: { id: string; text: string; isCorrect: boolean }[] }[] | null;
+  } | null;
+  assignment: { id: string; instructions: string; dueDate: Date | null } | null;
+  resources: { id: string; title: string; type: "PDF" | "DOCUMENT" | "PROJECT_FILE" | "EXTERNAL_LINK"; url: string }[];
+};
 
 export default async function EditCoursePage({ params }: { params: Promise<{ courseId: string }> }) {
   const { courseId } = await params;
@@ -14,11 +37,11 @@ export default async function EditCoursePage({ params }: { params: Promise<{ cou
   const course = await getCourseForInstructor(courseId, user.id);
   if (!course) notFound();
 
-  const studioModules: StudioModule[] = course.modules.map((m: any) => ({
+  const studioModules: StudioModule[] = course.modules.map((m: RawModule) => ({
     id: m.id,
     title: m.title,
     position: m.position,
-    lessons: (m.lessons as any[]).map((l: any) => ({
+    lessons: m.lessons.map((l: RawLesson) => ({
       id: l.id,
       title: l.title,
       description: l.description,
@@ -29,10 +52,10 @@ export default async function EditCoursePage({ params }: { params: Promise<{ cou
       quiz: l.quiz
         ? {
             id: l.quiz.id,
-            questions: (l.quiz.questions ?? []).map((q: any) => ({
+            questions: (l.quiz.questions ?? []).map((q) => ({
               id: q.id,
               text: q.text,
-              options: (q.options ?? []).map((o: any) => ({ id: o.id, text: o.text, isCorrect: o.isCorrect }))
+              options: (q.options ?? []).map((o) => ({ id: o.id, text: o.text, isCorrect: o.isCorrect }))
             }))
           }
         : null,
@@ -90,7 +113,12 @@ export default async function EditCoursePage({ params }: { params: Promise<{ cou
       <div className="rounded-2xl border border-border bg-white p-6 sm:p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <div className="h-20 w-32 rounded-xl overflow-hidden bg-slate-100 shrink-0">
-            <img src={course.thumbnail} alt={course.title} className="h-full w-full object-cover" />
+            <SafeThumb
+              src={course.thumbnail}
+              alt={course.title}
+              className="h-full w-full object-cover"
+              fallback={<div className="h-full w-full bg-gradient-to-br from-[#172554] via-[#1E40AF] to-primary" />}
+            />
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">

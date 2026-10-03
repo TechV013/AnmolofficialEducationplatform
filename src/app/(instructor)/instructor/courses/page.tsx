@@ -5,6 +5,7 @@ import { authorizeRole } from "@/lib/auth/guard";
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
 import Badge from "@/components/ui/Badge";
+import SafeThumb from "@/components/ui/SafeThumb";
 import CreateCourseToggle from "@/components/instructor/CreateCourseToggle";
 
 export const metadata: Metadata = { title: "My Courses — Instructor", robots: { index: false, follow: false } };
@@ -49,11 +50,12 @@ export default async function InstructorCoursesPage() {
           return (
             <div key={course.id} className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
               <div className="flex h-28 items-center justify-center overflow-hidden bg-soft-blue">
-                {course.thumbnail ? (
-                  <img src={course.thumbnail} alt={course.title} className="h-full w-full object-cover" />
-                ) : (
-                  <BookOpen className="h-10 w-10 text-primary/50" />
-                )}
+                <SafeThumb
+                  src={course.thumbnail}
+                  alt={course.title}
+                  className="h-full w-full object-cover"
+                  fallback={<BookOpen className="h-10 w-10 text-primary/50" />}
+                />
               </div>
               <div className="flex flex-1 flex-col p-6">
                 <div className="mb-4 flex items-center justify-between gap-3">

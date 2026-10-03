@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SafeThumb from "@/components/ui/SafeThumb";
 import { getStudentEnrollmentsForMyLearning } from "@/services/enrollmentService";
 import { getCourseProgress } from "@/services/progressService";
 import { getCurrentUser } from "@/lib/auth/helpers";
@@ -44,13 +45,16 @@ export default async function MyLearningPage() {
                   <Link key={enrollment.id} href={firstLesson ? `/classroom/${course.id}/${firstLesson.id}` : `/classroom/${course.id}`} className="group block">
                     <div className="bg-white rounded-xl shadow overflow-hidden hover:shadow-lg transition-shadow">
                       <div className="p-6">
-                        {course.thumbnail ? (
-                          <img src={course.thumbnail} alt={course.title} className="w-full h-48 object-cover rounded-lg mb-4" />
-                        ) : (
-                          <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-lg mb-4">
-                            <div className="text-center"><div className="text-2xl">📚</div><p className="mt-2 text-sm text-gray-500">Course Thumbnail</p></div>
-                          </div>
-                        )}
+                        <SafeThumb
+                          src={course.thumbnail}
+                          alt={course.title}
+                          className="w-full h-48 object-cover rounded-lg mb-4"
+                          fallback={
+                            <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-lg mb-4">
+                              <div className="text-center"><div className="text-2xl">📚</div><p className="mt-2 text-sm text-gray-500">Course Thumbnail</p></div>
+                            </div>
+                          }
+                        />
                         
                         <h3 className="text-xl font-bold mb-2">{course.title}</h3>
                         

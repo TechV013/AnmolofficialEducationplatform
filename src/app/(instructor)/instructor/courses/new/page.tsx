@@ -1,12 +1,14 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Upload, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 export default function NewCoursePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -17,6 +19,26 @@ export default function NewCoursePage() {
     whatYouWillLearn: ["Master industry standard tools", "Build real-world projects"],
     requirements: ["Basic computer knowledge"]
   });
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    setUploadError(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Image upload failed");
+      setFormData((prev) => ({ ...prev, thumbnail: data.url }));
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Image upload failed");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,8 +101,21 @@ export default function NewCoursePage() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-bold text-text mb-2">Thumbnail URL</label>
-              <input type="url" required value={formData.thumbnail} onChange={e => setFormData({ ...formData, thumbnail: e.target.value })} className="w-full rounded-xl border border-border px-4 py-3 text-text focus:outline-none focus:ring-2 focus:ring-primary" />
+              <label className="block text-sm font-bold text-text mb-2">Thumbnail (URL or upload)</label>
+              <div className="flex items-center gap-3">
+                <input type="text" required value={formData.thumbnail} onChange={e => setFormData({ ...formData, thumbnail: e.target.value })} className="flex-1 rounded-xl border border-border px-4 py-3 text-text focus:outline-none focus:ring-2 focus:ring-primary" placeholder="https://... or upload file" />
+                <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-soft-blue text-primary font-bold text-sm hover:bg-soft-blue/80 transition-colors shrink-0">
+                  {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  <span>{uploadingImage ? "Uploading..." : "Upload Image"}</span>
+                  <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploadingImage} />
+                </label>
+              </div>
+              {uploadError && <p className="mt-2 text-xs font-semibold text-rose-600">{uploadError}</p>}
+              {formData.thumbnail && (
+                <div className="mt-3 h-32 w-48 overflow-hidden rounded-xl border border-border bg-slate-50">
+                  <img src={formData.thumbnail} alt="Thumbnail preview" className="h-full w-full object-cover" onError={e => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
+                </div>
+              )}
             </div>
             <button type="submit" disabled={loading} className="w-full py-4 rounded-xl bg-primary text-white font-bold hover:bg-primary-hover transition-all">
               {loading ? "Creating..." : "Create Course & Add Curriculum →"}

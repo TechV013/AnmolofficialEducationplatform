@@ -1,8 +1,11 @@
 import CourseCard from "./CourseCard";
-import { courses } from "@/data/courses";
 import Link from "next/link";
+import { getPublishedCourses } from "@/services/courses/courses.service";
 
-export default function CourseSection() {
+export default async function CourseSection() {
+  const courses = await getPublishedCourses();
+  const featured = courses.slice(0, 3);
+
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
@@ -14,7 +17,7 @@ export default function CourseSection() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {courses.map((course) => (
+          {featured.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}
         </div>
