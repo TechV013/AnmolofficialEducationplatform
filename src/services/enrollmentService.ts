@@ -1,5 +1,13 @@
 import { prisma } from "@/lib/prisma";
 
+/**
+ * Statuses that grant lifetime access to a course's content. This must stay in
+ * step with GRANTING_ENROLLMENT_STATUSES in courseAccessService, otherwise a
+ * student who finished a course keeps classroom access but silently loses the
+ * review form and is shown an "Enroll" button for a course they already own.
+ */
+export const ACCESS_GRANTING_ENROLLMENT_STATUSES = ["ACTIVE", "COMPLETED"] as const;
+
 export const hasCourseAccess = async (userId: string, courseId: string) => {
   const enrollment = await prisma.enrollment.findUnique({
     where: {
@@ -9,7 +17,10 @@ export const hasCourseAccess = async (userId: string, courseId: string) => {
       }
     }
   });
-  return !!enrollment && enrollment.status === "ACTIVE";
+  return (
+    !!enrollment &&
+    (ACCESS_GRANTING_ENROLLMENT_STATUSES as readonly string[]).includes(enrollment.status)
+  );
 };
 
 export const enrollInFreeCourse = async (userId: string, courseId: string) => {

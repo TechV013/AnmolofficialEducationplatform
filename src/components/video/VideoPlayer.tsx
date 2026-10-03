@@ -1,11 +1,15 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, Settings, AlertCircle, RefreshCw } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, AlertCircle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getEmbedUrl, getEmbedUrlWithResume, type MediaType } from "@/lib/video/getEmbedUrl";
+import { getEmbedUrl, getEmbedUrlWithResume } from "@/lib/video/getEmbedUrl";
 
 const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 const CONTROLS_HIDE_DELAY = 3000;
+// `timeupdate` fires roughly four times a second. Forwarding every tick to the
+// parent meant a server round-trip per tick, so the parent is told at most this
+// often while playing, plus once on pause/end/unmount.
+const REPORT_INTERVAL_MS = 10000;
 
 interface VideoPlayerProps {
   url: string;
@@ -40,7 +44,40 @@ export default function VideoPlayer({
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const controlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const saveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Callback refs keep the media listeners subscribed once. Depending on these
+  // props directly re-bound every listener on each parent render.
+  const onTimeUpdateRef = useRef(onTimeUpdate);
+  const onDurationRef = useRef(onDuration);
+  const onEndedRef = useRef(onEnded);
+  const onErrorRef = useRef(onError);
+  const lastReportAtRef = useRef<number | null>(null);
+  // A ref, not state: seeking to the saved position must not trigger a second
+  // render pass on every mount.
+  const hasResumedRef = useRef(false);
+
+  useEffect(() => {
+    onTimeUpdateRef.current = onTimeUpdate;
+    onDurationRef.current = onDuration;
+    onEndedRef.current = onEnded;
+    onErrorRef.current = onError;
+  }, [onTimeUpdate, onDuration, onEnded, onError]);
+
+  /** Reports playback position to the parent, rate-limited unless forced. */
+  const reportPosition = useCallback((seconds: number, force = false) => {
+    const notify = onTimeUpdateRef.current;
+    if (!notify) return;
+    const now = Date.now();
+    if (
+      !force &&
+      lastReportAtRef.current !== null &&
+      now - lastReportAtRef.current < REPORT_INTERVAL_MS
+    ) {
+      return;
+    }
+    lastReportAtRef.current = now;
+    notify(seconds);
+  }, []);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -52,7 +89,6 @@ export default function VideoPlayer({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [videoError, setVideoError] = useState<string | null>(null);
-  const [hasResumed, setHasResumed] = useState(false);
 
   const mediaInfo = mode === "classroom" && savedPosition > 0
     ? getEmbedUrlWithResume(url, savedPosition)
@@ -77,19 +113,34 @@ export default function VideoPlayer({
 
     const onTimeUpdateHandler = () => {
       setCurrentTime(video.currentTime);
-      if (mode === "classroom" && onTimeUpdate) {
-        onTimeUpdate(video.currentTime);
+      if (mode === "classroom") {
+        reportPosition(video.currentTime);
       }
     };
     const onLoadedMetadata = () => {
       const dur = video.duration;
       setDuration(dur);
-      onDuration?.(dur);
+      onDurationRef.current?.(dur);
     };
     const onPlayHandler = () => setIsPlaying(true);
-    const onPauseHandler = () => { setIsPlaying(false); setShowControls(true); };
-    const onEndedHandler = () => { setIsPlaying(false); setShowControls(true); onEnded?.(); };
-    const onErrorHandler = () => setVideoError("Video unavailable. The file may be corrupted or the format is not supported.");
+    const onPauseHandler = () => {
+      setIsPlaying(false);
+      setShowControls(true);
+      // Pause is a deliberate stop, so always persist the exact position.
+      if (mode === "classroom") reportPosition(video.currentTime, true);
+    };
+    const onEndedHandler = () => {
+      setIsPlaying(false);
+      setShowControls(true);
+      if (mode === "classroom") reportPosition(video.currentTime, true);
+      onEndedRef.current?.();
+    };
+    const onErrorHandler = () => {
+      const message =
+        "Video unavailable. The file may be corrupted or the format is not supported.";
+      setVideoError(message);
+      onErrorRef.current?.(message);
+    };
 
     video.addEventListener("timeupdate", onTimeUpdateHandler);
     video.addEventListener("loadedmetadata", onLoadedMetadata);
@@ -106,16 +157,16 @@ export default function VideoPlayer({
       video.removeEventListener("ended", onEndedHandler);
       video.removeEventListener("error", onErrorHandler);
     };
-  }, [isHtml5, mode, onTimeUpdate, onDuration, onEnded]);
+  }, [isHtml5, mode, reportPosition]);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !isHtml5 || hasResumed) return;
+    if (!video || !isHtml5 || hasResumedRef.current) return;
     if (savedPosition > 0) {
       video.currentTime = savedPosition;
-      setHasResumed(true);
+      hasResumedRef.current = true;
     }
-  }, [isHtml5, savedPosition, hasResumed]);
+  }, [isHtml5, savedPosition]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -123,16 +174,17 @@ export default function VideoPlayer({
     video.playbackRate = speed;
   }, [speed]);
 
+  // Best-effort final save when the player is torn down mid-playback. Browsers
+  // usually fire `pause` first, but not when the element is simply removed.
   useEffect(() => {
     if (!isHtml5 || mode !== "classroom") return;
-    saveTimerRef.current = setInterval(() => {
-      const video = videoRef.current;
-      if (video && !video.paused && onTimeUpdate) {
-        onTimeUpdate(video.currentTime);
+    const video = videoRef.current;
+    return () => {
+      if (video && !video.paused && video.currentTime > 0) {
+        onTimeUpdateRef.current?.(video.currentTime);
       }
-    }, 30000);
-    return () => { if (saveTimerRef.current) clearInterval(saveTimerRef.current); };
-  }, [isHtml5, mode, onTimeUpdate]);
+    };
+  }, [isHtml5, mode]);
 
   const togglePlay = useCallback(() => {
     const video = videoRef.current;

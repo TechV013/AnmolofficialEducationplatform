@@ -12,10 +12,11 @@ interface ReviewItem {
   createdByName: string;
 }
 
-export default function ReviewSection({ courseId, reviews, canReview }: {
+export default function ReviewSection({ courseId, reviews, canReview, isSignedIn }: {
   courseId: string;
   reviews: ReviewItem[];
   canReview: boolean;
+  isSignedIn: boolean;
 }) {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
@@ -80,6 +81,16 @@ export default function ReviewSection({ courseId, reviews, canReview }: {
             </div>
           )}
         </div>
+      )}
+
+      {!canReview && (
+        // Previously the form simply vanished, which looked like a broken page
+        // rather than a deliberate rule.
+        <p className="mb-8 text-sm text-slate-500">
+          {isSignedIn
+            ? "Enroll in this course to leave a review."
+            : "Sign in and enroll in this course to leave a review."}
+        </p>
       )}
 
       {reviews.length === 0 ? (

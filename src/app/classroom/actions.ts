@@ -84,10 +84,25 @@ export async function updateProgress(lessonId: string, watchedSeconds: number, c
   
   await assertCourseContentAccess(user.id, lesson.module.courseId);
 
+  const now = new Date();
   const progress = await prisma.lessonProgress.upsert({
     where: { userId_lessonId: { userId: user.id, lessonId } },
-    update: { watchedSeconds, completed, lastWatchedAt: new Date(), completedAt: completed ? new Date() : null },
-    create: { userId: user.id, lessonId, watchedSeconds, completed }
+    // Only a `completed: true` call may touch the completion fields. Writing
+    // `completedAt: null` on every ordinary playback tick un-completed lessons
+    // that had already been finished, which also made the certificate check
+    // below flap.
+    update: {
+      watchedSeconds,
+      lastWatchedAt: now,
+      ...(completed ? { completed: true, completedAt: now } : {}),
+    },
+    create: {
+      userId: user.id,
+      lessonId,
+      watchedSeconds,
+      completed,
+      ...(completed ? { completedAt: now } : {}),
+    }
   });
 
   // Auto-issue certificate as soon as a student reaches 100% completion

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { updateProgress } from "../../actions";
 import { useRouter } from "next/navigation";
@@ -107,32 +107,52 @@ export default function ClassroomClient({
   // VideoPlayer owns its own element ref, so track the last reported position
   // here instead of reading a ref that is never attached.
   const lastPositionRef = useRef(initialProgress.position);
+  const saveInFlightRef = useRef(false);
+  const pendingSaveRef = useRef<{ seconds: number; isComplete: boolean } | null>(null);
 
-  const saveProgress = async (seconds: number, isComplete: boolean) => {
-    try {
-      await updateProgress(lesson.id, Math.floor(seconds), isComplete);
-    } catch (e) {
-      console.error("Failed to save progress:", e);
-      toast("Progress not saved. Will retry...", "error");
-    }
-  };
+  const saveProgress = useCallback(
+    async (seconds: number, isComplete: boolean) => {
+      // One write in flight at a time. A slow request used to let the next tick
+      // start another write, so a lagging network piled up duplicate requests.
+      if (saveInFlightRef.current) {
+        pendingSaveRef.current = { seconds, isComplete };
+        return;
+      }
+      saveInFlightRef.current = true;
+      try {
+        await updateProgress(lesson.id, Math.floor(seconds), isComplete);
+      } catch (e) {
+        console.error("Failed to save progress:", e);
+        toast("Progress not saved. Will retry...", "error");
+      } finally {
+        saveInFlightRef.current = false;
+        const queued = pendingSaveRef.current;
+        pendingSaveRef.current = null;
+        if (queued) void saveProgress(queued.seconds, queued.isComplete);
+      }
+    },
+    [lesson.id, toast]
+  );
 
-  const handleTimeUpdate = (seconds: number) => {
-    lastPositionRef.current = seconds;
-    saveProgress(seconds, completed);
-  };
+  const handleTimeUpdate = useCallback(
+    (seconds: number) => {
+      lastPositionRef.current = seconds;
+      void saveProgress(seconds, completed);
+    },
+    [saveProgress, completed]
+  );
 
-  const handleVideoEnded = () => {
+  const handleVideoEnded = useCallback(() => {
     setCompleted(true);
-    saveProgress(lastPositionRef.current, true);
+    void saveProgress(lastPositionRef.current, true);
     router.refresh();
-  };
+  }, [saveProgress, router]);
 
-  const handleMarkComplete = () => {
+  const handleMarkComplete = useCallback(() => {
     setCompleted(true);
-    saveProgress(lastPositionRef.current, true);
+    void saveProgress(lastPositionRef.current, true);
     router.refresh();
-  };
+  }, [saveProgress, router]);
 
   const prevLesson = prevLessonId
     ? course.modules

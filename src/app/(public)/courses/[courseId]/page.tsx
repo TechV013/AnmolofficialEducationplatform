@@ -245,7 +245,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
                 reviews={
                   <div className="space-y-6">
                     <RatingSummary avgRating={avgRating} reviewsCount={reviews.length} distribution={distribution} />
-                    <ReviewSection courseId={course.id} reviews={reviewItems} canReview={isEnrolled} />
+                    <ReviewSection courseId={course.id} reviews={reviewItems} canReview={isEnrolled} isSignedIn={isSignedIn} />
                   </div>
                 }
               />
