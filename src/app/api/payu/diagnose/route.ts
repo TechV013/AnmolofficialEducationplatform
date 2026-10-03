@@ -220,8 +220,24 @@ async function checkCheckoutPayload(secrets: string[], origin: string): Promise<
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams(checkout.params).toString(),
+      redirect: "manual",
       signal: AbortSignal.timeout(20000)
     });
+
+    // A valid payload is answered with a redirect to PayU's payment page
+    // (apitest.payu.in / secure.payu.in). Do not follow it — the status alone
+    // proves the signature was accepted.
+    const location = res.headers.get("location") ?? "";
+    if (res.status >= 300 && res.status < 400 && /payu\.in/i.test(location)) {
+      return {
+        ok: true,
+        httpStatus: res.status,
+        reason: "payment-page-redirect",
+        redirectedTo: scrub(new URL(location, checkout.gatewayUrl).host, secrets),
+        errorDetail: null
+      };
+    }
+
     const html = (await res.text()).slice(0, 8000);
     const verdict = classifyCheckoutHtml(html);
     // PayU error pages carry the reason in a <pre> block or the page title;

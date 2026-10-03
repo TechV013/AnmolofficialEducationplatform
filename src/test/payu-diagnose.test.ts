@@ -17,11 +17,27 @@ function request(token?: string): NextRequest {
 }
 
 function jsonResponse(body: unknown, status = 200) {
-  return { status, text: async () => JSON.stringify(body) };
+  return {
+    status,
+    headers: { get: () => null },
+    text: async () => JSON.stringify(body)
+  };
 }
 
 function htmlResponse(html: string, status = 200) {
-  return { status, text: async () => html };
+  return {
+    status,
+    headers: { get: () => null },
+    text: async () => html
+  };
+}
+
+function redirectResponse(location: string, status = 302) {
+  return {
+    status,
+    headers: { get: (h: string) => (h === "location" ? location : null) },
+    text: async () => ""
+  };
 }
 
 const fetchMock = vi.fn();
@@ -173,6 +189,21 @@ describe("checkout probe", () => {
     expect(String(init.body)).toContain(`key=${KEY}`);
     expect(String(init.body)).toContain("hash=");
     expect(String(init.body)).not.toContain(SALT);
+  });
+
+  it("treats a redirect to PayU's payment page as a successful render", async () => {
+    // Valid credentials are answered with 302 to apitest.payu.in, which the
+    // probe must recognise without following the redirect.
+    fetchMock
+      .mockResolvedValueOnce(INVALID_HASH)
+      .mockResolvedValueOnce(INVALID_HASH)
+      .mockResolvedValueOnce(
+        redirectResponse("https://apitest.payu.in/public/#/2b07576f91a9")
+      );
+    const body = await (await GET(request(TOKEN))).json();
+    expect(body.sections.checkout.ok).toBe(true);
+    expect(body.sections.checkout.reason).toBe("payment-page-redirect");
+    expect(body.sections.checkout.redirectedTo).toBe("apitest.payu.in");
   });
 
   it("flags PayU's generic gateway error page", async () => {
