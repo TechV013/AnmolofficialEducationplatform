@@ -142,12 +142,6 @@ export const courses: Course[] = [
   },
 ];
 
-export const instructors = [
-  { id: "1", name: "Dr. Rajesh Sharma", role: "Professor of Computer Science", description: "Dr. Sharma has over 15 years of experience in academia and industry. He specializes in Artificial Intelligence, Machine Learning, and data-driven innovation.", photo: "/images/instructor/1.png" },
-  { id: "2", name: "Dr. Priya Mehta", role: "Associate Professor", description: "Dr. Mehta is an expert in applied mathematics and data science. With a strong research background and a student-first approach, she simplifies complex concepts.", photo: "/images/instructor/2.png" },
-  { id: "3", name: "Prof. Arjun Nair", role: "Assistant Professor", description: "Prof. Nair brings industry experience and academic excellence together. He teaches modern web technologies, cloud infrastructure, and system design.", photo: "/images/instructor/3.png" },
-];
-
 export const testimonials = [
   {
     id: "1",
