@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { Home, BookOpen, ChartBar, ClipboardList, FileText, FileCheck, Award, User, LogOut } from "lucide-react";
+import { Home, BookOpen, ChartBar, ClipboardList, FileText, Award, User, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -33,7 +33,6 @@ const GROUPS: NavGroup[] = [
     label: "Tasks",
     items: [
       { href: "/assignments", label: "Assignments", icon: ClipboardList },
-      { href: "/quizzes", label: "Quizzes", icon: FileCheck },
       { href: "/notes", label: "Notes", icon: FileText },
     ],
   },

@@ -37,7 +37,7 @@ const CONFIGS: Record<Panel, Item[]> = {
   student: [
     { href: "/dashboard", label: "Dashboard", icon: HomeIcon, match: (p) => p === "/dashboard" },
     { href: "/my-learning", label: "Learning", icon: BookOpen, match: (p) => p === "/my-learning" || p.startsWith("/progress") },
-    { href: "/assignments", label: "Tasks", icon: ClipboardList, match: (p) => p === "/assignments" || p.startsWith("/quizzes") || p.startsWith("/notes") },
+    { href: "/assignments", label: "Tasks", icon: ClipboardList, match: (p) => p === "/assignments" || p.startsWith("/notes") },
     { href: "/profile", label: "Profile", icon: User, match: (p) => p.startsWith("/profile") },
   ],
 };
