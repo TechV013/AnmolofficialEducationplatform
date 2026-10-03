@@ -23,6 +23,10 @@ model User {
   title                String?
   phone                String?
   website              String?
+  state                String?
+  district             String?
+  termsAcceptedAt      DateTime?
+  marketingOptIn       Boolean                @default(false)
   isActive             Boolean                @default(true)
   assignmentsSubmitted AssignmentSubmission[]
   certificates         Certificate[]
