@@ -1,10 +1,10 @@
 "use client";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { Home, BookOpen, Users, MessageSquare, User, LogOut, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import UserAvatar from "@/components/ui/UserAvatar";
 
 interface NavItem {
   href: string;
@@ -22,10 +22,8 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-export default function InstructorNavMenu() {
+export default function InstructorNavMenu({ user }: { user?: { name?: string | null; image?: string | null } | null }) {
   const pathname = usePathname();
-  const { data: session } = useSession();
-  const user = session?.user as { name?: string; role?: string } | null;
 
   const courseMatch = pathname.match(/^\/instructor\/courses\/([^/]+)/);
 
@@ -58,7 +56,7 @@ export default function InstructorNavMenu() {
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-border/50 bg-white md:flex">
       <div className="flex items-center gap-2.5 border-b border-border/50 px-5 py-4">
-        <Image src="/images/logo.png" alt="Anmolofficial" width={36} height={36} className="h-9 w-auto" />
+        <UserAvatar image={user?.image} name={user?.name || "Instructor"} className="h-9 w-9 text-sm" />
         <div className="leading-tight">
           <p className="text-sm font-bold text-slate-900">Anmolofficial</p>
           <p className="text-[11px] font-medium text-slate-400">Instructor Panel</p>
@@ -99,9 +97,12 @@ export default function InstructorNavMenu() {
 
       <div className="border-t border-border/50 p-3">
         <div className="mb-2 flex items-center gap-2.5 rounded-lg bg-slate-50 px-3 py-2.5">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">
-            {(user?.name || "I").slice(0, 2).toUpperCase()}
-          </span>
+          <UserAvatar
+            image={user?.image}
+            name={user?.name || "I"}
+            className="h-8 w-8 text-sm"
+            fallbackClassName="bg-blue-100 text-blue-700"
+          />
           <div className="min-w-0 leading-tight">
             <p className="truncate text-sm font-semibold text-slate-800">{user?.name || "Instructor"}</p>
             <p className="flex items-center gap-1 text-[11px] font-medium text-blue-600">

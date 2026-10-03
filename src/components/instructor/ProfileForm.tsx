@@ -3,10 +3,20 @@
 import { useState } from "react";
 import { Upload, Loader2, Save } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
+import UserAvatar from "@/components/ui/UserAvatar";
 import { updateUserProfile, ProfileUpdateData } from "@/app/actions/profile";
 import { useRouter } from "next/navigation";
 
-export default function ProfileForm({ user }: { user: any }) {
+interface ProfileFormUser {
+  name?: string | null;
+  bio?: string | null;
+  title?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  image?: string | null;
+}
+
+export default function ProfileForm({ user }: { user: ProfileFormUser }) {
   const [loading, setLoading] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const { toast } = useToast();
@@ -39,7 +49,7 @@ export default function ProfileForm({ user }: { user: any }) {
 
       setFormData((prev) => ({ ...prev, image: data.url }));
       toast("Profile photo updated!", "success");
-    } catch (err) {
+    } catch {
       toast("Image upload failed", "error");
     } finally {
       setImageUploading(false);
@@ -53,7 +63,7 @@ export default function ProfileForm({ user }: { user: any }) {
       await updateUserProfile(formData);
       toast("Profile updated successfully", "success");
       router.refresh();
-    } catch (err) {
+    } catch {
       toast("Failed to update profile", "error");
     } finally {
       setLoading(false);
@@ -64,10 +74,10 @@ export default function ProfileForm({ user }: { user: any }) {
     <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-2xl border border-border shadow-sm">
       <div className="flex flex-col items-center sm:flex-row gap-6">
         <div className="relative h-24 w-24">
-          <img
-            src={formData.image || "/images/default-avatar.png"}
-            alt="Profile"
-            className="h-24 w-24 rounded-full object-cover border border-border"
+          <UserAvatar
+            image={formData.image}
+            name={formData.name}
+            className="h-24 w-24 text-2xl border border-border"
           />
           <label className="absolute bottom-0 right-0 p-2 bg-primary text-white rounded-full cursor-pointer hover:bg-primary-hover transition-colors">
             {imageUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}

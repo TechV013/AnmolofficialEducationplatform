@@ -1,5 +1,4 @@
-import { cn } from "@/lib/utils";
-import Image from "next/image";
+import UserAvatar from "./UserAvatar";
 
 export interface AvatarProps {
   src?: string;
@@ -9,13 +8,10 @@ export interface AvatarProps {
 
 export default function Avatar({ src, alt, size }: AvatarProps) {
   return (
-    <Image
-      src={src || "/images/default-avatar.png"}
-      alt={alt || "Avatar"}
-      className={cn("rounded-full object-cover", size === "sm" ? "w-8 h-8" : "w-10 h-10")}
-      width={40}
-      height={40}
-      priority
+    <UserAvatar
+      image={src}
+      name={alt}
+      className={size === "sm" ? "w-8 h-8 text-xs" : "w-10 h-10 text-sm"}
     />
   );
 }

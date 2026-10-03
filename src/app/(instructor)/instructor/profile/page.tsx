@@ -1,6 +1,7 @@
 import { requireInstructor } from "@/lib/auth/helpers";
 import { prisma } from "@/lib/prisma";
 import ProfileForm from "@/components/instructor/ProfileForm";
+import UserAvatar from "@/components/ui/UserAvatar";
 import { notFound } from "next/navigation";
 
 export default async function InstructorProfilePage() {
@@ -28,7 +29,7 @@ export default async function InstructorProfilePage() {
       <div className="bg-white border border-border p-8 rounded-2xl shadow-sm">
         <h3 className="font-bold text-lg mb-4">Instructor Bio Preview</h3>
         <div className="flex gap-4">
-          <img src={user.image || "/images/default-avatar.png"} alt={user.name || "Instructor"} className="h-16 w-16 rounded-full object-cover" />
+          <UserAvatar image={user.image} name={user.name} className="h-16 w-16 text-lg" />
           <div>
             <h4 className="font-bold text-text">{user.name}</h4>
             <p className="text-sm text-primary font-semibold">{user.title || "Instructor"}</p>

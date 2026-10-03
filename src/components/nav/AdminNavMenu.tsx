@@ -1,10 +1,10 @@
 "use client";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { Home, Users, GraduationCap, BookOpen, List, Banknote, CreditCard, Award, MessageCircle, Settings, LogOut, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import UserAvatar from "@/components/ui/UserAvatar";
 
 interface NavItem {
   href: string;
@@ -54,15 +54,13 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-export default function AdminNavMenu() {
+export default function AdminNavMenu({ user }: { user?: { name?: string | null; image?: string | null } | null }) {
   const pathname = usePathname();
-  const { data: session } = useSession();
-  const user = session?.user as { name?: string; role?: string } | null;
 
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-border/50 bg-white md:flex">
       <div className="flex items-center gap-2.5 border-b border-border/50 px-5 py-4">
-        <Image src="/images/logo.png" alt="Anmolofficial" width={36} height={36} className="h-9 w-auto" />
+        <UserAvatar image={user?.image} name={user?.name || "Admin"} className="h-9 w-9 text-sm" />
         <div className="leading-tight">
           <p className="text-sm font-bold text-slate-900">Anmolofficial</p>
           <p className="text-[11px] font-medium text-slate-400">Admin Panel</p>
@@ -103,9 +101,12 @@ export default function AdminNavMenu() {
 
       <div className="border-t border-border/50 p-3">
         <div className="mb-2 flex items-center gap-2.5 rounded-lg bg-slate-50 px-3 py-2.5">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-sm font-bold text-amber-700">
-            {(user?.name || "A").slice(0, 2).toUpperCase()}
-          </span>
+          <UserAvatar
+            image={user?.image}
+            name={user?.name || "A"}
+            className="h-8 w-8 text-sm"
+            fallbackClassName="bg-amber-100 text-amber-700"
+          />
           <div className="min-w-0 leading-tight">
             <p className="truncate text-sm font-semibold text-slate-800">{user?.name || "Admin"}</p>
             <p className="flex items-center gap-1 text-[11px] font-medium text-amber-600">
