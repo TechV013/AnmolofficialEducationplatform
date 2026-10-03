@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { confirmPaidOrder } from "@/services/payments/paymentConfirmation.service";
+import { generatePayUResponseHash, parseAmountToPaise } from "@/services/payments/payu.service";
+import { getPayUConfig } from "@/services/payments/payuConfig";
 import crypto from "crypto";
+
+function safeEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a, "utf8");
+  const bufB = Buffer.from(b, "utf8");
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,19 +19,19 @@ export async function POST(req: NextRequest) {
 
     const { mihpayid, txnid, status, amount, currency, hash } = data;
 
-    const salt = process.env.PAYU_MERCHANT_SECRET;
-    const key = process.env.PAYU_MERCHANT_KEY;
+    const config = getPayUConfig();
+    const salt = config.salt;
+    const key = config.key;
 
-    if (!salt || !key) {
-      return NextResponse.redirect(new URL("/courses?payment=error", req.url));
+    const expectedHash = generatePayUResponseHash(data, salt, key);
+    // A matching hash proves the postback came from PayU and was not tampered
+    // with in transit, which is the only basis for granting an enrolment.
+    if (!safeEqual(expectedHash, hash || "") || status !== "success") {
+      return NextResponse.redirect(new URL("/courses?payment=failed", req.url));
     }
 
-    // Verify hash
-    // Standard PayU reverse hash formula: sha512(salt|status|...|key)
-    const hashString = `${salt}|${status}||||||||||${data.udf5 || ""}|${data.udf4 || ""}|${data.udf3 || ""}|${data.udf2 || ""}|${data.udf1 || ""}|${data.email || ""}|${data.firstname || ""}|${data.productinfo || ""}|${amount || ""}|${txnid || ""}|${key}`;
-    const expectedHash = crypto.createHash("sha512").update(hashString).digest("hex");
-
-    if (expectedHash !== hash || status !== "success") {
+    const amountPaise = parseAmountToPaise(amount);
+    if (amountPaise === null) {
       return NextResponse.redirect(new URL("/courses?payment=failed", req.url));
     }
 
@@ -39,8 +48,8 @@ export async function POST(req: NextRequest) {
       await confirmPaidOrder({
         orderId: internalOrder.id,
         providerPaymentId: mihpayid || txnid,
-        amountPaise: Math.round(Number(amount) * 100),
-        currency: currency || "INR",
+        amountPaise,
+        currency: currency || internalOrder.currency,
         provider: "PAYU"
       });
     }

@@ -1,25 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { confirmPaidOrder } from "@/services/payments/paymentConfirmation.service";
+import { generatePayUResponseHash, parseAmountToPaise } from "@/services/payments/payu.service";
+import { getPayUConfig } from "@/services/payments/payuConfig";
 import crypto from "crypto";
+
+function safeEqual(a: string, b: string): boolean {
+  const bufA = Buffer.from(a, "utf8");
+  const bufB = Buffer.from(b, "utf8");
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
 
 export async function POST(req: NextRequest) {
   // PayU webhooks are application/x-www-form-urlencoded
   const formData = await req.formData();
-  const data = Object.fromEntries(formData.entries());
-  
-  const { mihpayid, txnid, status, amount, currency, hash } = data as any;
+  const data = Object.fromEntries(formData.entries()) as Record<string, string>;
 
-  // 1. Verify Hash
-  const salt = process.env.PAYU_MERCHANT_SECRET;
-  if (!salt) return new NextResponse("Webhook configuration missing", { status: 500 });
-  
-  // PayU hash verification formula (simplified, adjust based on official PayU v2 docs)
-  // Standard PayU reverse hash formula: sha512(salt|status|...|key)
-  const hashString = `${salt}|${status}||||||||||${data.udf5}|${data.udf4}|${data.udf3}|${data.udf2}|${data.udf1}|${data.email}|${data.firstname}|${data.productinfo}|${amount}|${txnid}|${data.key}`;
-  const expectedHash = crypto.createHash("sha512").update(hashString).digest("hex");
+  const { mihpayid, txnid, status, amount, currency, hash } = data;
 
-  if (expectedHash !== hash) {
+  let config;
+  try {
+    config = getPayUConfig();
+  } catch {
+    return new NextResponse("Webhook configuration missing", { status: 500 });
+  }
+
+  // The reverse hash must be recomputed with our own merchant key. Trusting the
+  // key supplied in the payload would let a caller pick the key their hash was
+  // built from.
+  if (!safeEqual(data.key || "", config.key)) {
+    return new NextResponse("Invalid signature", { status: 400 });
+  }
+
+  const expectedHash = generatePayUResponseHash(data, config.salt, config.key);
+  if (!safeEqual(expectedHash, hash || "")) {
     return new NextResponse("Invalid signature", { status: 400 });
   }
 
@@ -28,8 +43,12 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const amountPaise = parseAmountToPaise(amount);
+    if (amountPaise === null) {
+      return new NextResponse("Invalid amount", { status: 400 });
+    }
+
     // 2. Identify and confirm order
-    // txnid is our providerOrderId
     const internalOrder = await prisma.order.findUnique({
       where: { providerOrderId: txnid },
       include: { course: true }
@@ -46,9 +65,9 @@ export async function POST(req: NextRequest) {
     // 3. Confirm Order (Generic provider-agnostic confirmation)
     await confirmPaidOrder({
       orderId: internalOrder.id,
-      providerPaymentId: mihpayid,
-      amountPaise: Math.round(Number(amount) * 100),
-      currency: currency || "INR",
+      providerPaymentId: mihpayid || txnid,
+      amountPaise,
+      currency: currency || internalOrder.currency,
       provider: "PAYU"
     });
 

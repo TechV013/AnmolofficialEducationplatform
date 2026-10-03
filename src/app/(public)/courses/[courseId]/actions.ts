@@ -1,10 +1,8 @@
 "use server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth/helpers";
-import crypto from "crypto";
 import { createPayUCheckout } from "@/services/payments/payu.service";
-import { confirmPaidOrder } from "@/services/payments/paymentConfirmation.service";
-import type { Order } from "@prisma/client";
+import { getPublicOrigin, PaymentConfigError, isPayUConfigured } from "@/services/payments/payuConfig";
 
 export async function createPaymentOrder(courseId: string) {
   const user = await getCurrentUser();
@@ -14,7 +12,24 @@ export async function createPaymentOrder(courseId: string) {
   const course = await prisma.course.findUnique({ where: { id: courseId } });
   if (!course) throw new Error("Course not found");
   if (course.status !== "PUBLISHED") throw new Error("Course not published");
-  if (Number(course.price) <= 0) throw new Error("Course is not paid");
+  const amountRupees = Number(course.price);
+  if (!(amountRupees > 0)) throw new Error("Course is not paid");
+
+  // Checked after the course is known to be payable so a bad course id is not
+  // reported to the student as a payments outage.
+  if (!isPayUConfigured()) {
+    throw new Error("Payments are not available right now. Please contact support.");
+  }
+
+  // The session does not carry a phone number, and PayU uses it for fraud
+  // checks, so it is read from the stored profile.
+  const profile = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { phone: true }
+  });
+
+  const origin = getPublicOrigin();
+  if (!origin) throw new PaymentConfigError("NEXTAUTH_URL must be set to build PayU return URLs.");
 
   // Atomic check-and-create to prevent duplicate PENDING orders from concurrent clicks
   const result = await prisma.$transaction(async (tx) => {
@@ -36,37 +51,40 @@ export async function createPaymentOrder(courseId: string) {
     return { createNew: true as const };
   });
 
-  if ("alreadyEnrolled" in result) return { status: "ALREADY_ENROLLED" };
+  if ("alreadyEnrolled" in result) return { status: "ALREADY_ENROLLED" as const };
 
+  // PayU rejects a txnid that has already completed, and the stored forward hash
+  // was only ever valid for the attempt it was generated for. An abandoned
+  // pending order is therefore cancelled and a fresh transaction started.
   if ("existingOrder" in result && result.existingOrder) {
-    const o = result.existingOrder;
-    return {
-      checkoutUrl: o.providerOrderId,
-      internalOrderId: o.id
-    };
+    await prisma.order.update({
+      where: { id: result.existingOrder.id },
+      data: { status: "CANCELLED" }
+    });
   }
 
-  const amountPaise = Math.round(Number(course.price) * 100);
   const txnid = `PAYU_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
   const currency = course.currency || "INR";
 
-  const checkout = await createPayUCheckout({
+  const checkout = createPayUCheckout({
     txnid,
-    amount: amountPaise,
+    // PayU expects major units. Sending paise would charge 100x the listed price.
+    amount: amountRupees,
     productinfo: course.title,
-    firstname: user.name || "Student",
+    firstname: user.name?.trim() || "Student",
     email: user.email || "",
-    phone: "9999999999",
-    surl: `${process.env.NEXTAUTH_URL}/api/payu/callback`,
-    failureUrl: `${process.env.NEXTAUTH_URL}/courses/${courseId}?payment=fail`,
-    cancelUrl: `${process.env.NEXTAUTH_URL}/courses/${courseId}?payment=cancel`
+    phone: profile?.phone ?? null,
+    surl: `${origin}/api/payu/callback`,
+    failureUrl: `${origin}/courses/${courseId}?payment=fail`,
+    cancelUrl: `${origin}/courses/${courseId}?payment=cancel`
   });
 
   const internalOrder = await prisma.order.create({
     data: {
       userId: user.id,
       courseId,
-      amount: course.price,
+amount: amountRupees,
       currency,
       status: "PENDING",
       providerOrderId: txnid

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PlayCircle } from "lucide-react";
 import { enrollFree } from "./enrollment-actions";
@@ -12,7 +12,16 @@ export default function EnrollButton({ courseId, isFree, isEnrolled, isSignedIn 
   isSignedIn: boolean;
 }) {
   const [loading, setLoading] = useState(false);
+  const [checkout, setCheckout] = useState<{ url: string; params: Record<string, string> } | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
+
+  // PayU hosted checkout only accepts a form POST to /_payment. A plain redirect
+  // drops every field including the hash, so the signed form is submitted on the
+  // student's behalf once the server has signed it.
+  useEffect(() => {
+    if (checkout && formRef.current) formRef.current.submit();
+  }, [checkout]);
 
   if (isEnrolled) {
     return (
@@ -41,9 +50,8 @@ export default function EnrollButton({ courseId, isFree, isEnrolled, isSignedIn 
         const order = await createPaymentOrder(courseId);
         if (order && "status" in order && order.status === "ALREADY_ENROLLED") {
           router.push("/my-learning");
-        } else if (order && "checkoutUrl" in order && order.checkoutUrl) {
-          // PayU Hosted Checkout redirect
-          window.location.assign(order.checkoutUrl);
+        } else if (order && "checkoutUrl" in order && order.checkoutUrl && order.params) {
+          setCheckout({ url: order.checkoutUrl, params: order.params });
         }
       }
     } catch (e: unknown) {
@@ -54,6 +62,22 @@ export default function EnrollButton({ courseId, isFree, isEnrolled, isSignedIn 
     }
   };
 
+
+  if (checkout) {
+    return (
+      <form ref={formRef} action={checkout.url} method="POST" className="space-y-2">
+        {Object.entries(checkout.params).map(([name, value]) => (
+          <input key={name} type="hidden" name={name} value={value} readOnly />
+        ))}
+        <noscript>
+          <button type="submit" className="w-full rounded-xl bg-primary py-3.5 text-base font-bold text-white">
+            Continue to payment
+          </button>
+        </noscript>
+        <p className="text-center text-sm text-muted">Redirecting to secure payment…</p>
+      </form>
+    );
+  }
 
   return (
     <button
