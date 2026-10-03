@@ -1,13 +1,37 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Star, Quote, Play, Video } from "lucide-react";
+import { Star, Quote, Play, Video, ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { testimonials } from "@/data/courses";
 import VideoReviewModal from "@/components/testimonials/VideoReviewModal";
 import type { Testimonial } from "@/types/lms";
 
+const PAGE_SIZE = 3;
+
 export default function SuccessStories() {
   const [activeVideoTestimonial, setActiveVideoTestimonial] = useState<Testimonial | null>(null);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  const pages: (typeof testimonials)[] = [];
+  for (let i = 0; i < testimonials.length; i += PAGE_SIZE) {
+    pages.push(testimonials.slice(i, i + PAGE_SIZE));
+  }
+  const pageCount = pages.length;
+  const current = pages[pageIndex % Math.max(1, pageCount)] ?? [];
+
+  useEffect(() => {
+    if (isPaused || pageCount <= 1) return;
+    const timeout = setTimeout(() => {
+      setPageIndex((prev) => (prev + 1) % pageCount);
+    }, 5000);
+    return () => clearTimeout(timeout);
+  }, [pageIndex, isPaused, pageCount]);
+
+  const goNext = () => setPageIndex((prev) => (prev + 1) % pageCount);
+  const goPrev = () =>
+    setPageIndex((prev) => (prev - 1 + pageCount) % pageCount);
 
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
@@ -20,8 +44,21 @@ export default function SuccessStories() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {testimonials.slice(0, 3).map((t, i) => {
+        <div
+          className="relative"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={pageIndex}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.5 }}
+            >
+              {current.map((t, i) => {
             const hasVideo = Boolean(t.videoUrl);
 
             return (
@@ -87,8 +124,31 @@ export default function SuccessStories() {
                   </div>
                 </div>
               </div>
-            );
-          })}
+              );
+            })}
+            </motion.div>
+          </AnimatePresence>
+
+          {pageCount > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={goPrev}
+                aria-label="Previous testimonials"
+                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 rounded-full border border-gray-200 bg-white/90 p-2 shadow-md text-text hover:bg-white hover:shadow-lg transition-all"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                onClick={goNext}
+                aria-label="Next testimonials"
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 rounded-full border border-gray-200 bg-white/90 p-2 shadow-md text-text hover:bg-white hover:shadow-lg transition-all"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </>
+          )}
         </div>
 
         <div className="text-center mt-12">
