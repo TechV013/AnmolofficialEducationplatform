@@ -6,12 +6,24 @@ import type { NextRequest } from 'next/server';
 // sufficient to blunt brute-force/registration-spam at the perimeter.
 const WINDOW_MS = 60 * 1000; // 1 minute
 const MAX_REQUESTS_PER_WINDOW = 20; // per IP per minute for auth/certificate routes
+const MAX_TRACKED_KEYS = 5000; // bound memory; entries also expire on their own
 const hitCounts = new Map<string, { count: number; resetAt: number }>();
 
 function isRateLimited(key: string): boolean {
   const now = Date.now();
   const entry = hitCounts.get(key);
   if (!entry || now > entry.resetAt) {
+    // Expired entries are only replaced when the same key returns, so a spread-out
+    // attacker would otherwise grow this map without bound on every instance.
+    if (hitCounts.size >= MAX_TRACKED_KEYS) {
+      for (const [k, v] of hitCounts) {
+        if (now > v.resetAt) hitCounts.delete(k);
+      }
+      if (hitCounts.size >= MAX_TRACKED_KEYS) {
+        const oldest = hitCounts.keys().next();
+        if (!oldest.done) hitCounts.delete(oldest.value);
+      }
+    }
     hitCounts.set(key, { count: 1, resetAt: now + WINDOW_MS });
     return false;
   }
@@ -42,7 +54,7 @@ export function middleware(request: NextRequest) {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     const key = `${url.pathname}:${ip}`;
     if (isRateLimited(key)) {
-      return new NextResponse(JSON.stringify({ error: "Too many requests" }), {
+      return new NextResponse(JSON.stringify({ error: "Too many requests", code: "RateLimited" }), {
         status: 429,
         headers: {
           "Content-Type": "application/json",

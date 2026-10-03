@@ -22,22 +22,29 @@ const handler = NextAuth({
           throw new Error("Missing credentials");
         }
 
+        // Pasted addresses often carry surrounding whitespace. Without this the
+        // lookup misses and a valid account is reported as invalid.
+        const email = String(credentials.email).trim().toLowerCase();
+
         let user;
         try {
-          user = await prisma.user.findUnique({
-            where: { email: credentials.email.toLowerCase() },
-          });
+          user = await prisma.user.findUnique({ where: { email } });
         } catch (e) {
+          // An unreachable database is an outage, not a bad password. Throwing a
+          // credentials error here makes a server-side incident look like the
+          // user typed the wrong password.
           console.error("Auth DB Error:", e);
-          throw new Error("Database error");
+          throw new Error("DatabaseUnavailable");
         }
 
         if (!user || !user.passwordHash) {
+          // Same message and comparison either way so the response cannot be used
+          // to enumerate which emails have accounts.
           throw new Error("Invalid credentials");
         }
 
         if (!user.isActive) {
-          throw new Error("Your account has been deactivated. Please contact support.");
+          throw new Error("AccountDeactivated");
         }
 
         const isValid = await bcrypt.compare(credentials.password, user.passwordHash);

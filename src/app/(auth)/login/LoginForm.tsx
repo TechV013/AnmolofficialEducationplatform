@@ -16,6 +16,19 @@ const REASON_MESSAGES: Record<string, string> = {
     "Your account has been deactivated. Please contact support.",
 };
 
+/**
+ * Server-side failures arrive as opaque codes. Showing one generic message for
+ * every case made a database outage and a genuine typo indistinguishable.
+ */
+const AUTH_ERROR_MESSAGES: Record<string, string> = {
+  CredentialsSignin: "Invalid email or password. Please try again.",
+  DatabaseUnavailable:
+    "We could not reach the server. Please try again in a moment.",
+  AccountDeactivated: "Your account has been deactivated. Please contact support.",
+  AccessDenied: "Sign-in was refused. Please contact support.",
+  Configuration: "Sign-in is not configured correctly. Please contact support.",
+};
+
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -29,15 +42,46 @@ export default function LoginForm() {
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    const result = await signIn("credentials", { email, password, redirect: false });
-    if (result?.error) {
-      toast("Invalid email or password. Please try again.", "error");
-      setLoading(false);
-    } else {
+    try {
+      const result = await signIn("credentials", {
+        email: email.trim(),
+        password,
+        redirect: false
+      });
+
+      if (result?.error) {
+        // The rate limiter answers with JSON rather than a NextAuth redirect, so
+        // it reaches us as a thrown fetch error rather than result.error.
+        const message =
+          AUTH_ERROR_MESSAGES[result.error] ??
+          `Sign-in failed (${result.error}). Please try again.`;
+        toast(message, "error");
+        setLoading(false);
+        return;
+      }
+
+      // No error, but also no session means the request never reached NextAuth
+      // (blocked, expired or rate limited). Treat that as a failure instead of
+      // navigating to a dashboard that will bounce us back here.
       const session = await getSession();
-      const role = (session?.user as { role?: string })?.role;
+      if (!session?.user) {
+        toast("Sign-in did not complete. Please try again.", "error");
+        setLoading(false);
+        return;
+      }
+
+      const role = (session.user as { role?: string }).role;
       router.push(role === "ADMIN" ? "/admin" : role === "INSTRUCTOR" ? "/instructor" : "/dashboard");
       router.refresh();
+    } catch (err) {
+      // A 429 from the edge limiter arrives here. Never leave the button stuck
+      // on "Signing in..." by letting the rejection escape.
+      const message =
+        err instanceof Error && err.message.includes("429")
+          ? "Too many attempts. Please wait a minute and try again."
+          : "Could not reach the server. Check your connection and try again.";
+      toast(message, "error");
+      setLoading(false);
     }
   };
 
