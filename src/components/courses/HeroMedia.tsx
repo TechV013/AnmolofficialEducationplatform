@@ -14,6 +14,7 @@ interface HeroMediaProps {
 
 export default function HeroMedia({ thumbnail, title, category, promoVideoUrl }: HeroMediaProps) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
   const hasVideo = Boolean(promoVideoUrl);
 
   if (isPlaying && promoVideoUrl) {
@@ -37,11 +38,12 @@ export default function HeroMedia({ thumbnail, title, category, promoVideoUrl }:
 
   return (
     <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-gradient-to-br from-[#172554] via-[#1E40AF] to-primary shadow-lg">
-      {Boolean(thumbnail) ? (
+      {Boolean(thumbnail) && !imageFailed ? (
         <Image
           src={thumbnail as string}
           alt={title}
           fill
+          onError={() => setImageFailed(true)}
           className="h-full w-full object-cover"
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />

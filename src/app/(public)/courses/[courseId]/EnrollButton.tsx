@@ -56,7 +56,9 @@ export default function EnrollButton({ courseId, isFree, isEnrolled, isSignedIn 
       }
     } catch (e: unknown) {
       console.error("Enrollment error:", e);
-      alert(e instanceof Error ? e.message : "Enrollment failed.");
+      const message = e instanceof Error ? e.message : "";
+      const isMaskedServerError = !message || /Minified React error|Server Components render|digest/i.test(message);
+      alert(isMaskedServerError ? "We couldn't start checkout right now. Please try again in a moment." : message);
     } finally {
       setLoading(false);
     }
