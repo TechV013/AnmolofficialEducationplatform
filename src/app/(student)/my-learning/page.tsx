@@ -31,7 +31,7 @@ export default async function MyLearningPage() {
             <div className="text-center py-12">
               <h2 className="text-2xl font-bold mb-4">No courses yet</h2>
               <p className="text-gray-600 mb-6">You haven&apos;t enrolled in any courses yet. Start learning by exploring our course catalog.</p>
-              <Link href="/courses" className="inline-block bg-blue text-white py-3 px-6 rounded font-medium hover:bg-blue-dark transition-colors">
+              <Link href="/courses" className="inline-block bg-primary text-white py-3 px-6 rounded font-medium hover:bg-primary-hover transition-colors">
                 Explore Courses
               </Link>
             </div>
@@ -75,7 +75,7 @@ export default async function MyLearningPage() {
                         <p className="text-gray-600 text-sm mb-4 line-clamp-2">{course.description || "Course description coming soon."}</p>
                         
                         <div className="mt-6">
-                          <button className="w-full bg-blue text-white py-3 px-4 rounded font-medium hover:bg-blue-dark transition-colors flex items-center justify-center gap-2">Continue Learning <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg></button>
+                          <button className="w-full bg-primary text-white py-3 px-4 rounded font-medium hover:bg-primary-hover transition-colors flex items-center justify-center gap-2">Continue Learning <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg></button>
                         </div>
                       </div>
                     </div>
