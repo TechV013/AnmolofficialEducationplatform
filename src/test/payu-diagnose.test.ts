@@ -7,6 +7,9 @@ const SALT = "abcdefghijklmnopqrst";
 const TOKEN = "test-diagnose-token";
 const originalEnv = { ...process.env };
 
+const INVALID_HASH = { status: 0, msg: "Invalid Hash." };
+const UNKNOWN_TXN = { status: 0, msg: "Invalid transaction id" };
+
 function request(token?: string): NextRequest {
   const headers = new Headers();
   if (token !== undefined) headers.set("x-diagnose-token", token);
@@ -30,7 +33,8 @@ beforeEach(() => {
   process.env.PAYU_MERCHANT_SECRET = SALT;
   process.env.PAYU_ENV = "TEST";
   process.env.PAYU_DIAGNOSE_TOKEN = TOKEN;
-  fetchMock.mockResolvedValue(jsonResponse({ status: 1, msg: "Transaction not found" }));
+  // Default: PayU rejects the credentials on both endpoints.
+  fetchMock.mockResolvedValue(jsonResponse(INVALID_HASH));
 });
 
 afterEach(() => {
@@ -80,7 +84,12 @@ describe("diagnose report content", () => {
 
   it("reports credential shape without values", async () => {
     const body = await (await GET(request(TOKEN))).json();
-    expect(body.sections.config.key).toEqual({ length: KEY.length, hasWhitespace: false, hasQuote: false, nonAlphanumeric: 3 });
+    expect(body.sections.config.key).toEqual({
+      length: KEY.length,
+      hasWhitespace: false,
+      hasQuote: false,
+      nonAlphanumeric: 3
+    });
     expect(JSON.stringify(body.sections.config)).not.toContain(KEY);
   });
 
@@ -93,20 +102,52 @@ describe("diagnose report content", () => {
     expect(body.sections.config.error).toMatch(/TEST or PRODUCTION/);
     expect(fetchMock).not.toHaveBeenCalled();
   });
+});
 
-  it("classifies a verify_payment key rejection", async () => {
-    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 0, msg: "Invalid key" }));
+describe("verify_payment verdicts", () => {
+  it("calls credentials valid for the configured environment", async () => {
+    // First probe (test endpoint) accepts the key; production rejects it.
+    fetchMock.mockResolvedValueOnce(jsonResponse(UNKNOWN_TXN));
     const body = await (await GET(request(TOKEN))).json();
-    expect(body.sections.verifyPayment.ok).toBe(false);
-    expect(body.sections.verifyPayment.classification).toBe("invalid-key");
+    const verify = body.sections.verifyPayment;
+    expect(verify.ok).toBe(true);
+    expect(verify.verdict).toBe("credentials-match-configured-environment");
+    expect(verify.byEndpoint.test.classification).toBe("unknown-transaction");
+    expect(fetchMock).toHaveBeenCalledTimes(3); // two verifies + checkout probe
   });
 
-  it("treats an unknown transaction id as proof the credentials work", async () => {
+  it("detects production credentials while PAYU_ENV is TEST", async () => {
+    // Test endpoint rejects; production endpoint accepts.
+    fetchMock.mockResolvedValueOnce(jsonResponse(INVALID_HASH));
+    fetchMock.mockResolvedValueOnce(jsonResponse(UNKNOWN_TXN));
     const body = await (await GET(request(TOKEN))).json();
-    expect(body.sections.verifyPayment.ok).toBe(true);
-    expect(body.sections.verifyPayment.classification).toBe("unknown-transaction");
+    const verify = body.sections.verifyPayment;
+    expect(verify.ok).toBe(false);
+    expect(verify.verdict).toMatch(/^wrong-environment/);
+    expect(verify.byEndpoint.production.ok).toBe(true);
   });
 
+  it("reports a key/salt pair that neither environment accepts", async () => {
+    const body = await (await GET(request(TOKEN))).json();
+    const verify = body.sections.verifyPayment;
+    expect(verify.ok).toBe(false);
+    expect(verify.verdict).toMatch(/invalid-key-or-salt/);
+    expect(verify.byEndpoint.test.classification).toBe("invalid-hash");
+    expect(verify.byEndpoint.production.classification).toBe("invalid-hash");
+  });
+
+  it("parses the PHP-array response shape PayU sometimes returns", async () => {
+    fetchMock.mockResolvedValueOnce({
+      status: 200,
+      text: async () => "<pre>Array\n(\n\t[status] => 0\n\t[msg] => Invalid Hash.\n)\n</pre>"
+    });
+    const body = await (await GET(request(TOKEN))).json();
+    expect(body.sections.verifyPayment.byEndpoint.test.classification).toBe("invalid-hash");
+    expect(body.sections.verifyPayment.byEndpoint.test.payuStatus).toBe(0);
+  });
+});
+
+describe("checkout probe", () => {
   it("skips the checkout probe in PRODUCTION", async () => {
     process.env.PAYU_ENV = "PRODUCTION";
     const body = await (await GET(request(TOKEN))).json();
@@ -118,30 +159,48 @@ describe("diagnose report content", () => {
   });
 
   it("posts a signed payload to the test endpoint and reads the verdict", async () => {
-    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 1, msg: "Transaction not found" }));
-    fetchMock.mockResolvedValueOnce(
-      htmlResponse("<html>Choose a payment option: UPI, Cards</html>")
-    );
+    const paymentPage = htmlResponse("<html>Choose a payment option: UPI, Cards</html>");
+    // Order: test verify, production verify, then the checkout probe.
+    fetchMock
+      .mockResolvedValueOnce(INVALID_HASH)
+      .mockResolvedValueOnce(INVALID_HASH)
+      .mockResolvedValueOnce(paymentPage);
     const body = await (await GET(request(TOKEN))).json();
     expect(body.sections.checkout.ok).toBe(true);
-    const [, init] = fetchMock.mock.calls[1];
+    const checkoutCall = fetchMock.mock.calls.find(([url]) => String(url).includes("_payment"));
+    expect(checkoutCall).toBeTruthy();
+    const init = checkoutCall![1];
     expect(String(init.body)).toContain(`key=${KEY}`);
     expect(String(init.body)).toContain("hash=");
     expect(String(init.body)).not.toContain(SALT);
   });
 
   it("flags PayU's generic gateway error page", async () => {
-    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 1, msg: "ok" }));
-    fetchMock.mockResolvedValueOnce(htmlResponse("<html>Pardon, Some Problem Occurred</html>"));
+    fetchMock
+      .mockResolvedValueOnce(INVALID_HASH)
+      .mockResolvedValueOnce(INVALID_HASH)
+      .mockResolvedValueOnce(htmlResponse("<html>Pardon, Some Problem Occurred</html>"));
     const body = await (await GET(request(TOKEN))).json();
     expect(body.sections.checkout.ok).toBe(false);
     expect(body.sections.checkout.reason).toBe("gateway-error-page");
   });
 
   it("flags a hash rejection on the checkout page", async () => {
-    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 1, msg: "ok" }));
-    fetchMock.mockResolvedValueOnce(htmlResponse("<html>Invalid Hash</html>"));
+    fetchMock
+      .mockResolvedValueOnce(INVALID_HASH)
+      .mockResolvedValueOnce(INVALID_HASH)
+      .mockResolvedValueOnce(htmlResponse("<html>Invalid Hash</html>"));
     const body = await (await GET(request(TOKEN))).json();
     expect(body.sections.checkout.reason).toBe("invalid-hash");
+  });
+
+  it("surfaces the error detail from the page's pre block", async () => {
+    fetchMock
+      .mockResolvedValueOnce(INVALID_HASH)
+      .mockResolvedValueOnce(INVALID_HASH)
+      .mockResolvedValueOnce(htmlResponse("<html><pre>Invalid Hash: merchant key rejected</pre></html>"));
+    const body = await (await GET(request(TOKEN))).json();
+    expect(body.sections.checkout.errorDetail).toContain("Invalid Hash");
+    expect(body.sections.checkout.errorDetail).not.toContain(KEY);
   });
 });

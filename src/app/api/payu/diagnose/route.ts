@@ -89,18 +89,50 @@ function checkConfig(): CheckSection {
   }
 }
 
-async function checkVerifyPayment(secrets: string[]): Promise<CheckSection> {
-  const config = getPayUConfig();
-  const base = getPayUCheckoutUrl().replace(/\/_payment$/, "");
-  const var1 = `DIAG${Date.now().toString(36).toUpperCase()}`;
-  const hash = sha512([config.key, "verify_payment", var1, config.salt].join("|"));
-
+/**
+ * PayU answers with JSON or with a PHP-printed array depending on the endpoint.
+ * Extract status/msg from either shape.
+ */
+function parsePayUResponse(raw: string): { status?: number; msg?: string } | null {
   try {
-    const res = await fetch(`${base}/merchant/postservice?form=1`, {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") return parsed;
+  } catch {
+    // fall through to the PHP-array shape
+  }
+  const statusMatch = raw.match(/\[status\]\s*=>\s*(-?\d+)/);
+  const msgMatch = raw.match(/\[msg\]\s*=>\s*([^\r\n<]+)/);
+  if (statusMatch || msgMatch) {
+    return {
+      status: statusMatch ? Number(statusMatch[1]) : undefined,
+      msg: msgMatch ? msgMatch[1].trim() : ""
+    };
+  }
+  return null;
+}
+
+type VerifyResult = {
+  ok: boolean;
+  httpStatus: number;
+  payuStatus: number | null;
+  classification: string | null;
+  message: string;
+};
+
+async function probeVerify(
+  base: string,
+  key: string,
+  salt: string,
+  var1: string,
+  secrets: string[]
+): Promise<VerifyResult> {
+  const hash = sha512([key, "verify_payment", var1, salt].join("|"));
+  try {
+    const res = await fetch(`${base}/merchant/postservice?form=2`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        key: config.key,
+        key,
         command: "verify_payment",
         var1,
         hash
@@ -108,25 +140,67 @@ async function checkVerifyPayment(secrets: string[]): Promise<CheckSection> {
       signal: AbortSignal.timeout(20000)
     });
     const raw = (await res.text()).slice(0, 2000);
-    let parsed: { status?: number; msg?: string } | null = null;
-    try {
-      parsed = JSON.parse(raw);
-    } catch {
-      // Non-JSON body: fall through and report the scrubbed raw text below.
-    }
+    const parsed = parsePayUResponse(raw);
     const msg = parsed?.msg ?? "";
+    const classification = msg ? classifyVerifyMessage(msg) : null;
     return {
       // status 1 = API healthy. status 0 with an unknown txnid still proves the
       // key and hash were accepted — only a key/hash complaint is a failure.
-      ok: parsed?.status === 1 || (parsed?.status === 0 && classifyVerifyMessage(msg) === "unknown-transaction"),
+      ok:
+        parsed?.status === 1 ||
+        (parsed?.status === 0 && classification === "unknown-transaction"),
       httpStatus: res.status,
       payuStatus: parsed?.status ?? null,
-      classification: parsed && !msg ? null : classifyVerifyMessage(msg),
+      classification,
       message: scrub(msg || raw.slice(0, 300), secrets)
     };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "request failed" };
+    return {
+      ok: false,
+      httpStatus: 0,
+      payuStatus: null,
+      classification: "request-failed",
+      message: e instanceof Error ? e.message : "request failed"
+    };
   }
+}
+
+/**
+ * Probe verify_payment against BOTH PayU environments (read-only query, never
+ * moves money). PayU keys are environment-specific, so the pattern of results
+ * discriminates the three failure modes: correct env, wrong env, or a key/salt
+ * pair that matches neither.
+ */
+async function checkVerifyPayment(secrets: string[]): Promise<CheckSection> {
+  const config = getPayUConfig();
+  const var1 = `DIAG${Date.now().toString(36).toUpperCase()}`;
+
+  const [test, production] = await Promise.all([
+    probeVerify("https://test.payu.in", config.key, config.salt, var1, secrets),
+    probeVerify("https://secure.payu.in", config.key, config.salt, var1, secrets)
+  ]);
+
+  const configured = config.isProduction ? production : test;
+  const other = config.isProduction ? test : production;
+
+  let verdict: string;
+  if (configured.ok && !other.ok) {
+    verdict = "credentials-match-configured-environment";
+  } else if (!configured.ok && other.ok) {
+    verdict = `wrong-environment: credentials are valid on ${
+      other === test ? "test" : "production"
+    } but PAYU_ENV selects ${config.isProduction ? "PRODUCTION" : "TEST"}`;
+  } else if (!configured.ok && !other.ok) {
+    verdict = "invalid-key-or-salt: rejected by both environments";
+  } else {
+    verdict = "both-environments-accepted (unexpected)";
+  }
+
+  return {
+    ok: configured.ok,
+    verdict,
+    byEndpoint: { test, production }
+  };
 }
 
 async function checkCheckoutPayload(secrets: string[], origin: string): Promise<CheckSection> {
@@ -148,8 +222,14 @@ async function checkCheckoutPayload(secrets: string[], origin: string): Promise<
       body: new URLSearchParams(checkout.params).toString(),
       signal: AbortSignal.timeout(20000)
     });
-    const html = (await res.text()).slice(0, 5000);
+    const html = (await res.text()).slice(0, 8000);
     const verdict = classifyCheckoutHtml(html);
+    // PayU error pages carry the reason in a <pre> block or the page title;
+    // fall back to the leading markup so nothing is silently swallowed.
+    const detailMatch =
+      html.match(/<pre[^>]*>([\s\S]{0,500}?)<\/pre>/i) ??
+      html.match(/<title[^>]*>([\s\S]{0,200}?)<\/title>/i) ??
+      html.match(/(?:error|reason)[\s\S]{0,200}/i);
     return {
       ok: verdict.ok,
       httpStatus: res.status,
@@ -157,10 +237,10 @@ async function checkCheckoutPayload(secrets: string[], origin: string): Promise<
       errorDetail: verdict.ok
         ? null
         : scrub(
-            (() => {
-              const match = html.match(/error\s*reason[\s\S]{0,200}/i);
-              return (match ? match[0] : html.slice(0, 200)).replace(/\s+/g, " ");
-            })(),
+            (detailMatch ? detailMatch[1] ?? detailMatch[0] : html.slice(0, 200)).replace(
+              /\s+/g,
+              " "
+            ),
             secrets
           )
     };
