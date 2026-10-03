@@ -2,7 +2,7 @@
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth/helpers";
 import { createPayUCheckout } from "@/services/payments/payu.service";
-import { getPublicOrigin, PaymentConfigError, isPayUConfigured } from "@/services/payments/payuConfig";
+import { getPublicOrigin, PaymentConfigError, getPayUConfigIssue } from "@/services/payments/payuConfig";
 
 export async function createPaymentOrder(courseId: string) {
   const user = await getCurrentUser();
@@ -16,8 +16,11 @@ export async function createPaymentOrder(courseId: string) {
   if (!(amountRupees > 0)) throw new Error("Course is not paid");
 
   // Checked after the course is known to be payable so a bad course id is not
-  // reported to the student as a payments outage.
-  if (!isPayUConfigured()) {
+  // reported to the student as a payments outage. The detailed reason is logged
+  // because the student-facing message deliberately reveals no configuration.
+  const configIssue = getPayUConfigIssue();
+  if (configIssue) {
+    console.error("PayU configuration error:", configIssue);
     throw new Error("Payments are not available right now. Please contact support.");
   }
 

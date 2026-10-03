@@ -12,11 +12,34 @@ function safeEqual(a: string, b: string): boolean {
   return crypto.timingSafeEqual(bufA, bufB);
 }
 
-export async function POST(req: NextRequest) {
-  try {
-    const formData = await req.formData();
-    const data = Object.fromEntries(formData.entries()) as Record<string, string>;
+/**
+ * PayU delivers the payment response either as a POST form body or as GET
+ * query parameters, depending on the merchant configuration. Read both so the
+ * hash is always computed over the fields PayU actually sent: parsing only the
+ * form body made every GET return land on `payment=failed` because the payload
+ * came back empty. Query values are read first so an explicit POST body wins.
+ */
+async function readResponseParams(req: NextRequest): Promise<Record<string, string>> {
+  const params: Record<string, string> = {};
+  for (const [key, value] of req.nextUrl.searchParams.entries()) {
+    params[key] = value;
+  }
+  if (req.method === "POST") {
+    try {
+      const formData = await req.formData();
+      for (const [key, value] of formData.entries()) {
+        params[key] = String(value);
+      }
+    } catch {
+      // Not a form-encoded body (or no body): query parameters above still apply.
+    }
+  }
+  return params;
+}
 
+async function handleCallback(req: NextRequest) {
+  try {
+    const data = await readResponseParams(req);
     const { mihpayid, txnid, status, amount, currency, hash } = data;
 
     const config = getPayUConfig();
@@ -61,7 +84,11 @@ export async function POST(req: NextRequest) {
   }
 }
 
+export async function POST(req: NextRequest) {
+  return handleCallback(req);
+}
+
 // PayU can also send GET callbacks depending on merchant configuration
 export async function GET(req: NextRequest) {
-  return POST(req);
+  return handleCallback(req);
 }

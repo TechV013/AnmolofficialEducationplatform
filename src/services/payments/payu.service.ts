@@ -34,10 +34,17 @@ export function generatePayUHash(params: {
 /**
  * Reverse hash for validating a PayU callback or webhook postback.
  *
- *   sha512(SALT|status||||||udf5|udf4|udf3|udf2|udf1|email|firstname|productinfo|amount|txnid|key)
+ *   regular:                sha512(SALT|status||||||udf5|udf4|udf3|udf2|udf1|email|firstname|productinfo|amount|txnid|key)
+ *   with additional charges: sha512(additional_charges|SALT|status||||||udf5|...|key)
+ *   with split info:        sha512(SALT|status|splitInfo||||||udf5|...|key)
  *
- * Returned unchanged so the caller can compare it against the posted hash with a
- * constant-time check.
+ * The six literal pipes between status (or splitInfo) and udf5 are part of the
+ * documented formula — PayU's internal empty fields — and this exact shape was
+ * verified byte-for-byte against the sample callback hash published in PayU's
+ * own integration docs. Omitting them makes every valid signature fail.
+ *
+ * Returned unchanged so the caller can compare it against the posted hash with
+ * a constant-time check.
  */
 export function generatePayUResponseHash(
   postback: Record<string, unknown>,
@@ -45,9 +52,13 @@ export function generatePayUResponseHash(
   key: string
 ): string {
   const str = (v: unknown) => (v == null ? "" : String(v));
-  const fields = [
-    salt,
-    str(postback.status),
+  const additionalCharges = str(postback.additional_charges ?? postback.additionalCharges);
+  const splitInfo = str(postback.splitInfo ?? postback.split_info);
+
+  const head = [salt, str(postback.status)];
+  if (splitInfo) head.push(splitInfo);
+
+  const tail = [
     str(postback.udf5),
     str(postback.udf4),
     str(postback.udf3),
@@ -59,8 +70,10 @@ export function generatePayUResponseHash(
     str(postback.amount),
     str(postback.txnid),
     key
-  ];
-  return sha512(fields.join("|"));
+  ].join("|");
+
+  const hashString = head.join("|") + "||||||" + tail;
+  return sha512(additionalCharges ? `${additionalCharges}|${hashString}` : hashString);
 }
 
 /**

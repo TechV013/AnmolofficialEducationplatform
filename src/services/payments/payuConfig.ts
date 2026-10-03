@@ -19,8 +19,67 @@ export interface PayUConfig {
   isProduction: boolean;
 }
 
+type PayUEnvironment = "TEST" | "PRODUCTION";
+
+/**
+ * Vercel env values are literal — a value pasted with surrounding quotes keeps
+ * those quote characters, and an interior space would corrupt the hash on both
+ * ends. Trim paste artifacts; reject anything that cannot be a PayU credential.
+ */
+function sanitizeCredential(name: string, raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    throw new PaymentConfigError(`${name} is empty.`);
+  }
+  if (/["']/.test(trimmed)) {
+    throw new PaymentConfigError(
+      `${name} contains quote characters. Paste the raw value without quotes.`
+    );
+  }
+  if (/\s/.test(trimmed)) {
+    throw new PaymentConfigError(
+      `${name} contains whitespace inside the value. Paste the raw value unchanged.`
+    );
+  }
+  return trimmed;
+}
+
+/**
+ * `PAYU_ENV` decides whether requests hit test.payu.in or secure.payu.in.
+ * An exact-case match used to be required, so `production` or `Production`
+ * silently routed live credentials at the test endpoint — which PayU rejects
+ * with an opaque "Pardon, Some Problem Occurred" page instead of naming the
+ * mismatch. Normalise case, and refuse anything that is not TEST/PRODUCTION so
+ * a typo fails here with a clear message rather than at the gateway.
+ */
+function resolveEnvironment(): PayUEnvironment {
+  const raw = process.env.PAYU_ENV;
+  const value = (raw ?? "").trim().toUpperCase();
+  if (!value) {
+    throw new PaymentConfigError(
+      "PAYU_ENV is not set. Set it to TEST or PRODUCTION so checkout targets the matching PayU endpoint."
+    );
+  }
+  if (value !== "TEST" && value !== "PRODUCTION") {
+    throw new PaymentConfigError(
+      `PAYU_ENV must be TEST or PRODUCTION, received "${value.slice(0, 20)}".`
+    );
+  }
+  return value;
+}
+
+/** Returns why PayU is not configured, or null when it is ready to use. */
+export function getPayUConfigIssue(): string | null {
+  try {
+    getPayUConfig();
+    return null;
+  } catch (e) {
+    return e instanceof Error ? e.message : "Payments are not configured.";
+  }
+}
+
 export function isPayUConfigured(): boolean {
-  return Boolean(process.env.PAYU_MERCHANT_KEY && process.env.PAYU_MERCHANT_SECRET);
+  return getPayUConfigIssue() === null;
 }
 
 export function getPayUConfig(): PayUConfig {
@@ -33,7 +92,12 @@ export function getPayUConfig(): PayUConfig {
     );
   }
 
-  return { key, salt, isProduction: process.env.PAYU_ENV === "PRODUCTION" };
+  const environment = resolveEnvironment();
+  return {
+    key: sanitizeCredential("PAYU_MERCHANT_KEY", key),
+    salt: sanitizeCredential("PAYU_MERCHANT_SECRET", salt),
+    isProduction: environment === "PRODUCTION"
+  };
 }
 
 /** Hosted checkout endpoint that the payment form posts to. */

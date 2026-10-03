@@ -113,41 +113,126 @@ describe("reverse hash", () => {
     txnid: "123456789"
   };
 
-  it("matches PayU's documented response formula", () => {
-    const expected = crypto
+  /** PayU's documented literal: SALT|status||||||udf5|udf4|udf3|udf2|udf1|email|... */
+  function documentedReverseHash(
+    parts: { status: string; udfs: string[]; rest: string[] },
+    salt: string
+  ): string {
+    return crypto
       .createHash("sha512")
       .update(
-        [SALT, "success", "", "", "", "", "", "john@example.com", "John", "Test Product", "10.00", "123456789", KEY].join("|"),
+        `${salt}|${parts.status}||||||${[...parts.udfs, ...parts.rest].join("|")}`,
         "utf8"
       )
       .digest("hex");
+  }
+
+  it("matches PayU's documented response formula", () => {
+    const expected = documentedReverseHash(
+      {
+        status: "success",
+        udfs: ["", "", "", "", ""],
+        rest: ["john@example.com", "John", "Test Product", "10.00", "123456789", KEY]
+      },
+      SALT
+    );
     expect(generatePayUResponseHash(postback, SALT, KEY)).toBe(expected);
   });
 
-  it("round-trips against the forward hash for an echoed transaction", () => {
+  it("matches the sample callback hash published in PayU's docs", () => {
+    // PayU's own published sample response, with the test credentials PayU
+    // ships in its documentation. Ground truth for the literal pipe shape:
+    // if the six pipes between status and udf5 go missing, this fails.
+    const sample = {
+      status: "success",
+      key: "PRiQvJ",
+      txnid: "756609e32e92add4b5f2",
+      amount: "10.00",
+      productinfo: "Product Info",
+      firstname: "Payu-Admin",
+      email: "test@example.com",
+      udf1: "",
+      udf2: "",
+      udf3: "",
+      udf4: "",
+      udf5: ""
+    };
+    const expectedHash =
+      "79d14afc4a3998a627d8fb431b2ee648b16fd6e31252397109ad5f44d77f7630daaaeedf0bbd5b3e7a81342c96bc087beb43125c0619cac1e5408243fdc29a04";
+    expect(
+      generatePayUResponseHash(sample, "mGHSxpD2iBVywParGQrGBlaXjnwkGJMQ", "PRiQvJ")
+    ).toBe(expectedHash);
+  });
+
+  it("keeps the literal six pipes between status and the udf block", () => {
+    const hash = generatePayUResponseHash(postback, SALT, KEY);
+    const recomputed = crypto
+      .createHash("sha512")
+      .update(
+        `${SALT}|success|||||||||||john@example.com|John|Test Product|10.00|123456789|${KEY}`,
+        "utf8"
+      )
+      .digest("hex");
+    expect(hash).toBe(recomputed);
+  });
+
+  it("places echoed udf values after the literal pipes", () => {
     // PayU echoes the same udf values back, so verifying a real callback means
     // recomputing the reverse hash from the posted fields.
     const udf = { udf1: "", udf2: "abc", udf3: "", udf4: "15", udf5: "" };
     const computed = generatePayUResponseHash({ ...postback, ...udf }, SALT, KEY);
-    const expected = crypto
-      .createHash("sha512")
-      .update(
-        [SALT, "success", "", "15", "", "abc", "", "john@example.com", "John", "Test Product", "10.00", "123456789", KEY].join("|"),
-        "utf8"
-      )
-      .digest("hex");
+    const expected = documentedReverseHash(
+      {
+        status: "success",
+        udfs: ["", "15", "", "abc", ""],
+        rest: ["john@example.com", "John", "Test Product", "10.00", "123456789", KEY]
+      },
+      SALT
+    );
     expect(computed).toBe(expected);
   });
 
   it("treats missing fields as empty rather than the string undefined", () => {
-    // salt|status|udf5|udf4|udf3|udf2|udf1|email|firstname|productinfo|amount|txnid|key
     const withGaps = generatePayUResponseHash({ status: "success", txnid: "t" }, SALT, KEY);
-    const expected = crypto
-      .createHash("sha512")
-      .update([SALT, "success", "", "", "", "", "", "", "", "", "", "t", KEY].join("|"), "utf8")
-      .digest("hex");
+    const expected = documentedReverseHash(
+      { status: "success", udfs: ["", "", "", "", ""], rest: ["", "", "", "", "t", KEY] },
+      SALT
+    );
     expect(withGaps).toBe(expected);
     expect(withGaps).not.toContain("undefined");
+  });
+
+  it("prefixes additional_charges when PayU posts it", () => {
+    // Payment modes that pass the gateway fee to the customer include
+    // additional_charges, and the documented formula then prepends it.
+    const postback2 = { ...postback, additional_charges: "1.18" };
+    const expected = crypto
+      .createHash("sha512")
+      .update(
+        `1.18|${SALT}|success|||||||||||john@example.com|John|Test Product|10.00|123456789|${KEY}`,
+        "utf8"
+      )
+      .digest("hex");
+    expect(generatePayUResponseHash(postback2, SALT, KEY)).toBe(expected);
+  });
+
+  it("does not prefix an empty additional_charges value", () => {
+    const postback2 = { ...postback, additional_charges: "" };
+    expect(generatePayUResponseHash(postback2, SALT, KEY)).toBe(
+      generatePayUResponseHash(postback, SALT, KEY)
+    );
+  });
+
+  it("includes splitInfo between status and the pipes when posted", () => {
+    const postback2 = { ...postback, splitInfo: "split-json" };
+    const expected = crypto
+      .createHash("sha512")
+      .update(
+        `${SALT}|success|split-json|||||||||||john@example.com|John|Test Product|10.00|123456789|${KEY}`,
+        "utf8"
+      )
+      .digest("hex");
+    expect(generatePayUResponseHash(postback2, SALT, KEY)).toBe(expected);
   });
 });
 
