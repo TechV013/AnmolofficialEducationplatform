@@ -18,6 +18,7 @@ import {
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
+    user: { findUnique: vi.fn() },
     courseInstructor: { findUnique: vi.fn() },
     module: { findFirst: vi.fn() },
     lesson: { count: vi.fn(), aggregate: vi.fn(), findFirst: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
@@ -37,9 +38,18 @@ vi.mock("next/cache", () => ({
 
 const COURSE_ID = "c1";
 
+/** Authorization is DB-authoritative: the session supplies identity, the DB supplies role/isActive. */
+function signInAs(user: { id: string; role: "INSTRUCTOR" | "ADMIN" | "STUDENT" } | null) {
+  vi.mocked(getCurrentUser).mockResolvedValue(user as any);
+  vi.mocked(prisma.user.findUnique).mockResolvedValue(
+    user ? ({ role: user.role, isActive: true } as any) : null
+  );
+}
+
 function signInAsCourseEditor() {
-  vi.mocked(getCurrentUser).mockResolvedValue({ id: "instr-1", role: "INSTRUCTOR" } as any);
+  signInAs({ id: "instr-1", role: "INSTRUCTOR" });
   vi.mocked(prisma.courseInstructor.findUnique).mockResolvedValue({ courseId: COURSE_ID, userId: "instr-1" } as any);
+  vi.mocked(prisma.module.findFirst).mockResolvedValue({ id: "m1", courseId: COURSE_ID } as any);
 }
 
 function lessonInCourse() {
@@ -231,7 +241,7 @@ describe("Resource lesson authoring (Course Studio — existing canonical Resour
 
   // 5 + 6: role authorization
   it("student cannot mutate resources", async () => {
-    vi.mocked(getCurrentUser).mockResolvedValue({ id: "student-1", role: "STUDENT" } as any);
+    signInAs({ id: "student-1", role: "STUDENT" });
     lessonInCourse();
     resourceInCourse();
 
@@ -244,7 +254,7 @@ describe("Resource lesson authoring (Course Studio — existing canonical Resour
   });
 
   it("unauthenticated request is denied", async () => {
-    vi.mocked(getCurrentUser).mockResolvedValue(null);
+    signInAs(null);
 
     await expect(createResource("lesson-1", "X", "PDF", "/uploads/a.pdf", COURSE_ID)).rejects.toThrow("Unauthorized");
     await expect(updateResource("r1", "X", "PDF", "/uploads/a.pdf", COURSE_ID)).rejects.toThrow("Unauthorized");
@@ -252,7 +262,7 @@ describe("Resource lesson authoring (Course Studio — existing canonical Resour
   });
 
   it("admin may manage course resources", async () => {
-    vi.mocked(getCurrentUser).mockResolvedValue({ id: "admin-1", role: "ADMIN" } as any);
+    signInAs({ id: "admin-1", role: "ADMIN" });
     lessonInCourse();
     resourceInCourse();
 

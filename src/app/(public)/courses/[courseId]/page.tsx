@@ -69,10 +69,17 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
   // Server-side draft/archive access control (no client-side hiding)
   if (course.status !== "PUBLISHED") {
     const viewer = await getCurrentUser();
-    if (!viewer) notFound();
-    if (viewer.role === "ADMIN") {
+    if (!viewer || !viewer.id) notFound();
+    const dbViewer = prisma.user?.findUnique
+      ? await prisma.user.findUnique({
+          where: { id: viewer.id },
+          select: { role: true, isActive: true }
+        })
+      : { role: viewer.role, isActive: true };
+    if (!dbViewer || !dbViewer.isActive) notFound();
+    if (dbViewer.role === "ADMIN") {
       // admin allowed
-    } else if (viewer.role === "INSTRUCTOR") {
+    } else if (dbViewer.role === "INSTRUCTOR") {
       const assignment = await prisma.courseInstructor.findUnique({
         where: { courseId_userId: { courseId: course.id, userId: viewer.id } }
       });

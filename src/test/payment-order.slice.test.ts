@@ -17,7 +17,13 @@ vi.mock("@/lib/prisma", () => ({
 
 vi.mock("@/lib/auth/helpers", () => ({
   getCurrentUser: vi.fn(),
-  requireRole: vi.fn()
+  requireRole: vi.fn(),
+  requireStudent: vi.fn(async () => {
+    const user = await (vi.mocked(getCurrentUser) as any)();
+    if (!user) throw new Error("Unauthorized");
+    if (user.role !== "STUDENT") throw new Error("Forbidden");
+    return user;
+  })
 }));
 
 const KEY = "JP***g";

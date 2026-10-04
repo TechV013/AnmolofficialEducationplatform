@@ -126,12 +126,88 @@ export async function deleteCourse(courseId: string) {
   return { deleted: true };
 }
 
+export class CourseNotFoundError extends Error {
+  constructor(message = "Course not found") {
+    super(message);
+    this.name = "CourseNotFoundError";
+  }
+}
+
+export class CoursePublishValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "CoursePublishValidationError";
+  }
+}
+
+/**
+ * Canonical publish validation. This is the ONLY place that decides whether a
+ * course is allowed to become PUBLISHED. Both Course Studio (server actions)
+ * and the publish API route funnel through publishCourse() -> here.
+ */
+export async function validateCourseForPublish(courseId: string) {
+  const course = await prisma.course.findUnique({
+    where: { id: courseId },
+    include: { modules: { include: { lessons: true } } }
+  });
+
+  if (!course) throw new CourseNotFoundError();
+  if (!course.title || !course.description) {
+    throw new CoursePublishValidationError("Course needs title and description before publishing");
+  }
+
+  const moduleCount = course.modules.length;
+  if (moduleCount === 0) {
+    throw new CoursePublishValidationError("Add at least one module before publishing");
+  }
+
+  const lessonCount = course.modules.reduce((sum, m) => sum + m.lessons.length, 0);
+  if (lessonCount === 0) {
+    throw new CoursePublishValidationError("Add at least one lesson before publishing");
+  }
+
+  return course;
+}
+
+export async function setCourseStatus(courseId: string, status: CourseStatus) {
+  if (status === CourseStatus.PUBLISHED) {
+    return publishCourse(courseId);
+  }
+  return unpublishCourse(courseId, status);
+}
+
+export async function publishCourse(courseId: string) {
+  await validateCourseForPublish(courseId);
+
+  return prisma.course.update({
+    where: { id: courseId },
+    data: { status: CourseStatus.PUBLISHED }
+  });
+}
+
+export async function unpublishCourse(courseId: string, status: CourseStatus = CourseStatus.DRAFT) {
+  const course = await prisma.course.findUnique({
+    where: { id: courseId },
+    select: { id: true }
+  });
+  if (!course) throw new CourseNotFoundError();
+
+  return prisma.course.update({
+    where: { id: courseId },
+    data: { status }
+  });
+}
+
 export async function togglePublish(courseId: string) {
-  const course = await prisma.course.findUnique({ where: { id: courseId } });
+  const course = await prisma.course.findUnique({
+    where: { id: courseId },
+    select: { id: true, status: true }
+  });
   if (!course) return null;
-  const newStatus = course.status === CourseStatus.PUBLISHED ? CourseStatus.DRAFT : CourseStatus.PUBLISHED;
-  const updated = await prisma.course.update({ where: { id: courseId }, data: { status: newStatus } });
-  return updated;
+
+  return course.status === CourseStatus.PUBLISHED
+    ? unpublishCourse(courseId, CourseStatus.DRAFT)
+    : publishCourse(courseId);
 }
 
 export async function addModule(courseId: string, title: string, position: number) {

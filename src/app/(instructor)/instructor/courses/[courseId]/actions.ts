@@ -1,6 +1,6 @@
 "use server";
 import { prisma } from "@/lib/prisma";
-import { requireCourseEditor } from "@/lib/auth/authorizer";
+import { requireCourseEditor, requireCourseModuleEditor, requireCourseLessonEditor } from "@/lib/auth/authorizer";
 import { getCurrentUser } from "@/lib/auth/helpers";
 import { Decimal } from "@prisma/client/runtime/library";
 import { CourseStatus } from "@prisma/client";
@@ -11,6 +11,7 @@ import {
     type StudioResourceType
 } from "@/lib/resource/validateResourceUrl";
 import { findSwapTarget } from "@/lib/course-studio";
+import { setCourseStatus as serviceSetCourseStatus } from "@/services/courses/instructor.service";
 
 function revalidateCourse(course: { id: string; slug?: string }) {
   revalidatePath(`/instructor/courses/${course.id}`);
@@ -58,31 +59,31 @@ export async function createModule(courseId: string, title: string) {
     revalidatePath(`/instructor/courses/${courseId}`);
 }
 export async function updateModule(id: string, title: string, courseId: string) {
-    await checkAuth(courseId);
+    await requireCourseModuleEditor(courseId, id);
     await prisma.module.update({ where: { id }, data: { title } });
     revalidatePath(`/instructor/courses/${courseId}`);
 }
 export async function deleteModule(id: string, courseId: string) {
-    await checkAuth(courseId);
+    await requireCourseModuleEditor(courseId, id);
     await prisma.module.delete({ where: { id } });
     revalidatePath(`/instructor/courses/${courseId}`);
 }
 
 // Lesson CRUD
 export async function createLesson(moduleId: string, title: string, description: string, duration: string, videoUrl: string | null, courseId: string) {
-    await checkAuth(courseId);
+    await requireCourseModuleEditor(courseId, moduleId);
     const max = await prisma.lesson.aggregate({ where: { moduleId }, _max: { position: true } });
     const lesson = await prisma.lesson.create({ data: { moduleId, title, description, duration, videoUrl: videoUrl || null, position: (max._max.position ?? -1) + 1 } });
     revalidatePath(`/instructor/courses/${courseId}`);
     return lesson.id;
 }
 export async function updateLesson(id: string, title: string, description: string, videoUrl: string | null, courseId: string, duration?: string) {
-    await checkAuth(courseId);
+    await requireCourseLessonEditor(courseId, id);
     await prisma.lesson.update({ where: { id }, data: { title, description, videoUrl: videoUrl || null, ...(duration !== undefined ? { duration } : {}) } });
     revalidatePath(`/instructor/courses/${courseId}`);
 }
 export async function deleteLesson(id: string, courseId: string) {
-    await checkAuth(courseId);
+    await requireCourseLessonEditor(courseId, id);
     await prisma.lesson.delete({ where: { id } });
     revalidatePath(`/instructor/courses/${courseId}`);
 }
@@ -316,26 +317,12 @@ export async function gradeSubmission(submissionId: string, courseId: string, sc
 // Status management with pre-validation for publish
 export async function setCourseStatus(courseId: string, status: CourseStatus) {
     await checkAuth(courseId);
-
-    if (status === "PUBLISHED") {
-        const course = await prisma.course.findUnique({
-            where: { id: courseId },
-            include: { modules: { include: { lessons: true } } }
-        });
-        if (!course) throw new Error("Course not found");
-        if (!course.title || !course.description) throw new Error("Course needs title and description");
-        const moduleCount = course.modules.length;
-        if (moduleCount === 0) throw new Error("Add at least one module before publishing");
-        const lessonCount = course.modules.reduce((sum, m) => sum + m.lessons.length, 0);
-        if (lessonCount === 0) throw new Error("Add at least one lesson before publishing");
-    }
-
-    const updated = await prisma.course.update({ where: { id: courseId }, data: { status } });
+    const updated = await serviceSetCourseStatus(courseId, status);
     revalidateCourse(updated);
 }
 
 export async function publishCourse(courseId: string) {
-    return setCourseStatus(courseId, "PUBLISHED");
+    return setCourseStatus(courseId, CourseStatus.PUBLISHED);
 }
 
 // Instructor (and admin) can create courses — the creator becomes the author/editor

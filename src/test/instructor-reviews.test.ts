@@ -4,6 +4,7 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     review: { findUnique: vi.fn(), update: vi.fn() },
     courseInstructor: { findUnique: vi.fn() },
+    user: { findUnique: vi.fn() },
   },
 }));
 
@@ -23,6 +24,8 @@ describe("Instructor review reply security (Phase 3)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getCurrentUser).mockResolvedValue({ id: "instr-1", role: "INSTRUCTOR" } as any);
+    // Authorization is DB-authoritative: the session supplies identity only.
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ role: "INSTRUCTOR", isActive: true } as any);
   });
 
   it("assigned instructor can reply to a review on their course", async () => {

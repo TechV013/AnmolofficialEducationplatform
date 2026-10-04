@@ -8,7 +8,8 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     courseInstructor: { findUnique: vi.fn() },
     lesson: { findFirst: vi.fn() },
-    resource: { findFirst: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() }
+    resource: { findFirst: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
+    user: { findUnique: vi.fn() }
   }
 }));
 
@@ -23,8 +24,14 @@ vi.mock("next/cache", () => ({
 describe("Instructor Resource Management", () => {
     beforeEach(() => { vi.clearAllMocks(); });
 
+    /** Session identity only; the DB record is the authority for role/isActive. */
+    function signIn(id: string, dbRole: "INSTRUCTOR" | "STUDENT" | "ADMIN") {
+        vi.mocked(getCurrentUser).mockResolvedValue({ id, role: dbRole } as any);
+        vi.mocked(prisma.user.findUnique).mockResolvedValue({ role: dbRole, isActive: true } as any);
+    }
+
     it("authorized instructor can create resource", async () => {
-        vi.mocked(getCurrentUser).mockResolvedValue({ id: "instr-1", role: "INSTRUCTOR" } as any);
+        signIn("instr-1", "INSTRUCTOR");
         vi.mocked(prisma.courseInstructor.findUnique).mockResolvedValue({ courseId: "c1", userId: "instr-1" } as any);
         vi.mocked(prisma.lesson.findFirst).mockResolvedValue({ id: "lesson-1", module: { courseId: "c1" } } as any);
 
@@ -37,7 +44,7 @@ describe("Instructor Resource Management", () => {
     });
 
     it("unauthorized instructor denied create", async () => {
-        vi.mocked(getCurrentUser).mockResolvedValue({ id: "instr-2", role: "INSTRUCTOR" } as any);
+        signIn("instr-2", "INSTRUCTOR");
         vi.mocked(prisma.courseInstructor.findUnique).mockResolvedValue(null);
 
         await expect(createResource("lesson-1", "Resource", "PDF", "http://a.com", "c1")).rejects.toThrow("Forbidden");
@@ -45,7 +52,7 @@ describe("Instructor Resource Management", () => {
     });
 
     it("instructor cannot attach a resource to a lesson outside the course", async () => {
-        vi.mocked(getCurrentUser).mockResolvedValue({ id: "instr-1", role: "INSTRUCTOR" } as any);
+        signIn("instr-1", "INSTRUCTOR");
         vi.mocked(prisma.courseInstructor.findUnique).mockResolvedValue({ courseId: "c1", userId: "instr-1" } as any);
         vi.mocked(prisma.lesson.findFirst).mockResolvedValue(null);
 

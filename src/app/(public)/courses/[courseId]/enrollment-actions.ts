@@ -1,13 +1,10 @@
 "use server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth/helpers";
+import { requireStudent } from "@/lib/auth/helpers";
 import { enrollInFreeCourse } from "@/services/enrollmentService";
 
 export async function enrollFree(courseId: string) {
-  const user = await getCurrentUser();
-  if (!user) throw new Error("Unauthorized");
-  // Require STUDENT role for free enrollment; instructor/admin don't use this path
-  if (user.role !== "STUDENT") throw new Error("Forbidden: student enrollment only");
+  const user = await requireStudent();
 
   const course = await prisma.course.findUnique({ where: { id: courseId } });
   if (!course) throw new Error("Course not found");

@@ -11,7 +11,11 @@ export default function PublishButton({ courseId, initialStatus }: { courseId: s
   const handleToggle = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/courses/${courseId}/publish`, { method: "POST" });
+      const res = await fetch(`/api/courses/${courseId}/publish`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: isPublished ? "unpublish" : "publish" })
+      });
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Failed to update course status");

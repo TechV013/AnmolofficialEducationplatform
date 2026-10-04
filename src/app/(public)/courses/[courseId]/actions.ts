@@ -1,13 +1,11 @@
 "use server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth/helpers";
+import { requireStudent } from "@/lib/auth/helpers";
 import { createPayUCheckout } from "@/services/payments/payu.service";
 import { getPublicOrigin, PaymentConfigError, getPayUConfigIssue } from "@/services/payments/payuConfig";
 
 export async function createPaymentOrder(courseId: string) {
-  const user = await getCurrentUser();
-  if (!user) throw new Error("Unauthorized");
-  if (user.role !== "STUDENT") throw new Error("Forbidden: student enrollment only");
+  const user = await requireStudent();
 
   const course = await prisma.course.findUnique({ where: { id: courseId } });
   if (!course) throw new Error("Course not found");
@@ -102,9 +100,7 @@ amount: amountRupees,
 }
 
 export async function submitReview(courseId: string, rating: number, comment: string | null) {
-  const user = await getCurrentUser();
-  if (!user) throw new Error("Unauthorized");
-  if (user.role !== "STUDENT") throw new Error("Forbidden: students only");
+  const user = await requireStudent();
 
   const { createReview } = await import("@/services/reviews/review.service");
   await createReview(user.id, courseId, rating, comment);

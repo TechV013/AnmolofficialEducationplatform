@@ -17,6 +17,7 @@ import { findSwapTarget } from "@/lib/course-studio";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
+    user: { findUnique: vi.fn() },
     courseInstructor: { findUnique: vi.fn() },
     module: {
       findFirst: vi.fn(),
@@ -57,9 +58,13 @@ function makeTx(): TxMock {
   return { update: vi.fn().mockResolvedValue({}) };
 }
 
+/** Authorization is DB-authoritative: the session supplies identity, the DB supplies role/isActive. */
 function signInAsEditor() {
   vi.mocked(getCurrentUser).mockResolvedValue({ id: "instr-1", role: "INSTRUCTOR" } as any);
+  vi.mocked(prisma.user.findUnique).mockResolvedValue({ role: "INSTRUCTOR", isActive: true } as any);
   vi.mocked(prisma.courseInstructor.findUnique).mockResolvedValue({ courseId: COURSE, userId: "instr-1" } as any);
+  vi.mocked(prisma.module.findFirst).mockResolvedValue({ id: MODULE, courseId: COURSE } as any);
+  vi.mocked(prisma.lesson.findFirst).mockResolvedValue({ id: "l1", moduleId: MODULE } as any);
 }
 
 /** Records the ordered `where/data` pairs each transactional update produced. */
@@ -286,8 +291,14 @@ describe("Curriculum ordering — lesson moves", () => {
 describe("Curriculum ordering — authorization", () => {
   beforeEach(() => vi.clearAllMocks());
 
+  /** Session identity only; the DB record is the authority for role/isActive. */
+  function signIn(id: string | null, dbRole: "INSTRUCTOR" | "ADMIN" | "STUDENT" | null) {
+    vi.mocked(getCurrentUser).mockResolvedValue(id ? ({ id, role: dbRole } as any) : null);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(dbRole ? ({ role: dbRole, isActive: true } as any) : null);
+  }
+
   it("denies another instructor's course", async () => {
-    vi.mocked(getCurrentUser).mockResolvedValue({ id: "instr-2", role: "INSTRUCTOR" } as any);
+    signIn("instr-2", "INSTRUCTOR");
     vi.mocked(prisma.courseInstructor.findUnique).mockResolvedValue(null);
 
     await expect(moveModuleUp(COURSE, "m1")).rejects.toThrow("Forbidden");
@@ -298,7 +309,7 @@ describe("Curriculum ordering — authorization", () => {
   });
 
   it("denies a student", async () => {
-    vi.mocked(getCurrentUser).mockResolvedValue({ id: "student-1", role: "STUDENT" } as any);
+    signIn("student-1", "STUDENT");
 
     await expect(moveModuleDown(COURSE, "m1")).rejects.toThrow("Forbidden");
     await expect(moveLessonUp(COURSE, MODULE, "l1")).rejects.toThrow("Forbidden");
@@ -306,7 +317,7 @@ describe("Curriculum ordering — authorization", () => {
   });
 
   it("denies an unauthenticated request", async () => {
-    vi.mocked(getCurrentUser).mockResolvedValue(null);
+    signIn(null, null);
 
     await expect(moveModuleUp(COURSE, "m1")).rejects.toThrow("Unauthorized");
     await expect(moveLessonDown(COURSE, MODULE, "l1")).rejects.toThrow("Unauthorized");
@@ -314,7 +325,7 @@ describe("Curriculum ordering — authorization", () => {
   });
 
   it("allows an admin", async () => {
-    vi.mocked(getCurrentUser).mockResolvedValue({ id: "admin-1", role: "ADMIN" } as any);
+    signIn("admin-1", "ADMIN");
     modulesInOrder();
     const calls = captureUpdates();
 
