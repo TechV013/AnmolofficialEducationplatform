@@ -54,5 +54,16 @@ for (const role of ROLES) {
       rateLimited,
       `Sign-in for ${role} was rate limited by the app's auth limiter`
     ).toBe(false);
+
+    // Only the credentials-present path reaches this line — a missing credential
+    // returned early above. A rejected sign-in here used to be recorded in
+    // status.json while the setup still reported "ok", which silently degraded
+    // every dependent spec to a skip and hid the real cause. Fail loudly instead.
+    expect(
+      status.roles[role],
+      `Sign-in for ${role} was rejected: ${status.reasons[role] ?? "unknown error"}. ` +
+        "Credentials are present in .env.e2e.local, so this is a real failure — " +
+        "repair the accounts with: npm run e2e:provision -- --yes"
+    ).toBe(true);
   });
 }

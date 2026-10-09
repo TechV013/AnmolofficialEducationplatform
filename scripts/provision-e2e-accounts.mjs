@@ -26,8 +26,14 @@ const LOCAL_ENV = path.join(ROOT, ".env.e2e.local");
 
 const E2E_COURSE_SLUG = "e2e-smoke-test-course";
 
+/**
+ * `phone` is stored in the app's canonical form: the 10 digits
+ * `normalizeIndianMobile` would produce from "+91 70733 45025". PayU receives it
+ * during checkout for fraud checks (services/payments/payu.service.ts), so the
+ * student account must carry one or `params.phone` is omitted entirely.
+ */
 const ACCOUNTS = [
-  { role: "STUDENT", name: "E2E Student", key: "STUDENT" },
+  { role: "STUDENT", name: "E2E Student", key: "STUDENT", phone: "7073345025" },
   { role: "INSTRUCTOR", name: "E2E Instructor", key: "INSTRUCTOR" },
   { role: "ADMIN", name: "E2E Admin", key: "ADMIN" }
 ];
@@ -158,8 +164,10 @@ async function apply() {
     const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
     const user = await prisma.user.upsert({
       where: { email },
-      update: { name, role, passwordHash, isActive: true },
-      create: { email, name, role, passwordHash, isActive: true }
+      // `phone` must be in BOTH branches: these accounts already exist, so a
+      // create-only field would silently never be applied on re-runs.
+      update: { name, role, passwordHash, isActive: true, phone: account.phone },
+      create: { email, name, role, passwordHash, isActive: true, phone: account.phone }
     });
     users[account.key] = user;
     console.log(`account ready: ${email} (${user.role}, active=${user.isActive})`);

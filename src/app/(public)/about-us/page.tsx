@@ -10,7 +10,7 @@ export default function AboutUsPage() {
       <section className="py-10 sm:py-14 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-primary font-bold tracking-widest uppercase text-sm mb-3">ABOUT US</p>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">Meet the people behind Anmolofficial.</h1>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">Meet the people behind Design Vidya.</h1>
           <p className="text-muted max-w-2xl mx-auto text-base sm:text-lg">We are a dedicated team passionate about empowering learners with practical creative and digital skills through structured, hands-on learning.</p>
         </div>
       </section>
@@ -32,7 +32,7 @@ export default function AboutUsPage() {
       {/* Team Grid */}
       <section className="py-10 sm:py-14 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl sm:text-3xl font-bold text-center mb-10">Our Team</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-center mb-10">Our Experts</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
                 {team.map((member) => (
                     <div 

@@ -10,15 +10,9 @@ export default function Footer() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
           {/* Left - Brand Info */}
           <div>
-            <div className="text-3xl font-bold mb-4">@anmolofficials</div>
+            <div className="text-3xl font-bold mb-4">Design Vidya</div>
             <p className="text-sm opacity-80 leading-relaxed max-w-sm mb-6">
-              an initiative by anmol deep
-            </p>
-            <p className="text-sm opacity-70 leading-relaxed max-w-sm mb-6">
-              On a Journey to Educate, Connect Visual Design & Animation learners.
-            </p>
-            <p className="text-sm opacity-70 leading-relaxed max-w-sm">
-              Appreciated by NCERT, NFSU Gandhinagar - Gujarat, IIT Jodhpur, ministry of home affairs, State Forensic Science Laboratory,Jaipur, Birla Institute of Technology - Mesra (Ranchi, Jhakaratand)
+              Design Vidya is an online learning platform empowers individuals to build confidence, professional portfolios and career opportunities by making practical, expert-led creative education affordable and accessible.
             </p>
           </div>
 
@@ -46,7 +40,7 @@ export default function Footer() {
                 <p className="font-bold text-lg mb-4">Quick Links</p>
                 <ul className="space-y-3 text-sm opacity-80">
                   <li><Link href="/about" className="hover:underline">About</Link></li>
-                  <li><Link href="/about-us" className="hover:underline">Team</Link></li>
+                  <li><Link href="/about-us" className="hover:underline">Our Experts</Link></li>
                   <li><Link href="/courses" className="hover:underline">All Courses</Link></li>
                   <li><Link href="/testimonials" className="hover:underline">Testimonials</Link></li>
                 </ul>

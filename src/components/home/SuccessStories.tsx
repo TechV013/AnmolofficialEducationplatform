@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Star, Quote, Play, Video, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { testimonials } from "@/data/courses";
@@ -81,18 +82,32 @@ export default function SuccessStories() {
                     }}
                     aria-label={`Play video review by ${t.name}`}
                   >
-                    <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">
-                      <Video className="h-3 w-3 text-primary" />
-                      <span>Video Review</span>
+                    {t.thumbnail ? (
+                      <Image
+                        src={t.thumbnail}
+                        alt={`Video thumbnail for ${t.name}`}
+                        fill
+                        sizes="(max-width: 640px) 100vw, 33vw"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#172554] via-[#1E40AF] to-primary" />
+                    )}
+                    
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">
+                        <Video className="h-3 w-3 text-primary" />
+                        <span>Video Review</span>
+                        </div>
+
+                        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-primary shadow-lg transition-transform group-hover:scale-110">
+                        <Play className="ml-0.5 h-5 w-5" fill="currentColor" />
+                        </span>
+
+                        <span className="absolute bottom-2.5 right-2.5 rounded-md bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-white">
+                        Watch Story
+                        </span>
                     </div>
-
-                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-primary shadow-lg transition-transform group-hover:scale-110">
-                      <Play className="ml-0.5 h-5 w-5" fill="currentColor" />
-                    </span>
-
-                    <span className="absolute bottom-2.5 right-2.5 rounded-md bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-white">
-                      Watch Story
-                    </span>
                   </div>
                 ) : (
                   <Quote className="w-6 h-6 text-primary/40 mb-4" />
@@ -156,7 +171,7 @@ export default function SuccessStories() {
             href="/testimonials"
             className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-dark text-dark px-8 py-3 text-base font-bold transition-all hover:bg-dark hover:text-white"
           >
-            Explore All Student Reviews & Video Stories →
+            More Student Reviews →
           </Link>
         </div>
       </div>

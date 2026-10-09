@@ -55,7 +55,7 @@ function roleColor(role?: string) {
   }
 }
 
-export default function WorkspaceHeader({ title = "Anmolofficial", user }: WorkspaceHeaderProps) {
+export default function WorkspaceHeader({ title = "Design Vidya", user }: WorkspaceHeaderProps) {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
   const crumbs =
@@ -68,8 +68,8 @@ export default function WorkspaceHeader({ title = "Anmolofficial", user }: Works
     <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border/50 bg-white/80 px-6 backdrop-blur-md">
       <div className="flex items-center gap-4">
         <Link href="/" className="flex shrink-0 items-center gap-2">
-          <Image src="/images/logo.png" alt="Anmolofficial" width={40} height={40} className="h-9 w-auto" />
-          <span className="hidden text-lg font-bold tracking-tight text-primary sm:block">Anmolofficial</span>
+          <Image src="/images/Design Vidya Logo.jpg.jpeg" alt="Design Vidya" width={160} height={40} className="h-9 w-auto object-contain" />
+          <span className="hidden text-lg font-bold tracking-tight text-primary sm:block">Design Vidya</span>
         </Link>
         <nav className="hidden items-center gap-1.5 text-sm text-slate-500 md:flex" aria-label="Breadcrumb">
           {crumbs.length > 0 && (

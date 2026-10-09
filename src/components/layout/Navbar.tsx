@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/courses", label: "Courses" },
+  { href: "/about-us", label: "Our Experts" },
   { href: "/community", label: "Community" },
 ];
 
@@ -39,7 +40,7 @@ export default function Navbar() {
       <nav className="sticky top-0 z-50 bg-white/70 backdrop-blur-md border-b border-border/50 hidden md:block">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center">
-            <Image src="/images/logo.png" alt="Logo" width={40} height={40} className="h-10 w-auto" priority />
+            <Image src="/images/Design Vidya Logo.jpg.jpeg" alt="Design Vidya" width={160} height={40} className="h-10 w-auto object-contain" priority />
           </Link>
           <div className="hidden lg:flex items-center space-x-8 text-sm font-medium text-dark">
             {NAV_LINKS.map((link) => (
@@ -77,7 +78,7 @@ export default function Navbar() {
       {/* Mobile top bar */}
       <nav className="sticky top-0 z-50 h-14 flex items-center justify-between border-b border-border/50 bg-white/80 px-4 backdrop-blur-md md:hidden">
         <Link href="/" className="flex items-center">
-          <Image src="/images/logo.png" alt="Logo" width={36} height={36} className="h-9 w-auto" priority />
+          <Image src="/images/Design Vidya Logo.jpg.jpeg" alt="Design Vidya" width={140} height={36} className="h-9 w-auto object-contain" priority />
         </Link>
         {status === "loading" ? (
           <div className="w-8 h-8 bg-gray-300 rounded-full animate-pulse" />

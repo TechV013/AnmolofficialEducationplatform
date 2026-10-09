@@ -47,14 +47,22 @@ export default function HelpSection() {
             <p className="text-[#111111] font-semibold mb-8">
               Your First Conversation Is On Us! completely <span className="font-bold">FREE</span>
             </p>
-            <a
-              href="https://wa.me/917073345025?text=Hi%2C%20I%20have%20questions%20and%20would%20like%20to%20connect%20with%20an%20expert."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center bg-[#111111] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#333333] transition-colors shadow-lg"
-            >
-              Register Now
-            </a>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLScClEiD72Q7fWOGmyLV-u5iiqgxRslAXsgWPoy5V0XqVwvNDw/viewform"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center bg-[#111111] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#333333] transition-colors shadow-lg"
+              >
+                Register Now
+              </a>
+              <a
+                href="/about-us"
+                className="inline-flex items-center justify-center border-2 border-[#111111] text-[#111111] px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#111111] hover:text-white transition-all shadow-lg"
+              >
+                Go for all Experts
+              </a>
+            </div>
           </div>
 
           <div className="lg:w-1/2 overflow-hidden relative h-[450px]">

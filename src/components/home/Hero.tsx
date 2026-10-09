@@ -16,12 +16,10 @@ export default function Hero() {
             className="relative z-10 text-center lg:text-left"
           >
             <h1 className="text-4xl sm:text-5xl lg:text-[3.4rem] font-bold text-text leading-[1.15] tracking-tight">
-              Your Imagination.<br />
-              Our Expertise.<br />
-              Unstoppable Learning
+              Your Imagination Our Expertise Unstoppable Learning
             </h1>
             <p className="mt-6 text-lg text-muted max-w-lg mx-auto lg:mx-0">
-              With Anmolofficial, learn affordable creative skills with structured, purpose-driven courses that teach not just what to learn, but why it matters and how to solve real-world problems with it.
+              With Design Vidya, learn affordable creative skills with structured, purpose-driven courses that teach not just what to learn, but why it matters and how to solve real-world problems with it.
             </p>
             <div className="mt-10">
               <Link
