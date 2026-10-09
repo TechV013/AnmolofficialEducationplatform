@@ -118,8 +118,8 @@ export default function LoginForm() {
           <Link href="/" className="inline-flex flex-col items-center group">
             <div className="w-16 h-16 rounded-2xl bg-white shadow-sm border border-border p-2.5 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
               <Image
-                src="/images/logo.png"
-                alt="anmolofficials"
+                src="/images/Design Vidya Logo.jpg.jpeg"
+                alt="Design Vidya"
                 width={56}
                 height={56}
                 className="w-full h-full object-contain"
@@ -127,7 +127,7 @@ export default function LoginForm() {
               />
             </div>
             <span className="text-2xl font-bold tracking-tight text-text">
-              anmolofficials
+              Design Vidya
             </span>
             <p className="text-xs font-semibold text-muted tracking-wide mt-1">
               our journey starts from here

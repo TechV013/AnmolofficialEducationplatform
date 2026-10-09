@@ -13,19 +13,19 @@ const plusJakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.anmolofficial.com"),
   title: {
-    default: "@anmolofficials - Learn Creative Skills",
-    template: "%s | @anmolofficials",
+    default: "Design Vidya - Learn Creative Skills",
+    template: "%s | Design Vidya",
   },
-  description: "Master 3D Modeling, Animation, VFX, Video Editing and more with @anmolofficials.",
+  description: "Master 3D Modeling, Animation, VFX, Video Editing and more with Design Vidya.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    siteName: "@anmolofficials",
+    siteName: "Design Vidya",
     type: "website",
     locale: "en_US",
     url: "https://www.anmolofficial.com",
-    title: "@anmolofficials - Learn Creative Skills",
+    title: "Design Vidya - Learn Creative Skills",
     description: "Master 3D Modeling, Animation, VFX, Video Editing and more.",
   },
   robots: {

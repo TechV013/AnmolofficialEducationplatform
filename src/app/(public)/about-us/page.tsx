@@ -15,20 +15,6 @@ export default function AboutUsPage() {
         </div>
       </section>
 
-      {/* Founder Section */}
-      <section className="py-10 sm:py-14 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center gap-8">
-            <div className="w-full md:w-1/4 shrink-0">
-                <Image src="/images/founder.png" alt="Anmol - Founder" width={400} height={400} className="rounded-3xl shadow-lg" />
-            </div>
-            <div className="w-full md:w-3/4">
-                <h2 className="text-3xl font-bold mb-3">Anmol</h2>
-                <p className="text-lg font-semibold text-primary mb-4">Founder</p>
-                <p className="text-muted leading-relaxed">Dedicated to building a platform that makes creative education accessible, structured, and focused on real-world application. Learning should not just be passive; it should be practical and skills-oriented.</p>
-            </div>
-        </div>
-      </section>
-
       {/* Team Grid */}
       <section className="py-10 sm:py-14 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -31,7 +31,7 @@ export default function Hero() {
             </div>
           </motion.div>
 
-          {/* Right - Founder Image (in-flow below text on mobile/tablet, absolute bottom-right bleed on desktop) */}
+          {/* Right - Banner Image (in-flow below text on mobile/tablet, absolute bottom-right bleed on desktop) */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -40,8 +40,8 @@ export default function Hero() {
           >
             <div aria-hidden className="absolute -inset-6 rounded-full bg-primary/10 blur-2xl lg:hidden" />
             <Image
-              src="/images/founder.png"
-              alt="Founder"
+              src="/images/banner-image.jpeg"
+              alt="Design Vidya"
               width={500}
               height={580}
               priority
