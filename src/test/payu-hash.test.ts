@@ -320,4 +320,32 @@ describe("createPayUCheckout", () => {
       expect(params[field], `missing ${field}`).toBeTruthy();
     }
   });
+
+  it("sends the udf1..udf5 fields the forward hash covers", () => {
+    // PayU recomputes the expected hash over the fields actually posted. The
+    // hash includes five udf slots, so the form must post them too — otherwise
+    // the gateway rejects every transaction with a hash mismatch.
+    const { params } = createPayUCheckout(base);
+    for (const udf of ["udf1", "udf2", "udf3", "udf4", "udf5"]) {
+      expect(params[udf], `missing ${udf}`).toBe("");
+    }
+    expect(params.hash).toBe(
+      generatePayUHash(
+        {
+          key: KEY,
+          txnid: base.txnid,
+          amount: "999.00",
+          productinfo: base.productinfo,
+          firstname: base.firstname,
+          email: base.email,
+          udf1: "",
+          udf2: "",
+          udf3: "",
+          udf4: "",
+          udf5: ""
+        },
+        SALT
+      )
+    );
+  });
 });

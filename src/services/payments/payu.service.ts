@@ -136,6 +136,15 @@ export function createPayUCheckout(input: PayUCheckoutInput) {
     surl: input.surl,
     furl: input.failureUrl,
     curl: input.cancelUrl,
+    // The forward hash covers udf1..udf5 (as empty strings when unused), so the
+    // form must send exactly those fields. Omitting them makes PayU recompute
+    // its expected hash over a different field set and reject the transaction
+    // with "incorrectly calculated hash parameter".
+    udf1: "",
+    udf2: "",
+    udf3: "",
+    udf4: "",
+    udf5: "",
     hash,
     service_provider: "payu_paisa"
   };
