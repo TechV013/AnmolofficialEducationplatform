@@ -203,6 +203,70 @@ async function checkVerifyPayment(secrets: string[]): Promise<CheckSection> {
   };
 }
 
+/**
+ * Look up a real transaction on PayU's verify_payment API. Only the configured
+ * environment is queried (both endpoints previously tripped PayU's per-merchant
+ * request limit). The response carries the full transaction record, so only a
+ * whitelist of operational fields is returned and everything is scrubbed.
+ */
+async function checkTransaction(txnid: string, secrets: string[]): Promise<CheckSection> {
+  const config = getPayUConfig();
+  const base = config.isProduction ? "https://secure.payu.in" : "https://test.payu.in";
+  const hash = sha512([config.key, "verify_payment", txnid, config.salt].join("|"));
+  try {
+    const res = await fetch(`${base}/merchant/postservice?form=2`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        key: config.key,
+        command: "verify_payment",
+        var1: txnid,
+        hash
+      }).toString(),
+      signal: AbortSignal.timeout(20000)
+    });
+    const raw = (await res.text()).slice(0, 8000);
+    const parsed = parsePayUResponse(raw);
+    const msg = parsed?.msg ?? "";
+    const classification = msg ? classifyVerifyMessage(msg) : null;
+
+    // verify_payment answers with a transaction_details array on success.
+    let record: Record<string, unknown> | null = null;
+    if (parsed && typeof parsed === "object" && Array.isArray((parsed as { transaction_details?: unknown }).transaction_details)) {
+      const first = (parsed as { transaction_details: Record<string, unknown>[] }).transaction_details[0];
+      if (first && typeof first === "object") {
+        const keep = [
+          "txnid", "mihpayid", "status", "unmappedstatus", "mode", "error",
+          "amount", "currency", "addedon", "payment_source", "bank_msg", "bank_ref_num"
+        ];
+        record = {};
+        for (const field of keep) {
+          if (first[field] !== undefined) record[field] = first[field];
+        }
+      }
+    }
+
+    return {
+      ok: parsed?.status === 1 && record !== null,
+      httpStatus: res.status,
+      payuStatus: parsed?.status ?? null,
+      classification: record ? "transaction-found" : classification,
+      environment: config.isProduction ? "production" : "test",
+      message: scrub(msg || raw.slice(0, 300), secrets),
+      ...(record ? { record: JSON.parse(scrub(JSON.stringify(record), secrets)) } : {})
+    };
+  } catch (e) {
+    return {
+      ok: false,
+      httpStatus: 0,
+      payuStatus: null,
+      classification: "request-failed",
+      environment: config.isProduction ? "production" : "test",
+      message: e instanceof Error ? e.message : "request failed"
+    };
+  }
+}
+
 async function checkCheckoutPayload(secrets: string[], origin: string): Promise<CheckSection> {
   const checkout = createPayUCheckout({
     txnid: `DIAG${Date.now().toString(36).toUpperCase()}`,
@@ -295,6 +359,18 @@ export async function GET(req: NextRequest) {
 
   const config = getPayUConfig();
   const secrets = [config.key, config.salt];
+
+  // ?txnid= mode: look up one real transaction instead of running the probe
+  // suite. Used to answer "did PayU actually charge this order?" after a
+  // browser-side failure.
+  const txnid = req.nextUrl.searchParams.get("txnid");
+  if (txnid) {
+    if (!/^[A-Za-z0-9_]{1,64}$/.test(txnid)) {
+      return NextResponse.json({ error: "invalid txnid format" }, { status: 400 });
+    }
+    report.sections.transaction = await checkTransaction(txnid, secrets);
+    return NextResponse.json(report, { status: 200 });
+  }
 
   report.sections.verifyPayment = await checkVerifyPayment(secrets);
 

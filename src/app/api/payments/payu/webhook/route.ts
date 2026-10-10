@@ -5,6 +5,11 @@ import { generatePayUResponseHash, parseAmountToPaise } from "@/services/payment
 import { getPayUConfig } from "@/services/payments/payuConfig";
 import crypto from "crypto";
 
+// The webhook is PayU's server-to-server retry path; it must outlast a cold
+// start plus the confirmation transaction rather than dying at the default
+// 10s gateway limit and losing the only delivery that still reaches us.
+export const maxDuration = 30;
+
 function safeEqual(a: string, b: string): boolean {
   const bufA = Buffer.from(a, "utf8");
   const bufB = Buffer.from(b, "utf8");
@@ -14,7 +19,12 @@ function safeEqual(a: string, b: string): boolean {
 
 export async function POST(req: NextRequest) {
   // PayU webhooks are application/x-www-form-urlencoded
-  const formData = await req.formData();
+  let formData: FormData;
+  try {
+    formData = await req.formData();
+  } catch {
+    return new NextResponse("Invalid payload", { status: 400 });
+  }
   const data = Object.fromEntries(formData.entries()) as Record<string, string>;
 
   const { mihpayid, txnid, status, amount, currency, hash } = data;

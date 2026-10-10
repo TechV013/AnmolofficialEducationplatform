@@ -10,10 +10,10 @@ const originalEnv = { ...process.env };
 const INVALID_HASH = { status: 0, msg: "Invalid Hash." };
 const UNKNOWN_TXN = { status: 0, msg: "Invalid transaction id" };
 
-function request(token?: string): NextRequest {
+function request(token?: string, query = ""): NextRequest {
   const headers = new Headers();
   if (token !== undefined) headers.set("x-diagnose-token", token);
-  return new NextRequest("https://www.anmolofficial.com/api/payu/diagnose", { headers });
+  return new NextRequest(`https://www.anmolofficial.com/api/payu/diagnose${query}`, { headers });
 }
 
 function jsonResponse(body: unknown, status = 200) {
@@ -265,5 +265,91 @@ describe("checkout probe", () => {
     expect(body.sections.checkout.ok).toBe(true);
     expect(body.sections.checkout.htmlExcerpt).toBeUndefined();
     expect(body.sections.checkout.postedFields).toBeUndefined();
+  });
+});
+
+describe("transaction lookup (?txnid=)", () => {
+  const FOUND_TXN = {
+    status: 1,
+    msg: "Details of transaction PAYU_1791630338980_i3y2la",
+    transaction_details: [
+      {
+        txnid: "PAYU_1791630338980_i3y2la",
+        mihpayid: "403856115598",
+        status: "success",
+        unmappedstatus: "success",
+        mode: "CC",
+        error: "NA",
+        amount: "769.00",
+        currency: "INR",
+        addedon: "2026-10-10 16:37:00",
+        cardnumber: "4111XXXXXXXX1111",
+        surl: "https://evil.example.com"
+      }
+    ]
+  };
+
+  it("rejects a malformed txnid without calling PayU", async () => {
+    const res = await GET(request(TOKEN, "?txnid=bad%20txnid%20with%20spaces"));
+    expect(res.status).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("queries only the configured environment and returns the record", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(FOUND_TXN));
+    const res = await GET(request(TOKEN, "?txnid=PAYU_1791630338980_i3y2la"));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const txn = body.sections.transaction;
+    expect(txn.ok).toBe(true);
+    expect(txn.classification).toBe("transaction-found");
+    expect(txn.environment).toBe("test");
+    expect(txn.record).toEqual({
+      txnid: "PAYU_1791630338980_i3y2la",
+      mihpayid: "403856115598",
+      status: "success",
+      unmappedstatus: "success",
+      mode: "CC",
+      error: "NA",
+      amount: "769.00",
+      currency: "INR",
+      addedon: "2026-10-10 16:37:00"
+    });
+    // Exactly one verify_payment call, to the configured (test) endpoint.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0][0])).toContain("test.payu.in");
+    const sent = String(fetchMock.mock.calls[0][1].body);
+    expect(sent).toContain("PAYU_1791630338980_i3y2la");
+    expect(sent).toContain("verify_payment");
+  });
+
+  it("skips the probe suite and checkout probe in txnid mode", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(FOUND_TXN));
+    const body = await (await GET(request(TOKEN, "?txnid=PAYU_1791630338980_i3y2la"))).json();
+    expect(body.sections.verifyPayment).toBeUndefined();
+    expect(body.sections.checkout).toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports an unknown transaction without failing hard", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(UNKNOWN_TXN));
+    const body = await (await GET(request(TOKEN, "?txnid=PAYU_missing"))).json();
+    const txn = body.sections.transaction;
+    expect(txn.ok).toBe(false);
+    expect(txn.classification).toBe("unknown-transaction");
+    expect(txn.record).toBeUndefined();
+  });
+
+  it("never leaks credentials in the transaction response", async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({
+        status: 1,
+        msg: `ok ${KEY} ${SALT}`,
+        transaction_details: [{ txnid: "PAYU_x", error: `fail ${KEY} ${SALT}`, status: "success" }]
+      })
+    );
+    const text = JSON.stringify(await (await GET(request(TOKEN, "?txnid=PAYU_x"))).json());
+    expect(text).not.toContain(KEY);
+    expect(text).not.toContain(SALT);
   });
 });

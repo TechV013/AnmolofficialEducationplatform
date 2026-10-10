@@ -5,6 +5,11 @@ import { generatePayUResponseHash, parseAmountToPaise } from "@/services/payment
 import { getPayUConfig } from "@/services/payments/payuConfig";
 import crypto from "crypto";
 
+// Cold start + Prisma + the confirmation transaction can exceed Vercel's
+// default 10s gateway limit, which surfaces as an "upstream server is timing
+// out" page in the payer's browser while the order stays PENDING.
+export const maxDuration = 30;
+
 function safeEqual(a: string, b: string): boolean {
   const bufA = Buffer.from(a, "utf8");
   const bufB = Buffer.from(b, "utf8");
@@ -38,6 +43,7 @@ async function readResponseParams(req: NextRequest): Promise<Record<string, stri
 }
 
 async function handleCallback(req: NextRequest) {
+  const startedAt = Date.now();
   try {
     const data = await readResponseParams(req);
     const { mihpayid, txnid, status, amount, currency, hash } = data;
@@ -50,6 +56,9 @@ async function handleCallback(req: NextRequest) {
     // A matching hash proves the postback came from PayU and was not tampered
     // with in transit, which is the only basis for granting an enrolment.
     if (!safeEqual(expectedHash, hash || "") || status !== "success") {
+      console.log(
+        `PayU callback rejected after ${Date.now() - startedAt}ms: hash=${safeEqual(expectedHash, hash || "")} status=${status || "missing"} txnid=${txnid || "missing"}`
+      );
       return NextResponse.redirect(new URL("/courses?payment=failed", req.url));
     }
 
@@ -64,6 +73,7 @@ async function handleCallback(req: NextRequest) {
     });
 
     if (!internalOrder) {
+      console.log(`PayU callback: order not found for txnid=${txnid} after ${Date.now() - startedAt}ms`);
       return NextResponse.redirect(new URL("/courses?payment=not_found", req.url));
     }
 
@@ -77,9 +87,10 @@ async function handleCallback(req: NextRequest) {
       });
     }
 
+    console.log(`PayU callback confirmed order=${internalOrder.id} in ${Date.now() - startedAt}ms`);
     return NextResponse.redirect(new URL("/my-learning?payment=success", req.url));
   } catch (err) {
-    console.error("PayU Callback Error:", err);
+    console.error(`PayU Callback Error after ${Date.now() - startedAt}ms:`, err);
     return NextResponse.redirect(new URL("/courses?payment=error", req.url));
   }
 }
