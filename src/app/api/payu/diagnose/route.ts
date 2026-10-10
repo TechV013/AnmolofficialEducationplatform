@@ -250,6 +250,17 @@ async function checkCheckoutPayload(secrets: string[], origin: string): Promise<
       ok: verdict.ok,
       httpStatus: res.status,
       reason: verdict.reason,
+      // A hash rejection page prints the exact string PayU hashed — including
+      // how many pipes sit between email and salt, and PayU's copy of the
+      // salt. Scrub removes our own credentials, so a redacted salt proves the
+      // values match while a visible one means they differ. The posted field
+      // names confirm which form shape the deployed code actually sent.
+      ...(verdict.ok
+        ? {}
+        : {
+            postedFields: Object.keys(checkout.params),
+            htmlExcerpt: scrub(html.slice(0, 6000), secrets)
+          }),
       errorDetail: verdict.ok
         ? null
         : scrub(

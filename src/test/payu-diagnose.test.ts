@@ -234,4 +234,36 @@ describe("checkout probe", () => {
     expect(body.sections.checkout.errorDetail).toContain("Invalid Hash");
     expect(body.sections.checkout.errorDetail).not.toContain(KEY);
   });
+
+  it("returns the posted field names and a scrubbed page excerpt on failure", async () => {
+    const page = htmlResponse(
+      `<html><body>expected ${KEY}|txnid|1.00|x|y|z||||||${SALT} rejected</body></html>`
+    );
+    fetchMock
+      .mockResolvedValueOnce(INVALID_HASH)
+      .mockResolvedValueOnce(INVALID_HASH)
+      .mockResolvedValueOnce(page);
+    const body = await (await GET(request(TOKEN))).json();
+    const checkout = body.sections.checkout;
+    // The excerpt carries PayU's expected hash string so the pipe count can be
+    // read off, but the credentials themselves must never leave the server.
+    expect(checkout.postedFields).toContain("udf1");
+    expect(checkout.postedFields).toContain("hash");
+    expect(checkout.htmlExcerpt).toContain("expected");
+    expect(checkout.htmlExcerpt).toContain("[redacted]");
+    expect(checkout.htmlExcerpt).not.toContain(KEY);
+    expect(checkout.htmlExcerpt).not.toContain(SALT);
+    expect(JSON.stringify(body)).not.toContain(SALT);
+  });
+
+  it("omits the excerpt when the checkout probe succeeds", async () => {
+    fetchMock
+      .mockResolvedValueOnce(INVALID_HASH)
+      .mockResolvedValueOnce(INVALID_HASH)
+      .mockResolvedValueOnce(htmlResponse("<html>Choose a payment option: UPI, Cards</html>"));
+    const body = await (await GET(request(TOKEN))).json();
+    expect(body.sections.checkout.ok).toBe(true);
+    expect(body.sections.checkout.htmlExcerpt).toBeUndefined();
+    expect(body.sections.checkout.postedFields).toBeUndefined();
+  });
 });
