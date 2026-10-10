@@ -18,7 +18,9 @@ vi.mock("@/lib/auth/helpers", () => ({
 }));
 
 vi.mock("next/cache", () => ({
-  revalidatePath: vi.fn()
+  revalidatePath: vi.fn(),
+  revalidateTag: vi.fn(),
+  unstable_cache: <T,>(fn: T) => fn
 }));
 
 describe("Instructor Resource Management", () => {

@@ -23,6 +23,16 @@ export interface Course {
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 }
 
+/**
+ * Lightweight shape for course list surfaces (home, /courses, related).
+ * Deliberately excludes modules/description/learnings so Next.js does not
+ * serialize lesson bodies, video URLs, and resources into the page payload.
+ */
+export type CourseSummary = Omit<
+  Course,
+  "modules" | "description" | "whatYouWillLearn" | "requirements" | "promoVideoUrl" | "status"
+>;
+
 export interface Instructor {
   id: string;
   name: string;

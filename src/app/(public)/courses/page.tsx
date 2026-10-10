@@ -3,18 +3,18 @@ import { Suspense } from "react";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Explore Courses — Anmolofficial",
+  title: "Explore Courses — Design Vidya",
   description: "Browse creative skill courses - 3D Modeling, Animation, Rigging, Video Editing and more.",
   alternates: { canonical: "/courses" },
   openGraph: {
-    title: "Explore Courses — Anmolofficial",
+    title: "Explore Courses — Design Vidya",
     description: "Browse creative skill courses - 3D Modeling, Animation, Rigging, Video Editing and more.",
     type: "website",
     url: "https://www.anmolofficial.com/courses",
   },
 };
 
-import { getPublishedCourses } from "@/services/courses/courses.service";
+import { getCourseSummaries } from "@/services/courses/courses.service";
 import { getUserCourseProgress } from "@/services/courses/progress.service";
 import { getCurrentUser } from "@/lib/auth/helpers";
 import { parseFilters, filterCourses, getCategories } from "@/lib/course-filters";
@@ -29,9 +29,7 @@ export default async function CoursesPage({
 }) {
   const sp = await searchParams;
 
-  const courses = await getPublishedCourses();
-
-  const user = await getCurrentUser();
+  const [courses, user] = await Promise.all([getCourseSummaries(), getCurrentUser()]);
   const isStudent = user?.role === "STUDENT";
   const progressByCourse = isStudent
     ? await getUserCourseProgress(user.id!, courses.map((c) => c.id))
@@ -51,7 +49,7 @@ export default async function CoursesPage({
     <div className="min-h-screen bg-background">
       <section className="bg-gradient-to-br from-[#0B1E3C] via-[#123A6D] to-primary text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16 pb-10 sm:pb-12">
-          <p className="uppercase tracking-[0.2em] text-xs font-bold text-white/70 mb-3">Anmolofficial</p>
+          <p className="uppercase tracking-[0.2em] text-xs font-bold text-white/70 mb-3">Design Vidya</p>
           <h1 className="text-3xl sm:text-4xl font-bold">Explore Courses</h1>
           <p className="mt-3 max-w-xl text-white/80 text-sm sm:text-base">
             Structured, industry-relevant creative skills courses — from 3D modeling and rigging to editing and VFX.

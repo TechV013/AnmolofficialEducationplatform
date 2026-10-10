@@ -2,6 +2,7 @@
 import { prisma } from "@/lib/prisma";
 import { authorizeRole } from "@/lib/auth/guard";
 import { revalidatePath } from "next/cache";
+import { invalidateCourseListCache } from "@/services/courses/courses.service";
 import type { CourseStatus } from "@prisma/client";
 
 export async function getAdminCourseData(courseId: string) {
@@ -55,6 +56,7 @@ export async function updateCourseStatus(courseId: string, status: CourseStatus)
     where: { id: courseId },
     data: { status }
   });
+  invalidateCourseListCache();
   revalidatePath("/admin/courses");
   revalidatePath("/courses");
   revalidatePath(`/admin/courses/${courseId}`);
@@ -97,6 +99,7 @@ export async function updateCourse(courseId: string, data: {
     }
   });
 
+  invalidateCourseListCache();
   revalidatePath("/admin/courses");
   revalidatePath("/courses");
   revalidatePath(`/admin/courses/${courseId}`);
@@ -108,6 +111,7 @@ export async function updateCourse(courseId: string, data: {
 export async function deleteCourse(courseId: string) {
   await authorizeRole("ADMIN");
   await prisma.course.delete({ where: { id: courseId } });
+  invalidateCourseListCache();
   revalidatePath("/admin/courses");
   revalidatePath("/courses");
 }
@@ -132,6 +136,7 @@ export async function updateCoursePrice(courseId: string, price: number, priceOl
     select: { slug: true }
   });
 
+  invalidateCourseListCache();
   revalidatePath("/admin/courses");
   revalidatePath("/courses");
   revalidatePath(`/courses/${course.slug}`);
@@ -150,6 +155,7 @@ export async function assignInstructor(courseId: string, userId: string) {
     update: {},
     create: { courseId, userId }
   });
+  invalidateCourseListCache();
   revalidatePath("/admin/courses");
 }
 
@@ -158,5 +164,6 @@ export async function unassignInstructor(courseId: string, userId: string) {
   await prisma.courseInstructor.delete({
     where: { courseId_userId: { courseId, userId } }
   });
+  invalidateCourseListCache();
   revalidatePath("/admin/courses");
 }

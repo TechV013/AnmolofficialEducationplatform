@@ -1,9 +1,9 @@
 import CourseCard from "./CourseCard";
 import Link from "next/link";
-import { getPublishedCourses } from "@/services/courses/courses.service";
+import { getCourseSummaries } from "@/services/courses/courses.service";
 
 export default async function CourseSection() {
-  const courses = await getPublishedCourses();
+  const courses = await getCourseSummaries();
   const featured = courses.slice(0, 3);
 
   return (

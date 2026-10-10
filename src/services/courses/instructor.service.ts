@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { CourseStatus, LessonType } from "@prisma/client";
+import { invalidateCourseListCache } from "./courses.service";
 
 export async function getInstructorCourses(userId: string) {
   const courses = await prisma.course.findMany({
@@ -68,11 +69,13 @@ export async function createCourse(data: { title: string; description: string; c
     },
     include: { modules: true, instructors: { include: { user: { select: { name: true } } } } }
   });
+  invalidateCourseListCache();
   return course;
 }
 
 export async function updateCourse(courseId: string, userId: string, data: Partial<{ title: string; description: string; category: string; level: string; price: number; thumbnail: string; whatYouWillLearn: string[]; requirements: string[]; }>) {
   const course = await prisma.course.update({ where: { id: courseId }, data });
+  invalidateCourseListCache();
   return course;
 }
 
@@ -123,6 +126,7 @@ export async function deleteCourse(courseId: string) {
     await tx.course.delete({ where: { id: courseId } });
   });
 
+  invalidateCourseListCache();
   return { deleted: true };
 }
 
@@ -179,10 +183,12 @@ export async function setCourseStatus(courseId: string, status: CourseStatus) {
 export async function publishCourse(courseId: string) {
   await validateCourseForPublish(courseId);
 
-  return prisma.course.update({
+  const course = await prisma.course.update({
     where: { id: courseId },
     data: { status: CourseStatus.PUBLISHED }
   });
+  invalidateCourseListCache();
+  return course;
 }
 
 export async function unpublishCourse(courseId: string, status: CourseStatus = CourseStatus.DRAFT) {
@@ -192,10 +198,12 @@ export async function unpublishCourse(courseId: string, status: CourseStatus = C
   });
   if (!course) throw new CourseNotFoundError();
 
-  return prisma.course.update({
+  const updated = await prisma.course.update({
     where: { id: courseId },
     data: { status }
   });
+  invalidateCourseListCache();
+  return updated;
 }
 
 export async function togglePublish(courseId: string) {

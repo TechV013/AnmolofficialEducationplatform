@@ -1,4 +1,4 @@
-import { Course } from "@/types/lms";
+import { Course, CourseSummary } from "@/types/lms";
 import { sumDurations, formatMinutes } from "@/lib/course-stats";
 import { Course as PrismaCourse, Module as PrismaModule, Lesson as PrismaLesson, Resource as PrismaResource } from "@prisma/client";
 
@@ -12,6 +12,48 @@ export interface CourseWithModules extends PrismaCourse {
   modules: (PrismaModule & { lessons: (PrismaLesson & { resources: PrismaResource[] })[] })[];
   instructors?: { user: { name: string | null } | null }[];
 }
+
+/**
+ * Row shape for the list query: only lesson durations are selected so the DB
+ * never ships descriptions, video URLs, or resources for list surfaces.
+ */
+export interface CourseSummaryRow {
+  id: string;
+  title: string;
+  category: string;
+  level: string;
+  price: unknown;
+  priceOld?: unknown;
+  thumbnail: string;
+  modules: { lessons: { duration: string }[] }[];
+  instructors?: { user: { name: string | null } | null }[];
+}
+
+export const mapCourseSummary = (course: CourseSummaryRow, stats: CourseStats = {}): CourseSummary => {
+  const lessons = course.modules.flatMap((m) => m.lessons);
+  const durationMinutes = sumDurations(lessons.map((l) => l.duration));
+  const instructorName = course.instructors?.length
+    ? course.instructors.find((i) => i.user?.name)?.user?.name ?? course.instructors[0]?.user?.name ?? "Anmolofficial Team"
+    : "Anmolofficial Team";
+
+  return {
+    id: course.id,
+    title: course.title,
+    category: course.category,
+    level: course.level as "Beginner" | "Intermediate" | "Advanced",
+    duration: formatMinutes(durationMinutes),
+    durationMinutes,
+    totalLessons: lessons.length,
+    rating: stats.rating ?? 0,
+    reviewsCount: stats.reviewsCount ?? 0,
+    students: stats.students ?? 0,
+    price: Number(course.price),
+    priceOld: course.priceOld != null ? Number(course.priceOld) : undefined,
+    isFree: Number(course.price) === 0,
+    thumbnail: course.thumbnail,
+    instructorName,
+  };
+};
 
 export const mapCourse = (course: CourseWithModules, stats: CourseStats = {}): Course => {
   const lessons = course.modules.flatMap((m) => m.lessons);

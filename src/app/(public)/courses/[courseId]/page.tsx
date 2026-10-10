@@ -15,7 +15,7 @@ import {
   MonitorPlay,
   PartyPopper
 } from "lucide-react";
-import { getCourseById, getPublishedCourses } from "@/services/courses/courses.service";
+import { getCourseById, getCourseSummaries } from "@/services/courses/courses.service";
 import { hasCourseAccess } from "@/services/enrollmentService";
 import { getCurrentUser } from "@/lib/auth/helpers";
 import { prisma } from "@/lib/prisma";
@@ -114,7 +114,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
     createdByName: r.user.name || "Student"
   }));
 
-  const related = (await getPublishedCourses())
+  const related = (await getCourseSummaries())
     .filter((c) => c.id !== course.id)
     .sort((a, b) =>
       (b.category === course.category ? 1 : 0) - (a.category === course.category ? 1 : 0) ||

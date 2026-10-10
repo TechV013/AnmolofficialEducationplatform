@@ -1,12 +1,12 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import { Course } from "@/types/lms";
+import { CourseSummary } from "@/types/lms";
 import { Star, Clock, BookOpen, Box, Bone, Clapperboard, GraduationCap } from "lucide-react";
 import { formatPrice, discountPercent } from "@/lib/course-stats";
 
 interface CourseCardProps {
-  course: Course;
+  course: CourseSummary;
 }
 
 interface CoverStyle {

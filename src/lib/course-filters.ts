@@ -1,4 +1,4 @@
-import type { Course } from "@/types/lms";
+import type { CourseSummary } from "@/types/lms";
 
 export type CourseTab = "all" | "inprogress" | "completed";
 export type CourseProgress = "IN_PROGRESS" | "COMPLETED";
@@ -48,14 +48,14 @@ export const parseFilters = (raw: {
   };
 };
 
-export const getCategories = (courses: Course[]): string[] =>
+export const getCategories = (courses: CourseSummary[]): string[] =>
   Array.from(new Set(courses.map((c) => c.category).filter((c): c is string => Boolean(c)))).sort();
 
 export const filterCourses = (
-  courses: Course[],
+  courses: CourseSummary[],
   filters: CourseFiltersState,
   progressByCourse: Map<string, CourseProgress> | null
-): Course[] =>
+): CourseSummary[] =>
   courses.filter((course) => {
     if (filters.tab !== "all") {
       if (!progressByCourse) return false;
