@@ -331,6 +331,58 @@ describe("transaction lookup (?txnid=)", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it("extracts the record from PayU's PHP print_r response shape", async () => {
+    // PayU sometimes answers form=2 with print_r output instead of JSON; the
+    // top-level [status] => 1 must not be mistaken for the transaction status.
+    const phpBody = [
+      "Array",
+      "(",
+      "    [status] => 1",
+      "    [msg] => 1 out of 1 Transactions Fetched Successfully",
+      "    [transaction_details] => Array",
+      "        (",
+      "            [0] => Array",
+      "                (",
+      "                    [mihpayid] => 403856115598",
+      "                    [status] => failed",
+      "                    [unmappedstatus] => failed",
+      "                    [mode] => CC",
+      "                    [error] => Bank Timeout",
+      "                    [amount] => 769.00",
+      "                    [txnid] => PAYU_1791630338980_i3y2la",
+      "                    [cardnumber] => 4111XXXXXXXX1111",
+      "                )",
+      "        )",
+      ")",
+      ""
+    ].join("\r\n");
+    fetchMock.mockResolvedValueOnce(new Response(phpBody, { status: 200 }));
+    const body = await (await GET(request(TOKEN, "?txnid=PAYU_1791630338980_i3y2la"))).json();
+    const txn = body.sections.transaction;
+    expect(txn.ok).toBe(true);
+    expect(txn.classification).toBe("transaction-found");
+    expect(txn.responseFormat).toBe("php-array");
+    expect(txn.record).toEqual({
+      mihpayid: "403856115598",
+      status: "failed",
+      unmappedstatus: "failed",
+      mode: "CC",
+      error: "Bank Timeout",
+      amount: "769.00",
+      txnid: "PAYU_1791630338980_i3y2la"
+    });
+  });
+
+  it("treats a fetched count with no extractable record as found, not unknown", async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({ status: 1, msg: "1 out of 1 Transactions Fetched Successfully" })
+    );
+    const body = await (await GET(request(TOKEN, "?txnid=PAYU_x"))).json();
+    const txn = body.sections.transaction;
+    expect(txn.ok).toBe(true);
+    expect(txn.classification).toBe("transaction-found");
+  });
+
   it("reports an unknown transaction without failing hard", async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse(UNKNOWN_TXN));
     const body = await (await GET(request(TOKEN, "?txnid=PAYU_missing"))).json();

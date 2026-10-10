@@ -204,6 +204,42 @@ async function checkVerifyPayment(secrets: string[]): Promise<CheckSection> {
 }
 
 /**
+ * Pull the first transaction record out of either response shape PayU uses:
+ * the JSON `transaction_details` array, or the PHP print_r fallback where each
+ * field appears as `[name] => value` inside the nested transaction block.
+ * Returns null when neither shape yields a txnid.
+ */
+function extractTxnRecord(raw: string, parsed: { status?: number; msg?: string } | null): Record<string, unknown> | null {
+  const keep = [
+    "txnid", "mihpayid", "status", "unmappedstatus", "mode", "error",
+    "amount", "currency", "addedon", "payment_source", "bank_msg", "bank_ref_num"
+  ];
+  if (parsed && typeof parsed === "object" && Array.isArray((parsed as { transaction_details?: unknown }).transaction_details)) {
+    const first = (parsed as { transaction_details: Record<string, unknown>[] }).transaction_details[0];
+    if (first && typeof first === "object") {
+      const record: Record<string, unknown> = {};
+      for (const field of keep) {
+        if (first[field] !== undefined) record[field] = first[field];
+      }
+      return Object.keys(record).length > 0 ? record : null;
+    }
+  }
+  // PHP print_r shape: only trust fields AFTER the transaction_details marker so
+  // the top-level [status] => 1 is not confused with the record's status.
+  const marker = raw.search(/\[transaction_details\]/i);
+  if (marker >= 0) {
+    const block = raw.slice(marker);
+    const record: Record<string, unknown> = {};
+    for (const field of keep) {
+      const match = block.match(new RegExp(`\\[${field}\\]\\s*=>\\s*([^\\r\\n<]+)`));
+      if (match) record[field] = match[1].trim();
+    }
+    return Object.keys(record).length > 0 ? record : null;
+  }
+  return null;
+}
+
+/**
  * Look up a real transaction on PayU's verify_payment API. Only the configured
  * environment is queried (both endpoints previously tripped PayU's per-merchant
  * request limit). The response carries the full transaction record, so only a
@@ -228,31 +264,32 @@ async function checkTransaction(txnid: string, secrets: string[]): Promise<Check
     const raw = (await res.text()).slice(0, 8000);
     const parsed = parsePayUResponse(raw);
     const msg = parsed?.msg ?? "";
-    const classification = msg ? classifyVerifyMessage(msg) : null;
+    const record = extractTxnRecord(raw, parsed);
 
-    // verify_payment answers with a transaction_details array on success.
-    let record: Record<string, unknown> | null = null;
-    if (parsed && typeof parsed === "object" && Array.isArray((parsed as { transaction_details?: unknown }).transaction_details)) {
-      const first = (parsed as { transaction_details: Record<string, unknown>[] }).transaction_details[0];
-      if (first && typeof first === "object") {
-        const keep = [
-          "txnid", "mihpayid", "status", "unmappedstatus", "mode", "error",
-          "amount", "currency", "addedon", "payment_source", "bank_msg", "bank_ref_num"
-        ];
-        record = {};
-        for (const field of keep) {
-          if (first[field] !== undefined) record[field] = first[field];
-        }
-      }
+    // "N out of N Transactions Fetched Successfully" with N > 0 means found;
+    // "0 out of ..." means the txnid does not exist on this environment.
+    const fetchedMatch = msg.match(/(\d+)\s+out of\s+\d+/i);
+    const fetchedCount = fetchedMatch ? Number(fetchedMatch[1]) : null;
+    let classification: string;
+    if (record || (fetchedCount !== null && fetchedCount > 0)) {
+      classification = "transaction-found";
+    } else if (fetchedCount === 0) {
+      classification = "unknown-transaction";
+    } else {
+      classification = msg ? classifyVerifyMessage(msg) : "no-response";
     }
 
     return {
-      ok: parsed?.status === 1 && record !== null,
+      ok: parsed?.status === 1 && (record !== null || (fetchedCount !== null && fetchedCount > 0)),
       httpStatus: res.status,
       payuStatus: parsed?.status ?? null,
-      classification: record ? "transaction-found" : classification,
+      classification,
       environment: config.isProduction ? "production" : "test",
       message: scrub(msg || raw.slice(0, 300), secrets),
+      // Ground truth for debugging: which wire format PayU used and a scrubbed
+      // head of the body, so a missed field never silently disappears again.
+      responseFormat: parsed && !Array.isArray(parsed) && "transaction_details" in parsed ? "json" : /status\]\s*=>/.test(raw) ? "php-array" : "unknown",
+      rawExcerpt: scrub(raw.slice(0, 500), secrets),
       ...(record ? { record: JSON.parse(scrub(JSON.stringify(record), secrets)) } : {})
     };
   } catch (e) {
