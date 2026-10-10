@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { CourseSummary } from "@/types/lms";
 import { Star, Clock, BookOpen, Box, Bone, Clapperboard, GraduationCap } from "lucide-react";
@@ -45,9 +46,11 @@ export default function CourseCard({ course }: CourseCardProps) {
       >
         {showImage ? (
           <>
-            <img
+            <Image
               src={course.thumbnail}
               alt={course.title}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
               className="absolute inset-0 h-full w-full object-cover"
               onError={() => setImageFailed(true)}
             />

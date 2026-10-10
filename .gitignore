@@ -38,6 +38,9 @@ yarn-error.log*
 /e2e/.auth/
 /playwright-report/
 /test-results/
+
+# local migration backups (may contain full image blobs)
+/scripts/backup/
 /blob-report/
 /playwright/.cache/
 
