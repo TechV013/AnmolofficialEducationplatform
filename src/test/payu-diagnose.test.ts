@@ -331,6 +331,48 @@ describe("transaction lookup (?txnid=)", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it("extracts the record when transaction_details is keyed by txnid", async () => {
+    // Live PayU shape: transaction_details is an object keyed by txnid, not an
+    // array, and the amount field is named amt.
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({
+        status: 1,
+        msg: "1 out of 1 Transactions Fetched Successfully",
+        transaction_details: {
+          PAYU_1791630338980_i3y2la: {
+            mihpayid: "613345778913416600",
+            bank_ref_num: "808184213509697200",
+            amt: "769.00",
+            transaction_amount: "769.00",
+            txnid: "PAYU_1791630338980_i3y2la",
+            status: "success",
+            unmappedstatus: "success",
+            mode: "CC",
+            error: "No Error",
+            error_code: "E000",
+            field9: "Transaction is Successful",
+            productinfo: "3D Match Move",
+            cardnumber: "4111XXXXXXXX1111"
+          }
+        }
+      })
+    );
+    const body = await (await GET(request(TOKEN, "?txnid=PAYU_1791630338980_i3y2la"))).json();
+    const txn = body.sections.transaction;
+    expect(txn.ok).toBe(true);
+    expect(txn.classification).toBe("transaction-found");
+    expect(txn.record).toMatchObject({
+      txnid: "PAYU_1791630338980_i3y2la",
+      mihpayid: "613345778913416600",
+      status: "success",
+      unmappedstatus: "success",
+      amt: "769.00",
+      error_code: "E000",
+      field9: "Transaction is Successful"
+    });
+    expect(txn.record.cardnumber).toBeUndefined();
+  });
+
   it("extracts the record from PayU's PHP print_r response shape", async () => {
     // PayU sometimes answers form=2 with print_r output instead of JSON; the
     // top-level [status] => 1 must not be mistaken for the transaction status.

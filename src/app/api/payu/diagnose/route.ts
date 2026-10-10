@@ -211,17 +211,29 @@ async function checkVerifyPayment(secrets: string[]): Promise<CheckSection> {
  */
 function extractTxnRecord(raw: string, parsed: { status?: number; msg?: string } | null): Record<string, unknown> | null {
   const keep = [
-    "txnid", "mihpayid", "status", "unmappedstatus", "mode", "error",
-    "amount", "currency", "addedon", "payment_source", "bank_msg", "bank_ref_num"
+    "txnid", "mihpayid", "status", "unmappedstatus", "mode", "error", "error_code",
+    "amount", "amt", "transaction_amount", "currency", "addedon", "payment_source",
+    "bank_msg", "bank_ref_num", "field9", "productinfo"
   ];
-  if (parsed && typeof parsed === "object" && Array.isArray((parsed as { transaction_details?: unknown }).transaction_details)) {
-    const first = (parsed as { transaction_details: Record<string, unknown>[] }).transaction_details[0];
-    if (first && typeof first === "object") {
+  if (parsed && typeof parsed === "object") {
+    const td = (parsed as { transaction_details?: unknown }).transaction_details;
+    // PayU returns transaction_details either as an array or as an object
+    // keyed by txnid — accept both.
+    let first: Record<string, unknown> | null = null;
+    if (Array.isArray(td)) {
+      const head = td[0];
+      first = head && typeof head === "object" ? (head as Record<string, unknown>) : null;
+    } else if (td && typeof td === "object") {
+      const values = Object.values(td as Record<string, unknown>);
+      const head = values[0];
+      first = head && typeof head === "object" ? (head as Record<string, unknown>) : null;
+    }
+    if (first) {
       const record: Record<string, unknown> = {};
       for (const field of keep) {
         if (first[field] !== undefined) record[field] = first[field];
       }
-      return Object.keys(record).length > 0 ? record : null;
+      if (Object.keys(record).length > 0) return record;
     }
   }
   // PHP print_r shape: only trust fields AFTER the transaction_details marker so
