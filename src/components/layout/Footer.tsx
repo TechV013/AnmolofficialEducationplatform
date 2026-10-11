@@ -11,8 +11,8 @@ export default function Footer() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
           {/* Left - Brand Info */}
           <div>
-            <div className="inline-flex items-center justify-center bg-white rounded-2xl p-3 mb-4">
-              <Image src="/images/Design-Vidya-Logo.png" alt="Design Vidya" width={100} height={95} className="h-14 w-auto object-contain" />
+            <div className="mb-4">
+              <Image src="/images/Design-Vidya_whitefooter.png" alt="Design Vidya" width={106} height={100} className="h-20 w-auto object-contain" />
             </div>
             <div className="text-3xl font-bold mb-4">Design Vidya</div>
             <p className="text-sm opacity-80 leading-relaxed max-w-sm mb-6">
