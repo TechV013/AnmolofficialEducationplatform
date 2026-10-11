@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — Anmolofficial",
-  description: "How we collect, use, and protect your personal data at Anmolofficial.",
+  title: "Privacy Policy — Design Vidya",
+  description: "How we collect, use, and protect your personal data at Design Vidya.",
   alternates: { canonical: "/privacy" },
   openGraph: {
-    title: "Privacy Policy — Anmolofficial",
-    description: "How we collect, use, and protect your personal data at Anmolofficial.",
+    title: "Privacy Policy — Design Vidya",
+    description: "How we collect, use, and protect your personal data at Design Vidya.",
     type: "website",
     url: "https://www.anmolofficial.com/privacy",
   },

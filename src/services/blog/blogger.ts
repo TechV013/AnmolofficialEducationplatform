@@ -84,7 +84,7 @@ export function parseBloggerFeed(json: BloggerFeedResponse): BlogPost[] {
     const plainText = stripHtml(rawContent);
     const excerpt = plainText.length > 180 ? `${plainText.substring(0, 180)}...` : plainText;
     const category = entry.category?.[0]?.term || "General";
-    const author = entry.author?.[0]?.name?.$t || "Anmolofficial Team";
+    const author = entry.author?.[0]?.name?.$t || "Design Vidya Team";
     const publishedRaw = entry.published?.$t || "";
     const publishedAt = publishedRaw ? publishedRaw.slice(0, 10) : new Date().toISOString().slice(0, 10);
     const thumbnail = extractThumbnailUrl(entry);

@@ -33,8 +33,8 @@ export const mapCourseSummary = (course: CourseSummaryRow, stats: CourseStats = 
   const lessons = course.modules.flatMap((m) => m.lessons);
   const durationMinutes = sumDurations(lessons.map((l) => l.duration));
   const instructorName = course.instructors?.length
-    ? course.instructors.find((i) => i.user?.name)?.user?.name ?? course.instructors[0]?.user?.name ?? "Anmolofficial Team"
-    : "Anmolofficial Team";
+    ? course.instructors.find((i) => i.user?.name)?.user?.name ?? course.instructors[0]?.user?.name ?? "Design Vidya Team"
+    : "Design Vidya Team";
 
   return {
     id: course.id,
@@ -59,8 +59,8 @@ export const mapCourse = (course: CourseWithModules, stats: CourseStats = {}): C
   const lessons = course.modules.flatMap((m) => m.lessons);
   const durationMinutes = sumDurations(lessons.map((l) => l.duration));
   const instructorName = course.instructors?.length
-    ? course.instructors.find((i) => i.user?.name)?.user?.name ?? course.instructors[0]?.user?.name ?? "Anmolofficial Team"
-    : "Anmolofficial Team";
+    ? course.instructors.find((i) => i.user?.name)?.user?.name ?? course.instructors[0]?.user?.name ?? "Design Vidya Team"
+    : "Design Vidya Team";
 
   return {
     id: course.id,

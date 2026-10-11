@@ -44,7 +44,7 @@ describe("mapCourse", () => {
     expect(course.rating).toBe(4.6);
     expect(course.reviewsCount).toBe(42);
     expect(course.students).toBe(7);
-    expect(course.instructorName).toBe("Anmolofficial Team");
+    expect(course.instructorName).toBe("Design Vidya Team");
   });
 
   it("computes duration from lesson durations", () => {

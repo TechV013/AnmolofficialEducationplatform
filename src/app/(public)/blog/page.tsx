@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Blog — Anmolofficial",
-  description: "Insights on 3D modeling, animation, VFX, and creative careers from the Anmolofficial team.",
+  title: "Blog — Design Vidya",
+  description: "Insights on 3D modeling, animation, VFX, and creative careers from the Design Vidya team.",
   alternates: { canonical: "/blog" },
   openGraph: {
-    title: "Blog — Anmolofficial",
-    description: "Insights on 3D modeling, animation, VFX, and creative careers from the Anmolofficial team.",
+    title: "Blog — Design Vidya",
+    description: "Insights on 3D modeling, animation, VFX, and creative careers from the Design Vidya team.",
     type: "website",
     url: "https://www.anmolofficial.com/blog",
   },
@@ -25,7 +25,7 @@ export default async function BlogsPage() {
           <p className="text-primary font-bold tracking-widest uppercase text-xs mb-3">BLOG</p>
           <h1 className="text-3xl sm:text-4xl font-bold text-text">Stories from the studio</h1>
           <p className="mt-4 text-muted max-w-2xl mx-auto">
-            Deep dives into 3D modeling, animation, VFX, and creative careers — written by the Anmolofficial team.
+            Deep dives into 3D modeling, animation, VFX, and creative careers — written by the Design Vidya team.
           </p>
         </div>
 

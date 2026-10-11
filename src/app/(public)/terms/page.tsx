@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of Use — Anmolofficial",
-  description: "Terms and conditions for using the Anmolofficial platform.",
+  title: "Terms of Use — Design Vidya",
+  description: "Terms and conditions for using the Design Vidya platform.",
   alternates: { canonical: "/terms" },
   openGraph: {
-    title: "Terms of Use — Anmolofficial",
-    description: "Terms and conditions for using the Anmolofficial platform.",
+    title: "Terms of Use — Design Vidya",
+    description: "Terms and conditions for using the Design Vidya platform.",
     type: "website",
     url: "https://www.anmolofficial.com/terms",
   },
@@ -23,7 +23,7 @@ export default function TermsPage() {
         <section className="mb-10">
           <h2 className="text-xl font-bold text-text mb-4">1. Acceptance of terms</h2>
           <p className="text-muted leading-relaxed">
-            By accessing or using Anmolofficial, you agree to be bound by these Terms of Use. If you do not agree, you may not use the platform. We may update these terms from time to time; continued use after changes constitutes acceptance.
+            By accessing or using Design Vidya, you agree to be bound by these Terms of Use. If you do not agree, you may not use the platform. We may update these terms from time to time; continued use after changes constitutes acceptance.
           </p>
         </section>
 
@@ -37,7 +37,7 @@ export default function TermsPage() {
         <section className="mb-10">
           <h2 className="text-xl font-bold text-text mb-4">3. Intellectual property</h2>
           <p className="text-muted leading-relaxed">
-            All content on this platform — text, images, video, course material, branding — is owned by Anmolofficial or its licensors and protected by copyright and trademark laws. You may not reproduce, distribute, or create derivative works without written permission.
+            All content on this platform — text, images, video, course material, branding — is owned by Design Vidya or its licensors and protected by copyright and trademark laws. You may not reproduce, distribute, or create derivative works without written permission.
           </p>
         </section>
 
@@ -51,7 +51,7 @@ export default function TermsPage() {
         <section className="mb-10">
           <h2 className="text-xl font-bold text-text mb-4">5. Limitation of liability</h2>
           <p className="text-muted leading-relaxed">
-            Anmolofficial is not liable for indirect, incidental, or consequential damages arising from your use of the platform. We strive to keep the platform available but do not guarantee uninterrupted access.
+            Design Vidya is not liable for indirect, incidental, or consequential damages arising from your use of the platform. We strive to keep the platform available but do not guarantee uninterrupted access.
           </p>
         </section>
 

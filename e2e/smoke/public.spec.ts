@@ -10,7 +10,7 @@ test.describe("PUBLIC", () => {
     const response = await page.goto("/");
 
     expect(response?.status()).toBeLessThan(400);
-    await expect(page).toHaveTitle(/anmolofficials/i);
+    await expect(page).toHaveTitle(/design vidya/i);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Unstoppable Learning");
   });

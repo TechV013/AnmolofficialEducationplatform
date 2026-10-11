@@ -55,7 +55,7 @@ describe("parseBloggerFeed", () => {
     expect(post.title).toBe("Untitled Post");
     expect(post.slug).toBe("untitled-post");
     expect(post.category).toBe("General");
-    expect(post.author).toBe("Anmolofficial Team");
+    expect(post.author).toBe("Design Vidya Team");
     expect(post.readTime).toBe("1 min read");
     expect(post.publishedAt.length).toBe(10); // current date YYYY-MM-DD
     expect(post.thumbnail).toBeUndefined();

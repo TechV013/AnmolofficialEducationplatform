@@ -58,7 +58,7 @@ export default function InstructorNavMenu({ user }: { user?: { name?: string | n
       <div className="flex items-center gap-2.5 border-b border-border/50 px-5 py-4">
         <UserAvatar image={user?.image} name={user?.name || "Instructor"} className="h-9 w-9 text-sm" />
         <div className="leading-tight">
-          <p className="text-sm font-bold text-slate-900">Anmolofficial</p>
+          <p className="text-sm font-bold text-slate-900">Design Vidya</p>
           <p className="text-[11px] font-medium text-slate-400">Instructor Panel</p>
         </div>
       </div>

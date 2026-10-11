@@ -7,7 +7,7 @@ export default function AboutPage() {
 {/* Hero Section */}
       <section className="pt-10 sm:pt-14 pb-4 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-primary font-bold tracking-widest uppercase text-sm mb-3">ABOUT ANMLOFFICIAL</p>
+          <p className="text-primary font-bold tracking-widest uppercase text-sm mb-3">ABOUT DESIGN VIDYA</p>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-text mb-4">रचनात्मकता को अवसर में बदलने की एक कोशिश</h1>
           <p className="text-muted max-w-2xl mx-auto text-base sm:text-lg mb-6">एक ऑनलाइन लर्निंग प्लेटफ़ॉर्म है, जहाँ रचनात्मक क्षेत्रों से जुड़े कौशल को आसान, व्यवस्थित और practical तरीके से सीखने का अवसर मिलता है। हमारा उद्देश्य ऐसी शिक्षा देना है</p>
           <Link href="/courses" className="bg-primary text-white px-8 py-3.5 rounded-full font-bold hover:bg-primary-hover transition-all text-sm">Explore Courses</Link>

@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: { params: Promise<{ courseId:
     return { title: "Course Not Found", robots: { index: false, follow: false } };
   }
   return {
-    title: `${course.title} | Anmolofficial`,
+    title: `${course.title} | Design Vidya`,
     description: course.description || `Learn ${course.title}`,
     alternates: { canonical: `/courses/${course.id}` },
     openGraph: {
@@ -301,7 +301,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
               </div>
             </div>
 
-            <InstructorCard name={course.instructorName || "Anmolofficial Team"} />
+            <InstructorCard name={course.instructorName || "Design Vidya Team"} />
 
             <div className="rounded-xl border border-border bg-gradient-to-br from-[#172554] to-primary/90 p-5 text-white">
               <p className="flex items-center gap-2 font-bold"><BadgeCheck className="h-4 w-4" /> Still have questions?</p>

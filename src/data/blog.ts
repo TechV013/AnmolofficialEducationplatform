@@ -23,7 +23,7 @@ In this post, we'll walk through your very first scene:
 5. **Render the first frame** — Switch to the Eevee render engine for fast previews, set your output resolution, and hit Render. Celebrate your first rendered image.
 
 Once your first scene is rendered, you have the foundation to explore modeling, sculpting, texturing, and animation — all within the same project.`,
-    author: "Anmolofficial Team",
+    author: "Design Vidya Team",
     publishedAt: "2026-08-15",
     readTime: "6 min read",
   },
@@ -49,7 +49,7 @@ This post covers the core rigging concepts every beginner should know:
 5. **Test with simple animations** — Before you animate a film, test your rig with a walk cycle or a simple smile. If those work, your rig is ready for production.
 
 Good rigging is invisible — when the rig works, the audience forgets it's there and feels only the character.`,
-    author: "Anmolofficial Team",
+    author: "Design Vidya Team",
     publishedAt: "2026-08-22",
     readTime: "7 min read",
   },
@@ -75,7 +75,7 @@ Here are the essential compositing techniques every VFX artist should know:
 5. **Edge treatment** — Real cameras have depth-of-field, motion blur, and slight chromatic aberration. Add these to CGI edges so they don't pop out as too sharp or clean.
 
 Compositing is the art of making the impossible look ordinary — when done well, nobody notices the VFX at all.`,
-    author: "Anmolofficial Team",
+    author: "Design Vidya Team",
     publishedAt: "2026-09-01",
     readTime: "8 min read",
   },
@@ -99,7 +99,7 @@ Compositing is the art of making the impossible look ordinary — when done well
 5. **Arcs** — Almost no motion in nature is a straight line. Arms, legs, tails, and cameras travel along arcs. Refine your animation curves to follow natural arcs for a polished feel.
 
 These principles apply to motion graphics as much as to character animation — every title sequence, app animation, and explainer video benefits from them.`,
-    author: "Anmolofficial Team",
+    author: "Design Vidya Team",
     publishedAt: "2026-09-08",
     readTime: "6 min read",
   },
@@ -128,7 +128,7 @@ Animators bring characters to life shot by shot, applying the principles of moti
 VFX shots are composited, lighting and color are refined, sound design is layered in, music is mixed, and the final render is output.
 
 Every phase feeds the next; skipping or rushing any stage shows in the final product.`,
-    author: "Anmolofficial Team",
+    author: "Design Vidya Team",
     publishedAt: "2026-09-15",
     readTime: "9 min read",
   },
@@ -157,7 +157,7 @@ Junior roles are scarce. Apply to smaller studios in addition to the big names �
 Software updates constantly, and new techniques appear every year. The artists who stay curious keep working.
 
 Your first job isn't the finish line — it's where your craft really begins.`,
-    author: "Anmolofficial Team",
+    author: "Design Vidya Team",
     publishedAt: "2026-09-22",
     readTime: "7 min read",
   },
