@@ -7,6 +7,47 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const PAGE_SIZE = 3;
 
+/**
+ * Card for one team member. Description is clamped to 3 lines and a
+ * "Read more" link appears only when the text actually overflows, so
+ * uneven bio lengths never leave a dead gap in the row.
+ */
+function InstructorCard({ member }: { member: (typeof team)[number] }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="basis-full sm:basis-[calc((100%-2rem)/3)] bg-white border border-gray-200 rounded-2xl p-3 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full">
+      <div className="w-full aspect-[3/4] bg-gray-100 rounded-xl mb-4 overflow-hidden relative">
+        <Image
+          src={member.image}
+          alt={member.name}
+          width={200}
+          height={267}
+          sizes="(max-width: 640px) 100vw, 200px"
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="text-center flex flex-col">
+        <div>
+          <h3 className="font-bold text-sm text-[#111111] mb-1 min-h-[20px] flex items-center justify-center">{member.name}</h3>
+          <div className="w-6 h-0.5 bg-[#0069E0] mx-auto my-2 rounded-full"></div>
+          <p className="text-[#0069E0] text-[10px] font-bold uppercase tracking-wider mb-2 min-h-[28px] flex items-center justify-center">{member.role}</p>
+        </div>
+        <p className={`text-[11px] text-gray-500 leading-tight text-center ${expanded ? "" : "line-clamp-3"}`}>
+          {member.description}
+        </p>
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-1 text-[11px] font-semibold text-[#0069E0] hover:underline"
+        >
+          {expanded ? "Read less" : "Read more"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function HelpSection() {
   const [pageIndex, setPageIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -65,7 +106,7 @@ export default function HelpSection() {
             </div>
           </div>
 
-          <div className="lg:w-1/2 overflow-hidden relative h-[450px]">
+          <div className="lg:w-1/2 overflow-hidden relative min-h-[450px]">
             <motion.div
               className="h-full"
               onMouseEnter={() => setIsPaused(true)}
@@ -81,29 +122,7 @@ export default function HelpSection() {
                   transition={{ duration: 0.5 }}
                 >
                   {current.map((member) => (
-                    <div
-                      key={member.id}
-                      className="basis-full sm:basis-[calc((100%-2rem)/3)] bg-white border border-gray-200 rounded-2xl p-3 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full"
-                    >
-                      <div className="w-full aspect-[3/4] bg-gray-100 rounded-xl mb-4 overflow-hidden relative">
-                        <Image
-                          src={member.image}
-                          alt={member.name}
-                          width={200}
-                          height={267}
-                          sizes="(max-width: 640px) 100vw, 200px"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="text-center mt-auto flex flex-col justify-between flex-1">
-                        <div>
-                          <h3 className="font-bold text-sm text-[#111111] mb-1 min-h-[20px] flex items-center justify-center">{member.name}</h3>
-                          <div className="w-6 h-0.5 bg-[#0069E0] mx-auto my-2 rounded-full"></div>
-                          <p className="text-[#0069E0] text-[10px] font-bold uppercase tracking-wider mb-2 min-h-[28px] flex items-center justify-center">{member.role}</p>
-                        </div>
-                        <p className="text-[11px] text-gray-500 leading-tight min-h-[48px] flex items-center justify-center">{member.description}</p>
-                      </div>
-                    </div>
+                    <InstructorCard key={member.id} member={member} />
                   ))}
                 </motion.div>
               </AnimatePresence>
