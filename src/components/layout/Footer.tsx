@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 // Removing these imports as the current version of lucide-react seems to have different exports
 // import { Linkedin, Instagram, Youtube } from "lucide-react";
 
@@ -10,6 +11,9 @@ export default function Footer() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
           {/* Left - Brand Info */}
           <div>
+            <div className="inline-flex items-center justify-center bg-white rounded-2xl p-3 mb-4">
+              <Image src="/images/Design-Vidya-Logo.png" alt="Design Vidya" width={100} height={95} className="h-14 w-auto object-contain" />
+            </div>
             <div className="text-3xl font-bold mb-4">Design Vidya</div>
             <p className="text-sm opacity-80 leading-relaxed max-w-sm mb-6">
               Design Vidya is an online learning platform empowers individuals to build confidence, professional portfolios and career opportunities by making practical, expert-led creative education affordable and accessible.

@@ -118,7 +118,7 @@ export default function LoginForm() {
           <Link href="/" className="inline-flex flex-col items-center group">
             <div className="w-16 h-16 rounded-2xl bg-white shadow-sm border border-border p-2.5 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
               <Image
-                src="/images/Design Vidya Logo.jpg.jpeg"
+                src="/images/Design-Vidya-Logo.png"
                 alt="Design Vidya"
                 width={56}
                 height={56}
