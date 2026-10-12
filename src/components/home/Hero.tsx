@@ -40,14 +40,14 @@ export default function Hero() {
           >
             <div aria-hidden className="absolute -inset-6 rounded-full bg-primary/10 blur-2xl lg:hidden" />
             <Image
-              src="/images/banner-image.png"
+              src="/images/banner-image.jpeg"
               alt="Design Vidya"
-              width={500}
-              height={580}
+              width={1363}
+              height={1057}
               priority
               fetchPriority="high"
               sizes="(max-width: 1024px) 60vw, 500px"
-              className="relative z-10 h-72 w-auto object-contain object-bottom sm:h-96 lg:h-[580px] lg:translate-y-4"
+              className="relative z-10 h-72 w-auto object-contain object-bottom sm:h-96 lg:h-[580px] lg:translate-y-4 rounded-2xl shadow-2xl"
             />
           </motion.div>
         </div>
