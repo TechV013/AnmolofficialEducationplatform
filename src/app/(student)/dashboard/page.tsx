@@ -49,6 +49,15 @@ export default async function DashboardPage() {
                 </div>
             )}
             </section>
+
+            <div className="flex justify-center">
+              <Link
+                href="/courses"
+                className="bg-primary text-white px-6 py-3 rounded-full font-bold hover:bg-primary-hover transition-colors"
+              >
+                Explore More Courses
+              </Link>
+            </div>
         </div>
     </div>
   );
