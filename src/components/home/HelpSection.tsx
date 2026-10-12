@@ -5,7 +5,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const PAGE_SIZE = 3;
+/** sm and up show three cards per page; below that, one at a time. */
+const DESKTOP_PAGE_SIZE = 3;
+const MOBILE_PAGE_SIZE = 1;
 
 /**
  * Card for one team member. Description is clamped to 3 lines and a
@@ -16,7 +18,7 @@ function InstructorCard({ member }: { member: (typeof team)[number] }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="basis-full sm:basis-[calc((100%-2rem)/3)] bg-white border border-gray-200 rounded-2xl p-3 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full">
+    <div className="basis-full sm:basis-[calc((100%-2rem)/3)] max-w-[300px] sm:max-w-none mx-auto bg-white border border-gray-200 rounded-2xl p-3 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full shrink-0 sm:shrink">
       <div className="w-full aspect-[3/4] bg-gray-100 rounded-xl mb-4 overflow-hidden relative">
         <Image
           src={member.image}
@@ -51,10 +53,24 @@ function InstructorCard({ member }: { member: (typeof team)[number] }) {
 export default function HelpSection() {
   const [pageIndex, setPageIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [cardsPerPage, setCardsPerPage] = useState(DESKTOP_PAGE_SIZE);
+
+  // One card per page below sm so a leftover single card never spans the
+  // whole screen; three per page from sm up.
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    const update = () => {
+      setCardsPerPage(mq.matches ? MOBILE_PAGE_SIZE : DESKTOP_PAGE_SIZE);
+      setPageIndex(0);
+    };
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   const pages: (typeof team)[] = [];
-  for (let i = 0; i < team.length; i += PAGE_SIZE) {
-    pages.push(team.slice(i, i + PAGE_SIZE));
+  for (let i = 0; i < team.length; i += cardsPerPage) {
+    pages.push(team.slice(i, i + cardsPerPage));
   }
   const pageCount = pages.length;
   const current = pages[pageIndex % Math.max(1, pageCount)] ?? [];
@@ -115,7 +131,7 @@ export default function HelpSection() {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={pageIndex}
-                  className="flex gap-4 h-full justify-center"
+                  className="flex gap-4 h-full items-stretch justify-center"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
