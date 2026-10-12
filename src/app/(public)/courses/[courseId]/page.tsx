@@ -91,7 +91,17 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
 
   const user = await getCurrentUser();
   const isSignedIn = Boolean(user);
-  const isEnrolled = user ? await hasCourseAccess(user.id, course.id) : false;
+  let isEnrolled = user ? await hasCourseAccess(user.id, course.id) : false;
+
+  // Safety net: if the student just came back from checkout with a pending
+  // order (callback timed out or webhook not yet delivered), reconcile it
+  // against PayU before rendering, so a successful payment still grants
+  // access on this page load. Only runs when there is a pending order.
+  if (user && !isEnrolled && !course.isFree) {
+    const { reconcileLatestPendingOrder } = await import("@/services/payments/payuReconcile.service");
+    await reconcileLatestPendingOrder(user.id, course.id);
+    isEnrolled = await hasCourseAccess(user.id, course.id);
+  }
 
   const reviews = await prisma.review.findMany({
     where: { courseId: course.id },
