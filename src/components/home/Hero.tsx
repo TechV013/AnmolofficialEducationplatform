@@ -40,7 +40,7 @@ export default function Hero() {
           >
             <div aria-hidden className="absolute -inset-6 rounded-full bg-primary/10 blur-2xl lg:hidden" />
             <Image
-              src="/images/banner-image.jpeg"
+              src="/images/banner-image.png"
               alt="Design Vidya"
               width={500}
               height={580}
