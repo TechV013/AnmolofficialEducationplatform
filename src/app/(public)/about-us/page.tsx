@@ -50,7 +50,7 @@ export default function AboutUsPage() {
                 Have questions or need guidance choosing the right path? Connect with any of our expert instructors.
               </p>
               <Link 
-                href="https://forms.gle/demo-booking-placeholder" 
+                href="https://docs.google.com/forms/d/e/1FAIpQLScClEiD72Q7fWOGmyLV-u5iiqgxRslAXsgWPoy5V0XqVwvNDw/viewform" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-full font-bold hover:bg-primary-hover transition-all shadow-lg"
