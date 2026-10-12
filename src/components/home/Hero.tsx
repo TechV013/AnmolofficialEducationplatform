@@ -47,7 +47,7 @@ export default function Hero() {
               priority
               fetchPriority="high"
               sizes="(max-width: 1024px) 60vw, 500px"
-              className="relative z-10 h-72 w-auto object-contain object-bottom sm:h-96 lg:h-[580px] lg:translate-y-4 rounded-2xl shadow-2xl"
+              className="relative z-10 h-72 w-auto object-contain object-bottom sm:h-96 lg:h-[580px] lg:translate-y-4 [mask-image:linear-gradient(to_right,transparent,#000_10%,#000_90%,transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,#000_10%,#000_90%,transparent)]"
             />
           </motion.div>
         </div>
