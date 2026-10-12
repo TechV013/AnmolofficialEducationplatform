@@ -281,8 +281,17 @@ export default function ClassroomClient({
 
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <div className="p-4 bg-white border-b border-border flex items-center justify-between lg:hidden">
-          <span className="font-bold text-sm truncate">{course.title}</span>
-          <Link href="/my-learning" className="text-xs font-semibold text-primary">My Learning</Link>
+          <div className="flex min-w-0 items-center gap-2">
+            <Link
+              href="/dashboard"
+              aria-label="Back to Dashboard"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-slate-100 hover:text-primary transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+            <span className="font-bold text-sm truncate">{course.title}</span>
+          </div>
+          <Link href="/my-learning" className="text-xs font-semibold text-primary shrink-0">My Learning</Link>
         </div>
 
         <div className="p-6 md:p-8 max-w-4xl mx-auto w-full">

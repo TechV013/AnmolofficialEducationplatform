@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Module } from "@/types/lms";
 import { cn } from "@/lib/utils";
-import { ChevronDown, Play, FileText, HelpCircle, CheckCircle2 } from "lucide-react";
+import { ChevronDown, Play, FileText, HelpCircle, CheckCircle2, ArrowLeft } from "lucide-react";
 import Progress from "@/components/ui/Progress";
 
 interface SidebarProps {
@@ -47,6 +47,13 @@ export default function Sidebar({ courseId, lessonId, modules, progressMap }: Si
   return (
     <div className="w-80 bg-surface border-r border-border h-screen overflow-y-auto flex flex-col">
       <div className="p-5 border-b border-border">
+        <Link
+          href="/dashboard"
+          className="mb-3 inline-flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-primary transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Dashboard
+        </Link>
         <h2 className="text-lg font-bold text-text mb-3">Course Content</h2>
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs text-muted">

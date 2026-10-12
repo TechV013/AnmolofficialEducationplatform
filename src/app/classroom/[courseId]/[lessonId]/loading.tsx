@@ -2,6 +2,7 @@ export default function ClassroomLoading() {
   return (
     <div className="flex h-screen bg-background overflow-hidden animate-pulse">
       <div className="hidden lg:block w-80 shrink-0 bg-surface border-r border-border p-5 space-y-4">
+        <div className="h-4 bg-slate-200 rounded w-36" />
         <div className="h-5 bg-slate-200 rounded w-3/4" />
         <div className="h-3 bg-slate-200 rounded w-full" />
         <div className="space-y-3 mt-6">
