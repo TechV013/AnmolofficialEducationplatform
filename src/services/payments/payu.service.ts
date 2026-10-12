@@ -53,7 +53,10 @@ export function generatePayUResponseHash(
 ): string {
   const str = (v: unknown) => (v == null ? "" : String(v));
   const additionalCharges = str(postback.additional_charges ?? postback.additionalCharges);
-  const splitInfo = str(postback.splitInfo ?? postback.split_info);
+  // PayU spells this field inconsistently across products: splitInfo (docs),
+  // split_info, or plain splitinfo in webhook payloads. Missing the alias
+  // shifts every pipe in the hash and makes a valid signature fail.
+  const splitInfo = str(postback.splitInfo ?? postback.split_info ?? postback.splitinfo);
 
   const head = [salt, str(postback.status)];
   if (splitInfo) head.push(splitInfo);

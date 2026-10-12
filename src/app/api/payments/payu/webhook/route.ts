@@ -29,6 +29,9 @@ export async function POST(req: NextRequest) {
 
   const { mihpayid, txnid, status, amount, currency, hash } = data;
 
+  // Field names only — never values, which carry payment PII.
+  const receivedFields = Object.keys(data).sort().join(",");
+
   let config;
   try {
     config = getPayUConfig();
@@ -40,11 +43,17 @@ export async function POST(req: NextRequest) {
   // key supplied in the payload would let a caller pick the key their hash was
   // built from.
   if (!safeEqual(data.key || "", config.key)) {
+    console.log(
+      `PayU webhook rejected: key mismatch txnid=${txnid || "missing"} status=${status || "missing"} fields=${receivedFields}`
+    );
     return new NextResponse("Invalid signature", { status: 400 });
   }
 
   const expectedHash = generatePayUResponseHash(data, config.salt, config.key);
   if (!safeEqual(expectedHash, hash || "")) {
+    console.log(
+      `PayU webhook rejected: hash mismatch txnid=${txnid || "missing"} status=${status || "missing"} additional_charges=${data.additional_charges ? "present" : "absent"} splitinfo=${data.splitinfo ?? data.splitInfo ?? data.split_info ? "present" : "absent"} fields=${receivedFields}`
+    );
     return new NextResponse("Invalid signature", { status: 400 });
   }
 

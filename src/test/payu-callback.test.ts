@@ -62,6 +62,13 @@ function location(res: Response): string {
   return res.headers.get("location") ?? "";
 }
 
+// 303 See Other makes the browser follow with GET. PayU's postback is a
+// cross-site POST; a 307 repeats the POST without the session cookie and
+// landed users on a 405 static /login page after a successful payment.
+function expectSeeOther(res: Response): void {
+  expect(res.status).toBe(303);
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   process.env.PAYU_MERCHANT_KEY = KEY;
@@ -78,6 +85,7 @@ afterEach(() => {
 describe("PayU callback (POST form body)", () => {
   it("confirms the order for a correctly signed success response", async () => {
     const res = await POST(postRequest(sign()));
+    expectSeeOther(res);
     expect(location(res)).toContain("payment=success");
     expect(confirmPaidOrder).toHaveBeenCalledWith({
       orderId: "order-1",
@@ -98,6 +106,7 @@ describe("PayU callback (POST form body)", () => {
 
   it("rejects a response whose status is not success", async () => {
     const res = await POST(postRequest(sign({ status: "failure" })));
+    expectSeeOther(res);
     expect(location(res)).toContain("payment=failed");
     expect(confirmPaidOrder).not.toHaveBeenCalled();
   });
@@ -115,6 +124,7 @@ describe("PayU callback (GET query parameters)", () => {
   // the hash never matched and every PayU return landed on payment=failed.
   it("confirms the order from query parameters alone", async () => {
     const res = await GET(getRequest(sign()));
+    expectSeeOther(res);
     expect(location(res)).toContain("payment=success");
     expect(confirmPaidOrder).toHaveBeenCalledWith(
       expect.objectContaining({ orderId: "order-1", amountPaise: 99900 })

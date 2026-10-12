@@ -42,6 +42,10 @@ async function readResponseParams(req: NextRequest): Promise<Record<string, stri
   return params;
 }
 
+// Every redirect below is 303 See Other so the browser re-issues the follow-up
+// as GET. PayU's postback is a cross-site POST; a default 307 makes the browser
+// repeat the POST to our pages without the session cookie, which bounced users
+// to a static /login that answers POST with 405 after a successful payment.
 async function handleCallback(req: NextRequest) {
   const startedAt = Date.now();
   try {
@@ -59,12 +63,12 @@ async function handleCallback(req: NextRequest) {
       console.log(
         `PayU callback rejected after ${Date.now() - startedAt}ms: hash=${safeEqual(expectedHash, hash || "")} status=${status || "missing"} txnid=${txnid || "missing"}`
       );
-      return NextResponse.redirect(new URL("/courses?payment=failed", req.url));
+      return NextResponse.redirect(new URL("/courses?payment=failed", req.url), 303);
     }
 
     const amountPaise = parseAmountToPaise(amount);
     if (amountPaise === null) {
-      return NextResponse.redirect(new URL("/courses?payment=failed", req.url));
+      return NextResponse.redirect(new URL("/courses?payment=failed", req.url), 303);
     }
 
     const internalOrder = await prisma.order.findUnique({
@@ -74,7 +78,7 @@ async function handleCallback(req: NextRequest) {
 
     if (!internalOrder) {
       console.log(`PayU callback: order not found for txnid=${txnid} after ${Date.now() - startedAt}ms`);
-      return NextResponse.redirect(new URL("/courses?payment=not_found", req.url));
+      return NextResponse.redirect(new URL("/courses?payment=not_found", req.url), 303);
     }
 
     if (internalOrder.status !== "PAID") {
@@ -88,10 +92,10 @@ async function handleCallback(req: NextRequest) {
     }
 
     console.log(`PayU callback confirmed order=${internalOrder.id} in ${Date.now() - startedAt}ms`);
-    return NextResponse.redirect(new URL("/my-learning?payment=success", req.url));
+    return NextResponse.redirect(new URL("/my-learning?payment=success", req.url), 303);
   } catch (err) {
     console.error(`PayU Callback Error after ${Date.now() - startedAt}ms:`, err);
-    return NextResponse.redirect(new URL("/courses?payment=error", req.url));
+    return NextResponse.redirect(new URL("/courses?payment=error", req.url), 303);
   }
 }
 

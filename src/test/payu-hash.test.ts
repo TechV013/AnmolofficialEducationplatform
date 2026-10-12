@@ -234,6 +234,18 @@ describe("reverse hash", () => {
       .digest("hex");
     expect(generatePayUResponseHash(postback2, SALT, KEY)).toBe(expected);
   });
+
+  it("accepts the lowercase splitinfo alias used in webhook payloads", () => {
+    const expected = crypto
+      .createHash("sha512")
+      .update(
+        `${SALT}|success|split-json|||||||||||john@example.com|John|Test Product|10.00|123456789|${KEY}`,
+        "utf8"
+      )
+      .digest("hex");
+    expect(generatePayUResponseHash({ ...postback, splitinfo: "split-json" }, SALT, KEY)).toBe(expected);
+    expect(generatePayUResponseHash({ ...postback, split_info: "split-json" }, SALT, KEY)).toBe(expected);
+  });
 });
 
 describe("parseAmountToPaise", () => {
