@@ -68,7 +68,7 @@ export default function WorkspaceHeader({ title = "Design Vidya", user }: Worksp
     <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border/50 bg-white/80 px-6 backdrop-blur-md">
       <div className="flex items-center gap-4">
         <Link href="/" className="flex shrink-0 items-center gap-2">
-          <Image src="/images/Design-Vidya-Logo.png" alt="Design Vidya" width={100} height={95} className="h-12 w-auto object-contain" />
+          <Image src="/images/Design-Vidya-Logo.png" alt="Design Vidya" width={100} height={95} className="h-14 w-auto object-contain" />
           <span className="hidden text-lg font-bold tracking-tight text-primary sm:block">Design Vidya</span>
         </Link>
         <nav className="hidden items-center gap-1.5 text-sm text-slate-500 md:flex" aria-label="Breadcrumb">

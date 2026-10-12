@@ -12,7 +12,7 @@ export default function Footer() {
           {/* Left - Brand Info */}
           <div>
             <div className="mb-4">
-              <Image src="/images/Design-Vidya_whitefooter.png" alt="Design Vidya" width={106} height={100} className="h-20 w-auto object-contain" />
+              <Image src="/images/Design-Vidya_whitefooter.png" alt="Design Vidya" width={106} height={100} className="h-28 w-auto object-contain" />
             </div>
             <div className="text-3xl font-bold mb-4">Design Vidya</div>
             <p className="text-sm opacity-80 leading-relaxed max-w-sm mb-6">

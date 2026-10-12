@@ -40,7 +40,7 @@ export default function Navbar() {
       <nav className="sticky top-0 z-50 bg-white/70 backdrop-blur-md border-b border-border/50 hidden md:block">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center">
-            <Image src="/images/Design-Vidya-Logo.png" alt="Design Vidya" width={100} height={95} className="h-12 w-auto object-contain" priority />
+            <Image src="/images/Design-Vidya-Logo.png" alt="Design Vidya" width={100} height={95} className="h-14 w-auto object-contain" priority />
           </Link>
           <div className="hidden lg:flex items-center space-x-8 text-sm font-medium text-dark">
             {NAV_LINKS.map((link) => (
