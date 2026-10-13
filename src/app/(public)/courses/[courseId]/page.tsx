@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
+import { Suspense } from "react";
 import {
   ChevronRight,
   Star,
@@ -63,25 +64,29 @@ const STAR_MAP = [1, 2, 3, 4, 5];
 
 export default async function CourseDetailPage({ params }: { params: Promise<{ courseId: string }> }) {
   const { courseId } = await params;
-  const course = await getCourseById(courseId);
+  
+  // Parallelize fetches
+  const [course, user] = await Promise.all([
+    getCourseById(courseId),
+    getCurrentUser()
+  ]);
   if (!course) notFound();
 
-  // Server-side draft/archive access control (no client-side hiding)
+  // Server-side draft/archive access control
   if (course.status !== "PUBLISHED") {
-    const viewer = await getCurrentUser();
-    if (!viewer || !viewer.id) notFound();
+    if (!user || !user.id) notFound();
     const dbViewer = prisma.user?.findUnique
       ? await prisma.user.findUnique({
-          where: { id: viewer.id },
+          where: { id: user.id },
           select: { role: true, isActive: true }
         })
-      : { role: viewer.role, isActive: true };
+      : { role: user.role, isActive: true };
     if (!dbViewer || !dbViewer.isActive) notFound();
     if (dbViewer.role === "ADMIN") {
       // admin allowed
     } else if (dbViewer.role === "INSTRUCTOR") {
       const assignment = await prisma.courseInstructor.findUnique({
-        where: { courseId_userId: { courseId: course.id, userId: viewer.id } }
+        where: { courseId_userId: { courseId: course.id, userId: user.id } }
       });
       if (!assignment) notFound();
     } else {
@@ -89,33 +94,35 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
     }
   }
 
-  const user = await getCurrentUser();
   const isSignedIn = Boolean(user);
   let isEnrolled = user ? await hasCourseAccess(user.id, course.id) : false;
 
-  // Safety net: if the student just came back from checkout with a pending
-  // order (callback timed out or webhook not yet delivered), reconcile it
-  // against PayU before rendering, so a successful payment still grants
-  // access on this page load. Only runs when there is a pending order.
+  // Safety net: reconcile pending order
   if (user && !isEnrolled && !course.isFree) {
     const { reconcileLatestPendingOrder } = await import("@/services/payments/payuReconcile.service");
     await reconcileLatestPendingOrder(user.id, course.id);
     isEnrolled = await hasCourseAccess(user.id, course.id);
   }
 
-  const reviews = await prisma.review.findMany({
-    where: { courseId: course.id },
-    orderBy: { createdAt: "desc" },
-    include: { user: { select: { name: true } }, repliedBy: { select: { name: true } } }
-  });
+  const [reviews, relatedCourses] = await Promise.all([
+    prisma.review.findMany({
+      where: { courseId: course.id },
+      orderBy: { createdAt: "desc" },
+      include: { user: { select: { name: true } }, repliedBy: { select: { name: true } } }
+    }),
+    getCourseSummaries()
+  ]);
 
   const avgRating = reviews.length > 0
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
     : 0;
-  const distribution = STAR_MAP.map((n) => ({
-    rating: n,
-    count: reviews.filter((r) => r.rating === n).length
-  }));
+
+  const distribution = STAR_MAP.map((n) => ({ rating: n, count: 0 }));
+  for (const r of reviews) {
+    const d = distribution.find((d) => d.rating === r.rating);
+    if (d) d.count++;
+  }
+
   const reviewItems = reviews.map((r) => ({
     id: r.id,
     rating: r.rating,
@@ -124,7 +131,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
     createdByName: r.user.name || "Student"
   }));
 
-  const related = (await getCourseSummaries())
+  const related = relatedCourses
     .filter((c) => c.id !== course.id)
     .sort((a, b) =>
       (b.category === course.category ? 1 : 0) - (a.category === course.category ? 1 : 0) ||
@@ -262,7 +269,9 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
                 reviews={
                   <div className="space-y-6">
                     <RatingSummary avgRating={avgRating} reviewsCount={reviews.length} distribution={distribution} />
-                    <ReviewSection courseId={course.id} reviews={reviewItems} canReview={isEnrolled} isSignedIn={isSignedIn} />
+                    <Suspense fallback={<div className="p-8 text-center text-muted">Loading reviews...</div>}>
+                      <ReviewSection courseId={course.id} reviews={reviewItems} canReview={isEnrolled} isSignedIn={isSignedIn} />
+                    </Suspense>
                   </div>
                 }
               />
