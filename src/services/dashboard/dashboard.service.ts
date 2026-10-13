@@ -1,47 +1,77 @@
 import { prisma } from "@/lib/prisma";
 import { StudentDashboardDTO } from "@/types/dashboard";
-import { getCourseProgress } from "../progressService";
 
 export const getStudentDashboard = async (userId: string): Promise<StudentDashboardDTO> => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true, name: true, email: true }
-  });
+  const [user, enrollments, userProgress] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true, email: true }
+    }),
+    prisma.enrollment.findMany({
+      where: { userId, status: "ACTIVE" },
+      include: {
+        course: {
+          include: {
+            instructors: { include: { user: { select: { name: true } } } },
+            modules: {
+              orderBy: { position: "asc" },
+              include: {
+                lessons: {
+                  orderBy: { position: "asc" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }),
+    prisma.lessonProgress.findMany({
+      where: { userId },
+      include: { lesson: true }
+    })
+  ]);
 
   if (!user) throw new Error("User not found");
 
-  const enrollments = await prisma.enrollment.findMany({
-    where: { userId, status: "ACTIVE" },
-    include: {
-      course: {
-        include: {
-          instructors: { include: { user: { select: { name: true } } } },
-          modules: { include: { lessons: true } }
+  // Create quick lookup maps for in-memory processing
+  const progressByLessonId = new Map(userProgress.map((p) => [p.lessonId, p]));
+
+  const courses = enrollments.map((en) => {
+    const course = en.course;
+    const allLessons = course.modules.flatMap((m) => m.lessons);
+    
+    // Calculate progress % in-memory without extra DB calls
+    let completedCount = 0;
+    let latestWatchedProgress: typeof userProgress[0] | null = null;
+
+    for (const lesson of allLessons) {
+      const p = progressByLessonId.get(lesson.id);
+      if (p?.completed) {
+        completedCount++;
+      }
+      if (p?.lastWatchedAt) {
+        if (!latestWatchedProgress || p.lastWatchedAt > latestWatchedProgress.lastWatchedAt) {
+          latestWatchedProgress = p;
         }
       }
     }
-  });
 
-  const courses = await Promise.all(enrollments.map(async (en) => {
-    const progress = await getCourseProgress(userId, en.courseId);
-    
-    // Find last lesson
-    const lastProgress = await prisma.lessonProgress.findFirst({
-        where: { userId, lesson: { moduleId: { in: en.course.modules.map(m => m.id) } } },
-        orderBy: { lastWatchedAt: "desc" },
-        include: { lesson: true }
-    });
+    const progressPercent = allLessons.length > 0
+      ? Math.round((completedCount / allLessons.length) * 100)
+      : 0;
+
+    const firstLesson = course.modules[0]?.lessons[0];
 
     return {
-      courseId: en.course.id,
-      title: en.course.title,
-      thumbnail: en.course.thumbnail,
-      instructorName: en.course.instructors[0]?.user.name || null,
-      progressPercent: progress,
-      lastLessonId: lastProgress?.lessonId || en.course.modules[0]?.lessons[0]?.id || null,
-      lastLessonTitle: lastProgress?.lesson.title || en.course.modules[0]?.lessons[0]?.title || null
+      courseId: course.id,
+      title: course.title,
+      thumbnail: course.thumbnail,
+      instructorName: course.instructors[0]?.user.name || null,
+      progressPercent,
+      lastLessonId: latestWatchedProgress?.lessonId || firstLesson?.id || null,
+      lastLessonTitle: latestWatchedProgress?.lesson.title || firstLesson?.title || null
     };
-  }));
+  });
 
   return {
     user: { id: user.id, name: user.name, email: user.email },
