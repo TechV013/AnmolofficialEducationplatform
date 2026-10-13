@@ -203,6 +203,7 @@ model Enrollment {
   user       User             @relation(fields: [userId], references: [id])
 
   @@unique([userId, courseId])
+  @@index([userId])
   @@index([courseId, status])
 }
 
@@ -218,7 +219,8 @@ model LessonProgress {
   user           User      @relation(fields: [userId], references: [id])
 
   @@unique([userId, lessonId])
-  @@index([userId, lessonId])
+  @@index([userId])
+  @@index([lessonId])
 }
 
 model Note {
@@ -232,6 +234,7 @@ model Note {
   user      User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, lessonId])
+  @@index([userId])
 }
 
 model Review {
@@ -251,6 +254,7 @@ model Review {
 
   @@unique([userId, courseId])
   @@index([courseId])
+  @@index([userId])
 }
 
 model Order {
@@ -268,6 +272,7 @@ model Order {
 
   @@index([providerOrderId])
   @@index([userId, courseId])
+  @@index([userId])
   @@index([status])
 }
 

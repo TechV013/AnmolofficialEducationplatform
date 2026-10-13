@@ -121,18 +121,22 @@ export const invalidateCourseListCache = () => {
   }
 };
 
-export const getCourseById = async (courseId: string): Promise<Course | null> => {
-  try {
-    const course = (await prisma.course.findUnique({
-      where: { id: courseId },
-      include: { ...COURSE_INCLUDE }
-    })) as unknown as CourseWithModules | null;
-    if (!course) return null;
-    const stats = await getCoursesStats([course.id]);
-    return mapCourse(course, stats.get(course.id));
-  } catch (e) {
-    console.warn(`getCourseById: DB unreachable for courseId ${courseId}, checking static catalog:`, e);
-    const found = staticCourses.find((c) => c.id === courseId);
-    return found || null;
-  }
-};
+export const getCourseById = unstable_cache(
+  async (courseId: string): Promise<Course | null> => {
+    try {
+      const course = (await prisma.course.findUnique({
+        where: { id: courseId },
+        include: { ...COURSE_INCLUDE }
+      })) as unknown as CourseWithModules | null;
+      if (!course) return null;
+      const stats = await getCoursesStats([course.id]);
+      return mapCourse(course, stats.get(course.id));
+    } catch (e) {
+      console.warn(`getCourseById: DB unreachable for courseId ${courseId}, checking static catalog:`, e);
+      const found = staticCourses.find((c) => c.id === courseId);
+      return found || null;
+    }
+  },
+  ["course-detail"],
+  { tags: ["course-detail"], revalidate: 300 }
+);
