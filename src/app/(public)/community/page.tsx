@@ -14,7 +14,7 @@ export default function CommunityPage() {
             Learn together. Share ideas. Keep growing.
           </h1>
           <a 
-            href="https://wa.me/917073345025"
+            href="https://wa.me/917073722614"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex w-full items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-full font-bold sm:w-auto transition-colors"

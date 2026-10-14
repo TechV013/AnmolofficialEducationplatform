@@ -122,7 +122,7 @@ export default async function CoursesPage({
               <p className="text-sm text-muted mt-1">Message us on WhatsApp and we&apos;ll help you pick the right track.</p>
             </div>
             <a
-              href="https://wa.me/917073345025"
+              href="https://wa.me/917073722614"
               target="_blank"
               rel="noopener noreferrer"
               className="shrink-0 bg-[#25D366] text-white px-6 py-3 rounded-full font-bold text-sm hover:bg-[#1DA851] transition-colors shadow-md shadow-[#25D366]/20"

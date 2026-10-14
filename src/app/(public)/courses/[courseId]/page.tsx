@@ -32,7 +32,7 @@ import ReviewSection from "./ReviewSection";
 import StickyMobileEnrollBar from "./StickyMobileEnrollBar";
 import { CourseJsonLd } from "@/components/seo/StructuredData";
 
-const WHATSAPP_NUMBER = "917073345025";
+const WHATSAPP_NUMBER = "917073722614";
 
 const LEVEL_STYLES: Record<string, string> = {
   Beginner: "bg-emerald-100 text-emerald-700",

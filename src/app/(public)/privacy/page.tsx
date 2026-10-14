@@ -482,7 +482,7 @@ export default function PrivacyPage() {
               </a>
             </li>
             <li>
-              <span className="font-semibold text-text">Phone:</span> [Official Contact Number]
+              <span className="font-semibold text-text">Phone:</span> 7073722614
             </li>
           </ul>
         </section>
