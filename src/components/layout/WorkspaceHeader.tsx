@@ -30,6 +30,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   notes: "Notes",
   profile: "Profile",
   reviews: "Reviews",
+  testimonials: "Testimonials",
   classroom: "Classroom",
   category: "Category",
 };

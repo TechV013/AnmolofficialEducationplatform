@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Home, Users, GraduationCap, BookOpen, List, Banknote, CreditCard, Award, MessageCircle, Settings, LogOut, ShieldCheck } from "lucide-react";
+import { Home, Users, GraduationCap, BookOpen, List, Banknote, CreditCard, Award, MessageCircle, Star, Settings, LogOut, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import UserAvatar from "@/components/ui/UserAvatar";
 
@@ -29,6 +29,7 @@ const GROUPS: NavGroup[] = [
       { href: "/admin/students", label: "Students", icon: GraduationCap },
       { href: "/admin/instructors", label: "Instructors", icon: Users },
       { href: "/admin/courses", label: "Courses", icon: BookOpen },
+      { href: "/admin/testimonials", label: "Testimonials", icon: Star },
     ],
   },
   {

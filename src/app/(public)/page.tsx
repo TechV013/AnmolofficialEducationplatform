@@ -3,6 +3,7 @@ import CourseSection from "@/components/home/CourseSection";
 import GuidanceSection from "@/components/home/GuidanceSection";
 import SuccessStories from "@/components/home/SuccessStories";
 import dynamic from "next/dynamic";
+import { getPublishedTestimonials } from "@/services/testimonials/testimonial.service";
 
 export const revalidate = 300;
 
@@ -10,13 +11,15 @@ const HelpSection = dynamic(() => import("@/components/home/HelpSection"), {
   loading: () => <div className="py-20" />,
 });
 
-export default function Home() {
+export default async function Home() {
+  const testimonials = await getPublishedTestimonials();
+
   return (
     <>
       <Hero />
       <CourseSection />
       <GuidanceSection />
-      <SuccessStories />
+      <SuccessStories testimonials={testimonials} />
       <HelpSection />
     </>
   );

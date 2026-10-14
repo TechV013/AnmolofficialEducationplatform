@@ -4,13 +4,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { Star, Quote, Play, Video, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { testimonials } from "@/data/courses";
 import VideoReviewModal from "@/components/testimonials/VideoReviewModal";
 import type { Testimonial } from "@/types/lms";
 
 const PAGE_SIZE = 3;
 
-export default function SuccessStories() {
+export default function SuccessStories({ testimonials }: { testimonials: Testimonial[] }) {
   const [activeVideoTestimonial, setActiveVideoTestimonial] = useState<Testimonial | null>(null);
   const [pageIndex, setPageIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -33,6 +32,8 @@ export default function SuccessStories() {
   const goNext = () => setPageIndex((prev) => (prev + 1) % pageCount);
   const goPrev = () =>
     setPageIndex((prev) => (prev - 1 + pageCount) % pageCount);
+
+  if (testimonials.length === 0) return null;
 
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8 bg-background">

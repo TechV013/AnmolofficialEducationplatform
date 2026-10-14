@@ -89,8 +89,8 @@ export interface Testimonial {
   role: string;
   rating: number;
   quote: string;
-  category?: string;
-  videoUrl?: string;
-  thumbnail?: string;
-  courseTaken?: string;
+  category?: string | null;
+  videoUrl?: string | null;
+  thumbnail?: string | null;
+  courseTaken?: string | null;
 }

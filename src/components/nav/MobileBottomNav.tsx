@@ -9,6 +9,7 @@ import {
   GraduationCap,
   ClipboardList,
   User,
+  Star,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,7 @@ const CONFIGS: Record<Panel, Item[]> = {
     { href: "/admin", label: "Dashboard", icon: HomeIcon, match: (p) => p === "/admin" },
     { href: "/admin/courses", label: "Courses", icon: BookOpen, match: (p) => p.startsWith("/admin/courses") },
     { href: "/admin/users", label: "Users", icon: Users, match: (p) => p.startsWith("/admin/users") || p.startsWith("/admin/students") || p.startsWith("/admin/instructors") },
+    { href: "/admin/testimonials", label: "Reviews", icon: Star, match: (p) => p.startsWith("/admin/testimonials") },
     { href: "/admin/settings", label: "Settings", icon: Settings, match: (p) => p.startsWith("/admin/settings") },
   ],
   instructor: [

@@ -301,6 +301,24 @@ model Certificate {
   @@unique([userId, courseId])
 }
 
+model Testimonial {
+  id          String   @id @default(uuid())
+  name        String
+  role        String
+  category    String
+  courseTaken String?
+  rating      Int      @default(5)
+  quote       String
+  videoUrl    String?
+  thumbnail   String?
+  position    Int      @default(0)
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPublished, position])
+}
+
 model WebhookEvent {
   id              String    @id @default(uuid())
   providerEventId String    @unique @map("provider_event_id")
