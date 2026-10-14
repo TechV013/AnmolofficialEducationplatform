@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: "Blog — Design Vidya",
     description: "Insights on 3D modeling, animation, VFX, and creative careers from the Design Vidya team.",
     type: "website",
-    url: "https://www.anmolofficial.com/blog",
+    url: "https://www.designvidya.com/blog",
   },
 };
 

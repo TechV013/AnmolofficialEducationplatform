@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: "Privacy Policy — Design Vidya",
     description: "How we collect, use, and protect your personal data at Design Vidya.",
     type: "website",
-    url: "https://www.anmolofficial.com/privacy",
+    url: "https://www.designvidya.com/privacy",
   },
 };
 

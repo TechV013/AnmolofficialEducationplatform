@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     title: "Explore Courses — Design Vidya",
     description: "Browse creative skill courses - 3D Modeling, Animation, Rigging, Video Editing and more.",
     type: "website",
-    url: "https://www.anmolofficial.com/courses",
+    url: "https://www.designvidya.com/courses",
   },
 };
 

@@ -19,6 +19,6 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: "https://www.anmolofficial.com/sitemap.xml",
+    sitemap: "https://www.designvidya.com/sitemap.xml",
   };
 }

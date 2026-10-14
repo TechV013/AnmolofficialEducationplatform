@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: "Terms of Use — Design Vidya",
     description: "Terms and conditions for using the Design Vidya platform.",
     type: "website",
-    url: "https://www.anmolofficial.com/terms",
+    url: "https://www.designvidya.com/terms",
   },
 };
 

@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: post.title,
       description: post.excerpt,
       type: "article",
-      url: `https://www.anmolofficial.com/blog/${post.id}`,
+      url: `https://www.designvidya.com/blog/${post.id}`,
       publishedTime: post.publishedAt,
       authors: [post.author],
       tags: [post.category],

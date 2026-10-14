@@ -30,6 +30,7 @@ import CourseCard from "@/components/home/CourseCard";
 import EnrollButton from "./EnrollButton";
 import ReviewSection from "./ReviewSection";
 import StickyMobileEnrollBar from "./StickyMobileEnrollBar";
+import { CourseJsonLd } from "@/components/seo/StructuredData";
 
 const WHATSAPP_NUMBER = "917073345025";
 
@@ -53,7 +54,7 @@ export async function generateMetadata({ params }: { params: Promise<{ courseId:
       title: course.title,
       description: course.description,
       type: "website",
-      url: `https://www.anmolofficial.com/courses/${course.id}`,
+      url: `https://www.designvidya.com/courses/${course.id}`,
       images: course.thumbnail ? [{ url: course.thumbnail }] : undefined
     },
     robots: { index: true, follow: true }
@@ -171,6 +172,16 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ c
 
   return (
     <div className="min-h-screen bg-background">
+      <CourseJsonLd
+        id={course.id}
+        title={course.title}
+        description={course.description || ""}
+        thumbnail={course.thumbnail}
+        isFree={course.isFree}
+        price={course.price}
+        rating={reviews.length > 0 ? avgRating : undefined}
+        ratingCount={reviews.length > 0 ? reviews.length : undefined}
+      />
       <div className="mx-auto max-w-7xl px-4 pb-28 pt-6 sm:px-6 md:pb-12 lg:px-8">
         <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-1.5 text-sm text-muted">
           <Link href="/" className="hover:text-primary">Home</Link>
