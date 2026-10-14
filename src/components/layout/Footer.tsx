@@ -62,7 +62,7 @@ export default function Footer() {
                   <li><Link href="/blog" className="hover:underline">Blogs</Link></li>
                   <li>
                     <a
-                      href="https://wa.me/917073345025"
+                      href="https://docs.google.com/forms/d/e/1FAIpQLSfPxaMHTwxAhWdxOvivioUoaz0dMP_irdpZJ_RGXxaBk0D16g/viewform"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:underline"
