@@ -14,11 +14,11 @@ const MOBILE_PAGE_SIZE = 1;
  * "Read more" link appears only when the text actually overflows, so
  * uneven bio lengths never leave a dead gap in the row.
  */
-function InstructorCard({ member, basisClass }: { member: (typeof team)[number]; basisClass?: string }) {
+function InstructorCard({ member }: { member: (typeof team)[number] }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className={`basis-full ${basisClass ?? "sm:basis-[calc((100%-2rem)/3)]"} max-w-[300px] sm:max-w-none mx-auto bg-white border border-gray-200 rounded-2xl p-3 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full shrink-0 sm:shrink`}>
+    <div className="basis-full sm:basis-[calc((100%-2rem)/3)] max-w-[300px] sm:max-w-none mx-auto bg-white border border-gray-200 rounded-2xl p-3 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full shrink-0 sm:shrink">
       <div className="w-full aspect-[3/4] bg-gray-100 rounded-xl mb-4 overflow-hidden relative">
         <Image
           src={member.image}
@@ -74,12 +74,6 @@ export default function HelpSection() {
   }
   const pageCount = pages.length;
   const current = pages[pageIndex % Math.max(1, pageCount)] ?? [];
-
-  // A partial last page (fewer cards than cardsPerPage) would otherwise leave
-  // dead space; let those cards share the full row instead of sitting at 1/3 width.
-  const isPartialPage = current.length > 0 && current.length < cardsPerPage;
-  const partialBasis =
-    current.length === 1 ? "sm:basis-full" : "sm:basis-[calc((100%-1rem)/2)]";
 
   // Auto-advance every 5 seconds. Keyed on pageIndex so a manual arrow click
   // restarts the full interval on the newly shown page.
@@ -144,11 +138,7 @@ export default function HelpSection() {
                   transition={{ duration: 0.5 }}
                 >
                   {current.map((member) => (
-                    <InstructorCard
-                      key={member.id}
-                      member={member}
-                      basisClass={isPartialPage ? partialBasis : undefined}
-                    />
+                    <InstructorCard key={member.id} member={member} />
                   ))}
                 </motion.div>
               </AnimatePresence>
